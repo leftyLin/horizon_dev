@@ -1,0 +1,8 @@
+======================================================================
+The :mod:`openstack_dashboard.dashboards.project.routers.tests` Module
+======================================================================
+.. automodule:: openstack_dashboard.dashboards.project.routers.tests
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

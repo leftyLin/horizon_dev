@@ -1,0 +1,241 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.dashboards.project.routers.ports.tables Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.dashboards.project.routers.extensions Module" href="openstack_dashboard.dashboards.project.routers.extensions.html" />
+    <link rel="prev" title="The openstack_dashboard.dashboards.project.routers.ports.urls Module" href="openstack_dashboard.dashboards.project.routers.ports.urls.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-dashboards-project-routers-ports-tables-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.dashboards.project.routers.ports.tables</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-dashboards-project-routers-ports-tables-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.routers.ports.tables.</tt><tt class="descname">AddInterface</tt><big>(</big><em>attrs=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#AddInterface"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.LinkAction</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddInterface.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.project.routers.ports.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'name': 'create', '_allowed': &lt;function _allowed at 0x5a51e60&gt;, 'url': 'horizon:project:routers:addinterface', 'verbose_name': &lt;django.utils.functional.__proxy__ object at 0x84e3710&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, 'get_link_url': &lt;function get_link_url at 0x89398c0&gt;, 'classes': ('ajax-modal', 'btn-create'), '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__doc__': 'A table action which is simply a link rather than a form POST.\n\n    .. attribute:: name\n\n        Required. The short name or &quot;slug&quot; representing this\n        action. This name should not be changed at runtime.\n\n    .. attribute:: verbose_name\n\n        A string which will be rendered as the link text. (Required)\n\n    .. attribute:: url\n\n        A string or a callable which resolves to a url to be used as the link\n        target. You must either define the ``url`` attribute or override\n        the ``get_link_url`` method on the class.\n\n    .. attribute:: allowed_data_types\n\n        A list that contains the allowed data types of the action.  If the\n        datum\'s type is in this list, the action will be shown on the row\n        for the datum.\n\n        Defaults to be an empty list (``[]``). When set to empty, the action\n        will accept any kind of data.\n    ', '__init__': &lt;function __init__ at 0x5a51a28&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddInterface.</tt><tt class="descname">classes</tt><em class="property"> = ('ajax-modal', 'btn-create')</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">AddInterface.</tt><tt class="descname">get_link_url</tt><big>(</big><em>datum=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#AddInterface.get_link_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddInterface.</tt><tt class="descname">name</tt><em class="property"> = 'create'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddInterface.</tt><tt class="descname">url</tt><em class="property"> = 'horizon:project:routers:addinterface'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddInterface.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x84e3710&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.routers.ports.tables.</tt><tt class="descname">PortsTable</tt><big>(</big><em>request</em>, <em>data=None</em>, <em>needs_form_wrapper=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#PortsTable"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.base.DataTable</span></tt></p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">PortsTable.</tt><tt class="descname">Meta</tt><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#PortsTable.Meta"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="attribute">
+<dt>
+<tt class="descclassname">PortsTable.Meta.</tt><tt class="descname">name</tt><em class="property"> = 'interfaces'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">PortsTable.Meta.</tt><tt class="descname">row_actions</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.project.routers.ports.tables.RemoveInterface'&gt;,)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">PortsTable.Meta.</tt><tt class="descname">table_actions</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.project.routers.ports.tables.AddInterface'&gt;, &lt;class 'openstack_dashboard.dashboards.project.routers.ports.tables.RemoveInterface'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">PortsTable.Meta.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x7c75f50&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">PortsTable.</tt><tt class="descname">base_actions</tt><em class="property"> = {'create': &lt;AddInterface: create&gt;, 'delete': &lt;RemoveInterface: delete&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">PortsTable.</tt><tt class="descname">base_columns</tt><em class="property"> = {'name': &lt;Column: name&gt;, 'fixed_ips': &lt;Column: fixed_ips&gt;, 'status': &lt;Column: status&gt;, 'device_owner': &lt;Column: device_owner&gt;, 'admin_state': &lt;Column: admin_state&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">PortsTable.</tt><tt class="descname">get_object_display</tt><big>(</big><em>port</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#PortsTable.get_object_display"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.routers.ports.tables.</tt><tt class="descname">RemoveInterface</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#RemoveInterface"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.DeleteAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">RemoveInterface.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>datum=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#RemoveInterface.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveInterface.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.project.routers.ports.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_singular': &lt;django.utils.functional.__proxy__ object at 0x84e36d0&gt;, 'update': &lt;function update at 0x5ac4b90&gt;, 'get_success_url': &lt;function get_success_url at 0x5ac4c08&gt;, 'get_param_name': &lt;function get_param_name at 0x5a51b18&gt;, 'allowed': &lt;function allowed at 0x893a0c8&gt;, 'handle': &lt;function handle at 0x5ac4c80&gt;, 'failure_url': 'horizon:project:routers:detail', 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5ac4cf8&gt;, 'name': 'delete', 'data_type_plural': &lt;django.utils.functional.__proxy__ object at 0x84e3250&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5ac4e60&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51410&gt;, '_get_action_name': &lt;function _get_action_name at 0x5a51398&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'action': &lt;function action at 0x5ac4d70&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, '__doc__': 'Doc missing.', 'delete': &lt;function delete at 0x8939398&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveInterface.</tt><tt class="descname">data_type_plural</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x84e3250&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveInterface.</tt><tt class="descname">data_type_singular</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x84e36d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">RemoveInterface.</tt><tt class="descname">delete</tt><big>(</big><em>request</em>, <em>obj_id</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#RemoveInterface.delete"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveInterface.</tt><tt class="descname">failure_url</tt><em class="property"> = 'horizon:project:routers:detail'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.dashboards.project.routers.ports.tables.</tt><tt class="descname">get_device_owner</tt><big>(</big><em>port</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/routers/ports/tables.html#get_device_owner"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.project.routers.ports.urls.html"
+                                  title="previous chapter">The <tt class="docutils literal"><span class="pre">openstack_dashboard.dashboards.project.routers.ports.urls</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.project.routers.extensions.html"
+                                  title="next chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.project.routers.extensions</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.routers.ports.tables.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.project.routers.extensions.html" title="The openstack_dashboard.dashboards.project.routers.extensions Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.project.routers.ports.urls.html" title="The openstack_dashboard.dashboards.project.routers.ports.urls Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

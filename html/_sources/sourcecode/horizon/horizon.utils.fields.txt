@@ -1,0 +1,8 @@
+======================================
+The :mod:`horizon.utils.fields` Module
+======================================
+.. automodule:: horizon.utils.fields
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

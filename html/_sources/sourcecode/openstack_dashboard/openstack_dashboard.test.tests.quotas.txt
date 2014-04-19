@@ -1,0 +1,8 @@
+=======================================================
+The :mod:`openstack_dashboard.test.tests.quotas` Module
+=======================================================
+.. automodule:: openstack_dashboard.test.tests.quotas
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

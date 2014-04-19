@@ -1,0 +1,8 @@
+=====================================================================
+The :mod:`openstack_dashboard.dashboards.admin.projects.views` Module
+=====================================================================
+.. automodule:: openstack_dashboard.dashboards.admin.projects.views
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,8 @@
+==================================================
+The :mod:`horizon.conf.panel_template.urls` Module
+==================================================
+.. automodule:: horizon.conf.panel_template.urls
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,8 @@
+=============================================================================
+The :mod:`openstack_dashboard.openstack.common.notifier.rpc_notifier2` Module
+=============================================================================
+.. automodule:: openstack_dashboard.openstack.common.notifier.rpc_notifier2
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,8 @@
+====================================================================
+The :mod:`openstack_dashboard.openstack.common.rpc.impl_fake` Module
+====================================================================
+.. automodule:: openstack_dashboard.openstack.common.rpc.impl_fake
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

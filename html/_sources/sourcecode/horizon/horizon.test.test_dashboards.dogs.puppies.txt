@@ -1,0 +1,8 @@
+===========================================================
+The :mod:`horizon.test.test_dashboards.dogs.puppies` Module
+===========================================================
+.. automodule:: horizon.test.test_dashboards.dogs.puppies
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

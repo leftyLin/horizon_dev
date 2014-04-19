@@ -1,0 +1,311 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.openstack.common.log Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.openstack.common.config Module" href="openstack_dashboard.openstack.common.config.html" />
+    <link rel="prev" title="The openstack_dashboard.openstack.common.loopingcall Module" href="openstack_dashboard.openstack.common.loopingcall.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-openstack-common-log-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.openstack.common.log</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-openstack-common-log-module" title="Permalink to this headline">¶</a></h1>
+<p>Openstack logging handler.</p>
+<p>This module adds to logging functionality by adding the option to specify
+a context object when calling the various log methods.  If the context object
+is not specified, default formatting is used. Additionally, an instance uuid
+may be passed as part of the log message, which is intended to make it easier
+for admins to find messages related to a specific instance.</p>
+<p>It also allows setting of formatting information through conf.</p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">BaseLoggerAdapter</tt><big>(</big><em>logger</em>, <em>extra</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#BaseLoggerAdapter"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/logging.html#logging.LoggerAdapter" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">logging.LoggerAdapter</span></tt></a></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">BaseLoggerAdapter.</tt><tt class="descname">audit</tt><big>(</big><em>msg</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#BaseLoggerAdapter.audit"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">ColorHandler</tt><big>(</big><em>strm=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ColorHandler"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/logging.handlers.html#logging.StreamHandler" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">logging.StreamHandler</span></tt></a></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ColorHandler.</tt><tt class="descname">LEVEL_COLORS</tt><em class="property"> = {40: '\x1b[01;31m', 10: '\x1b[00;32m', 50: '\x1b[01;31m', 20: '\x1b[00;36m', 21: '\x1b[01;36m', 30: '\x1b[01;33m'}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ColorHandler.</tt><tt class="descname">format</tt><big>(</big><em>record</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ColorHandler.format"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">ContextAdapter</tt><big>(</big><em>logger</em>, <em>project_name</em>, <em>version_string</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ContextAdapter"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.log.BaseLoggerAdapter</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">ContextAdapter.</tt><tt class="descname">deprecated</tt><big>(</big><em>msg</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ContextAdapter.deprecated"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ContextAdapter.</tt><tt class="descname">handlers</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ContextAdapter.handlers"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContextAdapter.</tt><tt class="descname">process</tt><big>(</big><em>msg</em>, <em>kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ContextAdapter.process"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContextAdapter.</tt><tt class="descname">warn</tt><big>(</big><em>msg</em>, <em>*args</em>, <em>**kwargs</em><big>)</big></dt>
+<dd><p>Delegate a warning call to the underlying logger, after adding
+contextual information from this adapter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">ContextFormatter</tt><big>(</big><em>fmt=None</em>, <em>datefmt=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ContextFormatter"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/logging.html#logging.Formatter" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">logging.Formatter</span></tt></a></p>
+<p>A context.RequestContext aware formatter configured through flags.</p>
+<p>The flags used to set format strings are: logging_context_format_string
+and logging_default_format_string.  You can also specify
+logging_debug_format_suffix to append extra formatting if the log level is
+debug.</p>
+<p>For information about what variables are available for the formatter see:
+<a class="reference external" href="http://docs.python.org/library/logging.html#formatter">http://docs.python.org/library/logging.html#formatter</a></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">ContextFormatter.</tt><tt class="descname">format</tt><big>(</big><em>record</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ContextFormatter.format"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Uses contextstring if request_id is set, otherwise default.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContextFormatter.</tt><tt class="descname">formatException</tt><big>(</big><em>exc_info</em>, <em>record=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#ContextFormatter.formatException"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Format exception output with CONF.logging_exception_prefix.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">DeprecatedConfig</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#DeprecatedConfig"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">DeprecatedConfig.</tt><tt class="descname">message</tt><em class="property"> = u'Fatal call to deprecated config: %(msg)s'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">JSONFormatter</tt><big>(</big><em>fmt=None</em>, <em>datefmt=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#JSONFormatter"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/logging.html#logging.Formatter" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">logging.Formatter</span></tt></a></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">JSONFormatter.</tt><tt class="descname">format</tt><big>(</big><em>record</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#JSONFormatter.format"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">JSONFormatter.</tt><tt class="descname">formatException</tt><big>(</big><em>ei</em>, <em>strip_newlines=True</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#JSONFormatter.formatException"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">LazyAdapter</tt><big>(</big><em>name='unknown'</em>, <em>version='unknown'</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#LazyAdapter"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.log.BaseLoggerAdapter</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">LazyAdapter.</tt><tt class="descname">logger</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#LazyAdapter.logger"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">LogConfigError</tt><big>(</big><em>log_config</em>, <em>err_msg</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#LogConfigError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">LogConfigError.</tt><tt class="descname">message</tt><em class="property"> = u'Error loading logging config %(log_config)s: %(err_msg)s'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">NullHandler</tt><big>(</big><em>level=0</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#NullHandler"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">logging.Handler</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">NullHandler.</tt><tt class="descname">createLock</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#NullHandler.createLock"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">NullHandler.</tt><tt class="descname">emit</tt><big>(</big><em>record</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#NullHandler.emit"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">NullHandler.</tt><tt class="descname">handle</tt><big>(</big><em>record</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#NullHandler.handle"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">WritableLogger</tt><big>(</big><em>logger</em>, <em>level=20</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#WritableLogger"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A thin wrapper that responds to <cite>write</cite> and logs.</p>
+<dl class="method">
+<dt>
+<tt class="descclassname">WritableLogger.</tt><tt class="descname">write</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#WritableLogger.write"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">getLazyLogger</tt><big>(</big><em>name='unknown'</em>, <em>version='unknown'</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#getLazyLogger"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>create a pass-through logger that does not create the real logger
+until it is really needed and delegates all calls to the real logger
+once it is created</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">getLogger</tt><big>(</big><em>name='unknown'</em>, <em>version='unknown'</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#getLogger"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">set_defaults</tt><big>(</big><em>logging_context_format_string</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#set_defaults"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.openstack.common.log.</tt><tt class="descname">setup</tt><big>(</big><em>product_name</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/log.html#setup"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Setup logging.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.openstack.common.loopingcall.html"
+                                  title="previous chapter">The <tt class="docutils literal"><span class="pre">openstack_dashboard.openstack.common.loopingcall</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.openstack.common.config.html"
+                                  title="next chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.openstack.common.config</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.log.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.openstack.common.config.html" title="The openstack_dashboard.openstack.common.config Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.openstack.common.loopingcall.html" title="The openstack_dashboard.openstack.common.loopingcall Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

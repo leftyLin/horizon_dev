@@ -1,0 +1,561 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.dashboards.project.containers.tests &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.dashboards.project.containers.tests</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2012 United States Government as represented by the</span>
+<span class="c"># Administrator of the National Aeronautics and Space Administration.</span>
+<span class="c"># All Rights Reserved.</span>
+<span class="c">#</span>
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">from</span> <span class="nn">django.core.files.uploadedfile</span> <span class="kn">import</span> <span class="n">InMemoryUploadedFile</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">http</span>
+<span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">http</span> <span class="k">as</span> <span class="n">utils_http</span>
+
+<span class="kn">from</span> <span class="nn">mox</span> <span class="kn">import</span> <span class="n">IsA</span>  <span class="c"># noqa</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.dashboards.project.containers</span> <span class="kn">import</span> <span class="n">forms</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.dashboards.project.containers</span> <span class="kn">import</span> <span class="n">tables</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.dashboards.project.containers</span> <span class="kn">import</span> <span class="n">views</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+
+<span class="n">CONTAINER_NAME_1</span> <span class="o">=</span> <span class="s">u&quot;container one%</span><span class="se">\u6346</span><span class="s">&quot;</span>
+<span class="n">CONTAINER_NAME_2</span> <span class="o">=</span> <span class="s">u&quot;container_two</span><span class="se">\u6346</span><span class="s">&quot;</span>
+<span class="n">CONTAINER_NAME_1_QUOTED</span> <span class="o">=</span> <span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">CONTAINER_NAME_1</span><span class="p">)</span>
+<span class="n">CONTAINER_NAME_2_QUOTED</span> <span class="o">=</span> <span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">CONTAINER_NAME_2</span><span class="p">)</span>
+<span class="n">CONTAINER_INDEX_URL</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SwiftTests"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests">[docs]</a><span class="k">class</span> <span class="nc">SwiftTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_containers&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_index_no_container_selected"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_index_no_container_selected">[docs]</a>    <span class="k">def</span> <span class="nf">test_index_no_container_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">containers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_containers</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">((</span><span class="n">containers</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONTAINER_INDEX_URL</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/index.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s">&#39;table&#39;</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">resp_containers</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;table&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">resp_containers</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">containers</span><span class="p">))</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_delete_container&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_delete_container"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_delete_container">[docs]</a>    <span class="k">def</span> <span class="nf">test_delete_container</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ResetAll</span><span class="p">()</span>  <span class="c"># mandatory in a for loop</span>
+            <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_delete_container</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                             <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+            <span class="n">action_string</span> <span class="o">=</span> <span class="s">u&quot;containers__delete__</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="n">action_string</span><span class="p">}</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">CONTAINER_INDEX_URL</span><span class="p">,</span> <span class="n">form_data</span><span class="p">)</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">ContainersTable</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+            <span class="n">handled</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">maybe_handle</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">handled</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">],</span> <span class="n">CONTAINER_INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_objects&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_delete_container_nonempty"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_delete_container_nonempty">[docs]</a>    <span class="k">def</span> <span class="nf">test_delete_container_nonempty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_objects</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                    <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">objects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">action_string</span> <span class="o">=</span> <span class="s">u&quot;containers__delete__</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="n">action_string</span><span class="p">}</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">CONTAINER_INDEX_URL</span><span class="p">,</span> <span class="n">form_data</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">ContainersTable</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="n">handled</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">maybe_handle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">handled</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">],</span> <span class="n">CONTAINER_INDEX_URL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">unicode</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">_messages</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">),</span>
+                         <span class="s">u&quot;The container cannot be deleted &quot;</span>
+                         <span class="s">u&quot;since it&#39;s not empty.&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SwiftTests.test_create_container_get"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_create_container_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_container_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:create&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/create.html&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_create_container&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_create_container_post"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_create_container_post">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_container_post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ResetAll</span><span class="p">()</span>  <span class="c"># mandatory in a for loop</span>
+            <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_create_container</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                             <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                             <span class="n">metadata</span><span class="o">=</span><span class="p">({</span><span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+            <span class="n">formData</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="s">&#39;access&#39;</span><span class="p">:</span> <span class="s">&quot;private&quot;</span><span class="p">,</span>
+                        <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CreateContainer</span><span class="o">.</span><span class="n">__name__</span><span class="p">}</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:create&#39;</span><span class="p">),</span> <span class="n">formData</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span>
+                <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)),)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_update_container&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_update_container_to_public"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_update_container_to_public">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_container_to_public</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&quot;container one%</span><span class="se">\u6346</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_update_container</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                         <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                         <span class="n">metadata</span><span class="o">=</span><span class="p">({</span><span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">action_string</span> <span class="o">=</span> <span class="s">u&quot;containers__make_public__</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="n">action_string</span><span class="p">}</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">CONTAINER_INDEX_URL</span><span class="p">,</span> <span class="n">form_data</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">ContainersTable</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="n">handled</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">maybe_handle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">handled</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">],</span> <span class="n">CONTAINER_INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_update_container&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_update_container_to_private"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_update_container_to_private">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_container_to_private</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&quot;container_two</span><span class="se">\u6346</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_update_container</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                         <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                         <span class="n">metadata</span><span class="o">=</span><span class="p">({</span><span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">action_string</span> <span class="o">=</span> <span class="s">u&quot;containers__make_private__</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="n">action_string</span><span class="p">}</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">CONTAINER_INDEX_URL</span><span class="p">,</span> <span class="n">form_data</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">ContainersTable</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="n">handled</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">maybe_handle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">handled</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">],</span> <span class="n">CONTAINER_INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_containers&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;swift_get_objects&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_index_container_selected"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_index_container_selected">[docs]</a>    <span class="k">def</span> <span class="nf">test_index_container_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">containers</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">list</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_containers</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                       <span class="n">marker</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">containers</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_objects</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="n">marker</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                    <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">)]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/index.html&#39;</span><span class="p">)</span>
+        <span class="c"># UTF8 encoding here to ensure there aren&#39;t problems with Nose output.</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">list</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;objects_table&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                                 <span class="n">expected</span><span class="p">,</span>
+                                 <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">))</span>
+        <span class="c"># Check if the two forms&#39; URL are properly &#39;urlquote()d&#39;.</span>
+        <span class="n">form_action</span> <span class="o">=</span> <span class="s">&#39; action=&quot;</span><span class="si">%s%s</span><span class="s">/&quot; &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">CONTAINER_INDEX_URL</span><span class="p">,</span>
+                                            <span class="n">CONTAINER_NAME_1_QUOTED</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">form_action</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_upload_object&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_upload"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_upload">[docs]</a>    <span class="k">def</span> <span class="nf">test_upload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">OBJECT_DATA</span> <span class="o">=</span> <span class="s">&#39;objectData&#39;</span>
+
+        <span class="n">temp_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryFile</span><span class="p">()</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">OBJECT_DATA</span><span class="p">)</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_upload_object</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                      <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="n">IsA</span><span class="p">(</span><span class="n">InMemoryUploadedFile</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">upload_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:object_upload&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">upload_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/upload.html&#39;</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">upload_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;enctype=&quot;multipart/form-data&quot;&#39;</span><span class="p">)</span>
+
+        <span class="n">formData</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">UploadObject</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                    <span class="s">&#39;container_name&#39;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;object_file&#39;</span><span class="p">:</span> <span class="n">temp_file</span><span class="p">}</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">upload_url</span><span class="p">,</span> <span class="n">formData</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)),)</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_upload_object&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_upload_without_file"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_upload_without_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_upload_without_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_upload_object</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                      <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="bp">None</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">upload_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:object_upload&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">upload_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/upload.html&#39;</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">upload_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;enctype=&quot;multipart/form-data&quot;&#39;</span><span class="p">)</span>
+
+        <span class="n">formData</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">UploadObject</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                    <span class="s">&#39;container_name&#39;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;object_file&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">upload_url</span><span class="p">,</span> <span class="n">formData</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)),)</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_create_pseudo_folder&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_create_pseudo_folder"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_create_pseudo_folder">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_pseudo_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_create_pseudo_folder</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                      <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">create_pseudo_folder_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:&#39;</span>
+                                           <span class="s">&#39;create_pseudo_folder&#39;</span><span class="p">,</span>
+                                           <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">create_pseudo_folder_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span>
+                                <span class="s">&#39;project/containers/create_pseudo_folder.html&#39;</span><span class="p">)</span>
+
+        <span class="n">formData</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CreatePseudoFolder</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                    <span class="s">&#39;container_name&#39;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">create_pseudo_folder_url</span><span class="p">,</span> <span class="n">formData</span><span class="p">)</span>
+
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span>
+                            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_delete_object&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_delete"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_delete">[docs]</a>    <span class="k">def</span> <span class="nf">test_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)),)</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_delete_object</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                      <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">action_string</span> <span class="o">=</span> <span class="s">&quot;objects__delete_object__</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="n">action_string</span><span class="p">}</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">index_url</span><span class="p">,</span> <span class="n">form_data</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;container_name&quot;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">ObjectsTable</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">list</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">handled</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">maybe_handle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">handled</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">],</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_object&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_download"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_download">[docs]</a>    <span class="k">def</span> <span class="nf">test_download</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ResetAll</span><span class="p">()</span>  <span class="c"># mandatory in a for loop</span>
+                <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_object</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                           <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                           <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+                <span class="n">download_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span>
+                    <span class="s">&#39;horizon:project:containers:object_download&#39;</span><span class="p">,</span>
+                    <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">has_header</span><span class="p">(</span><span class="s">&#39;Content-Disposition&#39;</span><span class="p">))</span>
+                <span class="c"># Check that the returned Content-Disposition filename is well</span>
+                <span class="c"># surrounded by double quotes and with commas removed</span>
+                <span class="n">expected_name</span> <span class="o">=</span> <span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                    <span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                    <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Content-Disposition&#39;</span><span class="p">),</span>
+                    <span class="s">&#39;attachment; filename=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">expected_name</span>
+                <span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_containers&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_copy_index"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_copy_index">[docs]</a>    <span class="k">def</span> <span class="nf">test_copy_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_containers</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:object_copy&#39;</span><span class="p">,</span>
+                                      <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/copy.html&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_containers&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;swift_copy_object&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_copy"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_copy">[docs]</a>    <span class="k">def</span> <span class="nf">test_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">CONTAINER_NAME_1</span><span class="p">)</span>
+        <span class="n">container_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">CONTAINER_NAME_2</span><span class="p">)</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_containers</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_copy_object</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                    <span class="n">container_1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="n">container_2</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">formData</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CopyObject</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                    <span class="s">&#39;new_container_name&#39;</span><span class="p">:</span> <span class="n">container_2</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;new_object_name&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;orig_container_name&#39;</span><span class="p">:</span> <span class="n">container_1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;orig_object_name&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+        <span class="n">copy_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:object_copy&#39;</span><span class="p">,</span>
+                           <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container_1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">copy_url</span><span class="p">,</span> <span class="n">formData</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">container_2</span><span class="o">.</span><span class="n">name</span><span class="p">)),)</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_upload_object&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_update_with_file"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_update_with_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_with_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">OBJECT_DATA</span> <span class="o">=</span> <span class="s">&#39;objectData&#39;</span>
+
+        <span class="n">temp_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryFile</span><span class="p">()</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">OBJECT_DATA</span><span class="p">)</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_upload_object</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                      <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                      <span class="n">IsA</span><span class="p">(</span><span class="n">InMemoryUploadedFile</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">update_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:object_update&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">update_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/update.html&#39;</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">update_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;enctype=&quot;multipart/form-data&quot;&#39;</span><span class="p">)</span>
+
+        <span class="n">formData</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">UpdateObject</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                    <span class="s">&#39;container_name&#39;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;object_file&#39;</span><span class="p">:</span> <span class="n">temp_file</span><span class="p">}</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">update_url</span><span class="p">,</span> <span class="n">formData</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)),)</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_upload_object&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="SwiftTests.test_update_without_file"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_update_without_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_without_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">update_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:object_update&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">update_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/update.html&#39;</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">update_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;enctype=&quot;multipart/form-data&quot;&#39;</span><span class="p">)</span>
+
+        <span class="n">formData</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">UpdateObject</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                    <span class="s">&#39;container_name&#39;</span><span class="p">:</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">update_url</span><span class="p">,</span> <span class="n">formData</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">utils_http</span><span class="o">.</span><span class="n">urlquote</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)),)</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_container&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_view_container"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_view_container">[docs]</a>    <span class="k">def</span> <span class="nf">test_view_container</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ResetAll</span><span class="p">()</span>  <span class="c"># mandatory in a for loop</span>
+            <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_container</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                          <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                          <span class="n">with_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+            <span class="n">view_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:container_detail&#39;</span><span class="p">,</span>
+                               <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view_url</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span>
+                                    <span class="s">&#39;project/containers/container_detail.html&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;swift_get_object&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="SwiftTests.test_view_object"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_view_object">[docs]</a>    <span class="k">def</span> <span class="nf">test_view_object</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ResetAll</span><span class="p">()</span>  <span class="c"># mandatory in a for loop</span>
+                <span class="n">api</span><span class="o">.</span><span class="n">swift</span><span class="o">.</span><span class="n">swift_get_object</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                           <span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                           <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                           <span class="n">with_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> \
+                    <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+                <span class="n">view_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:containers:object_detail&#39;</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view_url</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span>
+                    <span class="n">res</span><span class="p">,</span> <span class="s">&#39;project/containers/object_detail.html&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SwiftTests.test_wrap_delimiter"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_wrap_delimiter">[docs]</a>    <span class="k">def</span> <span class="nf">test_wrap_delimiter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;containerA&#39;</span><span class="p">:</span> <span class="s">&#39;containerA/&#39;</span><span class="p">,</span>
+            <span class="s">&#39;containerB%&#39;</span><span class="p">:</span> <span class="s">&#39;containerB%/&#39;</span><span class="p">,</span>  <span class="c"># no urlquote() should occur</span>
+            <span class="s">&#39;containerC/&#39;</span><span class="p">:</span> <span class="s">&#39;containerC/&#39;</span><span class="p">,</span>   <span class="c"># already wrapped name</span>
+            <span class="s">&#39;containerD/objectA&#39;</span><span class="p">:</span> <span class="s">&#39;containerD/objectA/&#39;</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">expected_name</span> <span class="ow">in</span> <span class="n">expected</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">wrap_delimiter</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">expected_name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SwiftTests.test_for_url"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.tests.html#openstack_dashboard.dashboards.project.containers.tests.SwiftTests.test_for_url">[docs]</a>    <span class="k">def</span> <span class="nf">test_for_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;containerA&#39;</span><span class="p">:</span> <span class="s">&#39;containerA/&#39;</span><span class="p">,</span>
+            <span class="s">&#39;containerB%&#39;</span><span class="p">:</span> <span class="s">&#39;containerB%25/&#39;</span><span class="p">,</span>  <span class="c"># urlquote() must be called</span>
+            <span class="s">&#39;containerC%/&#39;</span><span class="p">:</span> <span class="s">&#39;containerC%25/&#39;</span><span class="p">,</span>
+            <span class="s">&#39;containerD%/objectA%&#39;</span><span class="p">:</span> <span class="s">&#39;containerD%25/objectA%25/&#39;</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">expected_name</span> <span class="ow">in</span> <span class="n">expected</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">views</span><span class="o">.</span><span class="n">for_url</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">expected_name</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

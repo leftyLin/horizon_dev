@@ -1,0 +1,406 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.test.test_data.keystone_data &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.test.test_data.keystone_data</h1><div class="highlight"><pre>
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>  <span class="c"># noqa</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">datetime_safe</span>
+
+<span class="kn">from</span> <span class="nn">keystoneclient</span> <span class="kn">import</span> <span class="n">access</span>
+<span class="kn">from</span> <span class="nn">keystoneclient.v2_0</span> <span class="kn">import</span> <span class="n">ec2</span>
+<span class="kn">from</span> <span class="nn">keystoneclient.v2_0</span> <span class="kn">import</span> <span class="n">roles</span>
+<span class="kn">from</span> <span class="nn">keystoneclient.v2_0</span> <span class="kn">import</span> <span class="n">tenants</span>
+<span class="kn">from</span> <span class="nn">keystoneclient.v2_0</span> <span class="kn">import</span> <span class="n">users</span>
+<span class="kn">from</span> <span class="nn">keystoneclient.v3</span> <span class="kn">import</span> <span class="n">domains</span>
+<span class="kn">from</span> <span class="nn">keystoneclient.v3</span> <span class="kn">import</span> <span class="n">groups</span>
+
+<span class="kn">from</span> <span class="nn">openstack_auth</span> <span class="kn">import</span> <span class="n">user</span> <span class="k">as</span> <span class="n">auth_user</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test.test_data</span> <span class="kn">import</span> <span class="n">utils</span>
+
+
+<span class="c"># Dummy service catalog with all service.</span>
+<span class="c"># All endpoint URLs should point to example.com.</span>
+<span class="c"># Try to keep them as accurate to real data as possible (ports, URIs, etc.)</span>
+<span class="n">SERVICE_CATALOG</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;compute&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;nova&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.nova.example.com:8774/v2&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.nova.example.com:8774/v2&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.nova.example.com:8774/v2&quot;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionTwo&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.nova2.example.com:8774/v2&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.nova2.example.com:8774/v2&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.nova2.example.com:8774/v2&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;volume&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;cinder&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.nova.example.com:8776/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.nova.example.com:8776/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.nova.example.com:8776/v1&quot;</span><span class="p">},</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionTwo&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.nova.example.com:8776/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.nova.example.com:8776/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.nova.example.com:8776/v1&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;image&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;glance&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.glance.example.com:9292/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.glance.example.com:9292/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.glance.example.com:9292/v1&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;identity&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;keystone&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.keystone.example.com:35357/v2.0&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.keystone.example.com:5000/v2.0&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.keystone.example.com:5000/v2.0&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;object-store&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;swift&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.swift.example.com:8080/&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.swift.example.com:8080/&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.swift.example.com:8080/&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;network&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;neutron&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.neutron.example.com:9696/&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.neutron.example.com:9696/&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.neutron.example.com:9696/&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;ec2&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;EC2 Service&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.nova.example.com:8773/services/Admin&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.nova.example.com:8773/services/Cloud&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.nova.example.com:8773/services/Cloud&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;metering&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;ceilometer&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.ceilometer.example.com:8777&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.ceilometer.example.com:8777&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.ceilometer.example.com:8777&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;orchestration&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Heat&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.heat.example.com:8004/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.heat.example.com:8004/v1&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.heat.example.com:8004/v1&quot;</span><span class="p">}]},</span>
+    <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;database&quot;</span><span class="p">,</span>
+     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Trove&quot;</span><span class="p">,</span>
+     <span class="s">&quot;endpoints_links&quot;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s">&quot;endpoints&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s">&quot;region&quot;</span><span class="p">:</span> <span class="s">&quot;RegionOne&quot;</span><span class="p">,</span>
+          <span class="s">&quot;adminURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://admin.trove.example.com:8779/v1.0&quot;</span><span class="p">,</span>
+          <span class="s">&quot;publicURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://public.trove.example.com:8779/v1.0&quot;</span><span class="p">,</span>
+          <span class="s">&quot;internalURL&quot;</span><span class="p">:</span> <span class="s">&quot;http://int.trove.example.com:8779/v1.0&quot;</span><span class="p">}]}</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="data"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.test_data.keystone_data.html#openstack_dashboard.test.test_data.keystone_data.data">[docs]</a><span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="n">TEST</span><span class="p">):</span>
+    <span class="c"># Make a deep copy of the catalog to avoid persisting side-effects</span>
+    <span class="c"># when tests modify the catalog.</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">service_catalog</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">SERVICE_CATALOG</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">tokens</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">domains</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">users</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">tenants</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">roles</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ec2</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+
+    <span class="n">admin_role_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;admin&#39;</span><span class="p">}</span>
+    <span class="n">admin_role</span> <span class="o">=</span> <span class="n">roles</span><span class="o">.</span><span class="n">Role</span><span class="p">(</span><span class="n">roles</span><span class="o">.</span><span class="n">RoleManager</span><span class="p">,</span> <span class="n">admin_role_dict</span><span class="p">)</span>
+    <span class="n">member_role_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>
+                        <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">OPENSTACK_KEYSTONE_DEFAULT_ROLE</span><span class="p">}</span>
+    <span class="n">member_role</span> <span class="o">=</span> <span class="n">roles</span><span class="o">.</span><span class="n">Role</span><span class="p">(</span><span class="n">roles</span><span class="o">.</span><span class="n">RoleManager</span><span class="p">,</span> <span class="n">member_role_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">roles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">admin_role</span><span class="p">,</span> <span class="n">member_role</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">roles</span><span class="o">.</span><span class="n">admin</span> <span class="o">=</span> <span class="n">admin_role</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">roles</span><span class="o">.</span><span class="n">member</span> <span class="o">=</span> <span class="n">member_role</span>
+
+    <span class="n">domain_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;test_domain&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;a test domain.&quot;</span><span class="p">,</span>
+                   <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">domain_dict_2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;disabled_domain&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;a disabled test domain.&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">domains</span><span class="o">.</span><span class="n">Domain</span><span class="p">(</span><span class="n">domains</span><span class="o">.</span><span class="n">DomainManager</span><span class="p">,</span> <span class="n">domain_dict</span><span class="p">)</span>
+    <span class="n">disabled_domain</span> <span class="o">=</span> <span class="n">domains</span><span class="o">.</span><span class="n">Domain</span><span class="p">(</span><span class="n">domains</span><span class="o">.</span><span class="n">DomainManager</span><span class="p">,</span> <span class="n">domain_dict_2</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">domains</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">disabled_domain</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span>  <span class="c"># Your &quot;current&quot; domain</span>
+
+    <span class="n">user_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;test_user&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;test@example.com&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="s">&#39;test_token&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">}</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">UserManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">user_dict</span><span class="p">)</span>
+    <span class="n">user_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;user_two&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;two@example.com&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="s">&#39;test_token&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">}</span>
+    <span class="n">user2</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">UserManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">user_dict</span><span class="p">)</span>
+    <span class="n">user_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;user_three&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;three@example.com&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="s">&#39;test_token&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">}</span>
+    <span class="n">user3</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">UserManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">user_dict</span><span class="p">)</span>
+    <span class="n">user_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;user_four&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;four@example.com&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="s">&#39;test_token&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">}</span>
+    <span class="n">user4</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">UserManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">user_dict</span><span class="p">)</span>
+    <span class="n">user_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;5&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;user_five&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                 <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="s">&#39;test_token&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">}</span>
+    <span class="n">user5</span> <span class="o">=</span> <span class="n">users</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">UserManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">user_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">users</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">user2</span><span class="p">,</span> <span class="n">user3</span><span class="p">,</span> <span class="n">user4</span><span class="p">,</span> <span class="n">user5</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>  <span class="c"># Your &quot;current&quot; user</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">service_catalog</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">SERVICE_CATALOG</span><span class="p">)</span>
+
+    <span class="n">group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;group_one&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;group one description&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">GroupManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">group_dict</span><span class="p">)</span>
+    <span class="n">group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;group_two&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;group two description&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+    <span class="n">group2</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">GroupManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">group_dict</span><span class="p">)</span>
+    <span class="n">group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;group_three&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;group three description&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+    <span class="n">group3</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">GroupManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">group_dict</span><span class="p">)</span>
+    <span class="n">group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;group_four&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;group four description&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;project_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">}</span>
+    <span class="n">group4</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">GroupManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">group_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">group2</span><span class="p">,</span> <span class="n">group3</span><span class="p">,</span> <span class="n">group4</span><span class="p">)</span>
+
+    <span class="n">tenant_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;test_tenant&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;a test tenant.&quot;</span><span class="p">,</span>
+                   <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                   <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;domain_name&#39;</span><span class="p">:</span> <span class="s">&#39;test_domain&#39;</span><span class="p">}</span>
+    <span class="n">tenant_dict_2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;disabled_tenant&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;a disabled test tenant.&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                     <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;domain_name&#39;</span><span class="p">:</span> <span class="s">&#39;disabled_domain&#39;</span><span class="p">}</span>
+    <span class="n">tenant_dict_3</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">u&#39;</span><span class="se">\u4e91\u89c4\u5219</span><span class="s">&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;an unicode-named tenant.&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                     <span class="s">&#39;domain_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;domain_name&#39;</span><span class="p">:</span> <span class="s">&#39;disabled_domain&#39;</span><span class="p">}</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">tenants</span><span class="o">.</span><span class="n">Tenant</span><span class="p">(</span><span class="n">tenants</span><span class="o">.</span><span class="n">TenantManager</span><span class="p">,</span> <span class="n">tenant_dict</span><span class="p">)</span>
+    <span class="n">disabled_tenant</span> <span class="o">=</span> <span class="n">tenants</span><span class="o">.</span><span class="n">Tenant</span><span class="p">(</span><span class="n">tenants</span><span class="o">.</span><span class="n">TenantManager</span><span class="p">,</span> <span class="n">tenant_dict_2</span><span class="p">)</span>
+    <span class="n">tenant_unicode</span> <span class="o">=</span> <span class="n">tenants</span><span class="o">.</span><span class="n">Tenant</span><span class="p">(</span><span class="n">tenants</span><span class="o">.</span><span class="n">TenantManager</span><span class="p">,</span> <span class="n">tenant_dict_3</span><span class="p">)</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tenant</span><span class="p">,</span> <span class="n">disabled_tenant</span><span class="p">,</span> <span class="n">tenant_unicode</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">tenant</span> <span class="o">=</span> <span class="n">tenant</span>  <span class="c"># Your &quot;current&quot; tenant</span>
+
+    <span class="n">tomorrow</span> <span class="o">=</span> <span class="n">datetime_safe</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">expiration</span> <span class="o">=</span> <span class="n">tomorrow</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+
+    <span class="n">scoped_token_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;access&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;test_token_id&quot;</span><span class="p">,</span>
+                <span class="s">&#39;expires&#39;</span><span class="p">:</span> <span class="n">expiration</span><span class="p">,</span>
+                <span class="s">&#39;tenant&#39;</span><span class="p">:</span> <span class="n">tenant_dict</span><span class="p">,</span>
+                <span class="s">&#39;tenants&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tenant_dict</span><span class="p">]},</span>
+            <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;test_user_id&quot;</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&quot;test_user&quot;</span><span class="p">,</span>
+                <span class="s">&#39;roles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">member_role_dict</span><span class="p">]},</span>
+            <span class="s">&#39;serviceCatalog&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">service_catalog</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">scoped_access_info</span> <span class="o">=</span> <span class="n">access</span><span class="o">.</span><span class="n">AccessInfo</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">resp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                                   <span class="n">body</span><span class="o">=</span><span class="n">scoped_token_dict</span><span class="p">)</span>
+
+    <span class="n">unscoped_token_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;access&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;test_token_id&quot;</span><span class="p">,</span>
+                <span class="s">&#39;expires&#39;</span><span class="p">:</span> <span class="n">expiration</span><span class="p">},</span>
+            <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;test_user_id&quot;</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&quot;test_user&quot;</span><span class="p">,</span>
+                <span class="s">&#39;roles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">member_role_dict</span><span class="p">]},</span>
+            <span class="s">&#39;serviceCatalog&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">service_catalog</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">unscoped_access_info</span> <span class="o">=</span> <span class="n">access</span><span class="o">.</span><span class="n">AccessInfo</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">resp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                                     <span class="n">body</span><span class="o">=</span><span class="n">unscoped_token_dict</span><span class="p">)</span>
+
+    <span class="n">scoped_token</span> <span class="o">=</span> <span class="n">auth_user</span><span class="o">.</span><span class="n">Token</span><span class="p">(</span><span class="n">scoped_access_info</span><span class="p">)</span>
+    <span class="n">unscoped_token</span> <span class="o">=</span> <span class="n">auth_user</span><span class="o">.</span><span class="n">Token</span><span class="p">(</span><span class="n">unscoped_access_info</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">scoped_token</span><span class="p">,</span> <span class="n">unscoped_token</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="n">scoped_token</span>  <span class="c"># your &quot;current&quot; token.</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">scoped_token</span> <span class="o">=</span> <span class="n">scoped_token</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">unscoped_token</span> <span class="o">=</span> <span class="n">unscoped_token</span>
+
+    <span class="n">access_secret</span> <span class="o">=</span> <span class="n">ec2</span><span class="o">.</span><span class="n">EC2</span><span class="p">(</span><span class="n">ec2</span><span class="o">.</span><span class="n">CredentialsManager</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;access&quot;</span><span class="p">:</span> <span class="s">&quot;access&quot;</span><span class="p">,</span>
+                                                     <span class="s">&quot;secret&quot;</span><span class="p">:</span> <span class="s">&quot;secret&quot;</span><span class="p">})</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ec2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">access_secret</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

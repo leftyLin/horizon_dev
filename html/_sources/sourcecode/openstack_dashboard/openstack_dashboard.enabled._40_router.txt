@@ -1,0 +1,8 @@
+========================================================
+The :mod:`openstack_dashboard.enabled._40_router` Module
+========================================================
+.. automodule:: openstack_dashboard.enabled._40_router
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

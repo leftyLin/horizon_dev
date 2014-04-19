@@ -1,0 +1,172 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.dashboards.router.nexus1000v.forms Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.dashboards.router.nexus1000v.tabs Module" href="openstack_dashboard.dashboards.router.nexus1000v.tabs.html" />
+    <link rel="prev" title="The openstack_dashboard.dashboards.router.nexus1000v.panel Module" href="openstack_dashboard.dashboards.router.nexus1000v.panel.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-dashboards-router-nexus1000v-forms-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.dashboards.router.nexus1000v.forms</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-dashboards-router-nexus1000v-forms-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.router.nexus1000v.forms.</tt><tt class="descname">CreateNetworkProfile</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/router/nexus1000v/forms.html#CreateNetworkProfile"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ref/forms.html#horizon.forms.base.SelfHandlingForm" title="horizon.forms.base.SelfHandlingForm"><tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.base.SelfHandlingForm</span></tt></a></p>
+<p>Create Network Profile form.</p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkProfile.</tt><tt class="descname">base_fields</tt><em class="property"> = {'name': &lt;django.forms.fields.CharField object at 0x7dfc290&gt;, 'segment_type': &lt;django.forms.fields.ChoiceField object at 0xe0d7c90&gt;, 'sub_type': &lt;django.forms.fields.ChoiceField object at 0xe0d73d0&gt;, 'sub_type_trunk': &lt;django.forms.fields.ChoiceField object at 0xe0d7390&gt;, 'segment_range': &lt;django.forms.fields.CharField object at 0xe0d7750&gt;, 'multicast_ip_range': &lt;django.forms.fields.CharField object at 0xb086d10&gt;, 'other_subtype': &lt;django.forms.fields.CharField object at 0xb086110&gt;, 'physical_network': &lt;django.forms.fields.CharField object at 0xb086f10&gt;, 'project': &lt;django.forms.fields.ChoiceField object at 0xb0861d0&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateNetworkProfile.</tt><tt class="descname">clean</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/router/nexus1000v/forms.html#CreateNetworkProfile.clean"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateNetworkProfile.</tt><tt class="descname">handle</tt><big>(</big><em>request</em>, <em>data</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/router/nexus1000v/forms.html#CreateNetworkProfile.handle"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkProfile.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.router.nexus1000v.forms.</tt><tt class="descname">UpdateNetworkProfile</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/router/nexus1000v/forms.html#UpdateNetworkProfile"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ref/forms.html#horizon.forms.base.SelfHandlingForm" title="horizon.forms.base.SelfHandlingForm"><tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.base.SelfHandlingForm</span></tt></a></p>
+<p>Update Network Profile form.</p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateNetworkProfile.</tt><tt class="descname">base_fields</tt><em class="property"> = {'profile_id': &lt;django.forms.fields.CharField object at 0xb086dd0&gt;, 'name': &lt;django.forms.fields.CharField object at 0xb086b90&gt;, 'segment_type': &lt;django.forms.fields.ChoiceField object at 0xb086410&gt;, 'segment_range': &lt;django.forms.fields.CharField object at 0xb086710&gt;, 'physical_network': &lt;django.forms.fields.CharField object at 0xc34d090&gt;, 'project': &lt;django.forms.fields.CharField object at 0xc34d790&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateNetworkProfile.</tt><tt class="descname">handle</tt><big>(</big><em>request</em>, <em>data</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/router/nexus1000v/forms.html#UpdateNetworkProfile.handle"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateNetworkProfile.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.dashboards.router.nexus1000v.forms.</tt><tt class="descname">get_tenant_choices</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/router/nexus1000v/forms.html#get_tenant_choices"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.router.nexus1000v.panel.html"
+                                  title="previous chapter">The <tt class="docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.router.nexus1000v.panel</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.router.nexus1000v.tabs.html"
+                                  title="next chapter">The <tt class="docutils literal"><span class="pre">openstack_dashboard.dashboards.router.nexus1000v.tabs</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.dashboards.router.nexus1000v.forms.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.router.nexus1000v.tabs.html" title="The openstack_dashboard.dashboards.router.nexus1000v.tabs Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.router.nexus1000v.panel.html" title="The openstack_dashboard.dashboards.router.nexus1000v.panel Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

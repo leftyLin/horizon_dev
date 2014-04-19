@@ -1,0 +1,946 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.openstack.common.rpc.impl_zmq &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="openstack_dashboard.openstack.common.rpc" href="../rpc.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.openstack.common.rpc.impl_zmq</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c">#    Copyright 2011 Cloudscaling Group, Inc</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">import</span> <span class="nn">eventlet</span>
+<span class="kn">import</span> <span class="nn">greenlet</span>
+<span class="kn">from</span> <span class="nn">oslo.config</span> <span class="kn">import</span> <span class="n">cfg</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">excutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.gettextutils</span> <span class="kn">import</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">importutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">jsonutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.rpc</span> <span class="kn">import</span> <span class="n">common</span> <span class="k">as</span> <span class="n">rpc_common</span>
+
+<span class="n">zmq</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">try_import</span><span class="p">(</span><span class="s">&#39;eventlet.green.zmq&#39;</span><span class="p">)</span>
+
+<span class="c"># for convenience, are not modified.</span>
+<span class="n">pformat</span> <span class="o">=</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span>
+<span class="n">Timeout</span> <span class="o">=</span> <span class="n">eventlet</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">Timeout</span>
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">LOG</span>
+<span class="n">RemoteError</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">RemoteError</span>
+<span class="n">RPCException</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">RPCException</span>
+
+<span class="n">zmq_opts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;rpc_zmq_bind_address&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;ZeroMQ bind address. Should be a wildcard (*), &#39;</span>
+                    <span class="s">&#39;an ethernet interface, or IP. &#39;</span>
+                    <span class="s">&#39;The &quot;host&quot; option should point or resolve to this &#39;</span>
+                    <span class="s">&#39;address.&#39;</span><span class="p">),</span>
+
+    <span class="c"># The module.Class to use for matchmaking.</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span>
+        <span class="s">&#39;rpc_zmq_matchmaker&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;openstack_dashboard.openstack.common.rpc.&#39;</span>
+                 <span class="s">&#39;matchmaker.MatchMakerLocalhost&#39;</span><span class="p">),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&#39;MatchMaker driver&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+
+    <span class="c"># The following port is unassigned by IANA as of 2012-05-21</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;rpc_zmq_port&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">9501</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;ZeroMQ receiver listening port&#39;</span><span class="p">),</span>
+
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;rpc_zmq_contexts&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Number of ZeroMQ contexts, defaults to 1&#39;</span><span class="p">),</span>
+
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;rpc_zmq_topic_backlog&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Maximum number of ingress messages to locally buffer &#39;</span>
+                    <span class="s">&#39;per topic. Default is unlimited.&#39;</span><span class="p">),</span>
+
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;rpc_zmq_ipc_dir&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;/var/run/openstack&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Directory for holding IPC sockets&#39;</span><span class="p">),</span>
+
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;rpc_zmq_host&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">(),</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Name of this node. Must be a valid hostname, FQDN, or &#39;</span>
+                    <span class="s">&#39;IP address. Must match &quot;host&quot; option, if running Nova.&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+
+
+<span class="n">CONF</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">CONF</span>
+<span class="n">CONF</span><span class="o">.</span><span class="n">register_opts</span><span class="p">(</span><span class="n">zmq_opts</span><span class="p">)</span>
+
+<span class="n">ZMQ_CTX</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># ZeroMQ Context, must be global.</span>
+<span class="n">matchmaker</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># memoized matchmaker object</span>
+
+
+<span class="k">def</span> <span class="nf">_serialize</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Serialization wrapper</span>
+<span class="sd">    We prefer using JSON, but it cannot encode all types.</span>
+<span class="sd">    Error if a developer passes us bad data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">excutils</span><span class="o">.</span><span class="n">save_and_reraise_exception</span><span class="p">():</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;JSON serialization failed.&quot;</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deserialization wrapper</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Deserializing: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ZmqSocket"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqSocket">[docs]</a><span class="k">class</span> <span class="nc">ZmqSocket</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A tiny wrapper around ZeroMQ to simplify the send/recv protocol</span>
+<span class="sd">    and connection management.</span>
+
+<span class="sd">    Can be used as a Context (supports the &#39;with&#39; statement).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">zmq_type</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">subscribe</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">_get_ctxt</span><span class="p">()</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq_type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">addr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">zmq_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subscriptions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Support failures on sending/receiving on wrong socket type.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">can_recv</span> <span class="o">=</span> <span class="n">zmq_type</span> <span class="ow">in</span> <span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">PULL</span><span class="p">,</span> <span class="n">zmq</span><span class="o">.</span><span class="n">SUB</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">can_send</span> <span class="o">=</span> <span class="n">zmq_type</span> <span class="ow">in</span> <span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">PUSH</span><span class="p">,</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PUB</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">can_sub</span> <span class="o">=</span> <span class="n">zmq_type</span> <span class="ow">in</span> <span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">SUB</span><span class="p">,</span> <span class="p">)</span>
+
+        <span class="c"># Support list, str, &amp; None for subscribe arg (cast to list)</span>
+        <span class="n">do_sub</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">list</span><span class="p">:</span> <span class="n">subscribe</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">:</span> <span class="p">[</span><span class="n">subscribe</span><span class="p">],</span>
+            <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">):</span> <span class="p">[]</span>
+        <span class="p">}[</span><span class="nb">type</span><span class="p">(</span><span class="n">subscribe</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">do_sub</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">str_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;addr&#39;</span><span class="p">:</span> <span class="n">addr</span><span class="p">,</span> <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">socket_s</span><span class="p">(),</span>
+                    <span class="s">&#39;subscribe&#39;</span><span class="p">:</span> <span class="n">subscribe</span><span class="p">,</span> <span class="s">&#39;bind&#39;</span><span class="p">:</span> <span class="n">bind</span><span class="p">}</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Connecting to </span><span class="si">%(addr)s</span><span class="s"> with </span><span class="si">%(type)s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">str_data</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;-&gt; Subscribed to </span><span class="si">%(subscribe)s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">str_data</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;-&gt; bind: </span><span class="si">%(bind)s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">str_data</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">bind</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">addr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">addr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not open socket.&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ZmqSocket.socket_s"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqSocket.socket_s">[docs]</a>    <span class="k">def</span> <span class="nf">socket_s</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get socket type as string.&quot;&quot;&quot;</span>
+        <span class="n">t_enum</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;PUSH&#39;</span><span class="p">,</span> <span class="s">&#39;PULL&#39;</span><span class="p">,</span> <span class="s">&#39;PUB&#39;</span><span class="p">,</span> <span class="s">&#39;SUB&#39;</span><span class="p">,</span> <span class="s">&#39;REP&#39;</span><span class="p">,</span> <span class="s">&#39;REQ&#39;</span><span class="p">,</span> <span class="s">&#39;ROUTER&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;DEALER&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">zmq</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="n">t</span><span class="p">),</span> <span class="n">t_enum</span><span class="p">))[</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="ZmqSocket.subscribe"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqSocket.subscribe">[docs]</a>    <span class="k">def</span> <span class="nf">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg_filter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Subscribe.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_sub</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="s">&quot;Cannot subscribe on this socket.&quot;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Subscribing to </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">msg_filter</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">SUBSCRIBE</span><span class="p">,</span> <span class="n">msg_filter</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">subscriptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg_filter</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ZmqSocket.unsubscribe"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqSocket.unsubscribe">[docs]</a>    <span class="k">def</span> <span class="nf">unsubscribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg_filter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unsubscribe.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">msg_filter</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subscriptions</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">UNSUBSCRIBE</span><span class="p">,</span> <span class="n">msg_filter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subscriptions</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">msg_filter</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ZmqSocket.close"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqSocket.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c"># We must unsubscribe, or we&#39;ll leak descriptors.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subscriptions</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subscriptions</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">UNSUBSCRIBE</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subscriptions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Default is to linger</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c"># While this is a bad thing to happen,</span>
+            <span class="c"># it would be much worse if some of the code calling this</span>
+            <span class="c"># were to fail. For now, lets log, and later evaluate</span>
+            <span class="c"># if we can safely raise here.</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;ZeroMQ socket could not be closed.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="ZmqSocket.recv"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqSocket.recv">[docs]</a>    <span class="k">def</span> <span class="nf">recv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_recv</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;You cannot recv on this socket.&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">recv_multipart</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ZmqSocket.send"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqSocket.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_send</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;You cannot send on this socket.&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">send_multipart</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="ZmqClient"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqClient">[docs]</a><span class="k">class</span> <span class="nc">ZmqClient</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Client for ZMQ sockets.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">socket_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">socket_type</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">socket_type</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PUSH</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outq</span> <span class="o">=</span> <span class="n">ZmqSocket</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">socket_type</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="n">bind</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZmqClient.cast"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqClient.cast">[docs]</a>    <span class="k">def</span> <span class="nf">cast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg_id</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">msg_id</span> <span class="o">=</span> <span class="n">msg_id</span> <span class="ow">or</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">envelope</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">bytes</span><span class="p">,</span>
+                           <span class="p">(</span><span class="n">msg_id</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="s">&#39;cast&#39;</span><span class="p">,</span> <span class="n">_serialize</span><span class="p">(</span><span class="n">data</span><span class="p">))))</span>
+            <span class="k">return</span>
+
+        <span class="n">rpc_envelope</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">serialize_msg</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">envelope</span><span class="p">)</span>
+        <span class="n">zmq_msg</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span> <span class="n">rpc_envelope</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">bytes</span><span class="p">,</span>
+                       <span class="p">(</span><span class="n">msg_id</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="s">&#39;impl_zmq_v2&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">zmq_msg</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="ZmqClient.close"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqClient.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="RpcContext"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.RpcContext">[docs]</a><span class="k">class</span> <span class="nc">RpcContext</span><span class="p">(</span><span class="n">rpc_common</span><span class="o">.</span><span class="n">CommonRpcContext</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Context that supports replying to a rpc.call.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RpcContext</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RpcContext.deepcopy"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.RpcContext.deepcopy">[docs]</a>    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">values</span><span class="p">[</span><span class="s">&#39;replies&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replies</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="o">**</span><span class="n">values</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="RpcContext.reply"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.RpcContext.reply">[docs]</a>    <span class="k">def</span> <span class="nf">reply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reply</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">failure</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ending</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ending</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reply</span><span class="p">)</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="RpcContext.marshal"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.RpcContext.marshal">[docs]</a>    <span class="k">def</span> <span class="nf">marshal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">ctx_data</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">_serialize</span><span class="p">(</span><span class="n">ctx_data</span><span class="p">)</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="RpcContext.unmarshal"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.RpcContext.unmarshal">[docs]</a>    <span class="k">def</span> <span class="nf">unmarshal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RpcContext</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">_deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="InternalContext"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.InternalContext">[docs]</a><span class="k">class</span> <span class="nc">InternalContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Used by ConsumerBase as a private context for - methods.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proxy</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy</span> <span class="o">=</span> <span class="n">proxy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg_waiter</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_get_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process a curried message and cast the result to topic.&quot;&quot;&quot;</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Running func with context: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">ctx</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">proxy</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span>
+                <span class="n">ctx</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;method&#39;</span><span class="p">],</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;namespace&#39;</span><span class="p">),</span> <span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;args&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">ConsumerBase</span><span class="o">.</span><span class="n">normalize_reply</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">replies</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">greenlet</span><span class="o">.</span><span class="n">GreenletExit</span><span class="p">:</span>
+            <span class="c"># ignore these since they are just from shutdowns</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">ClientException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Expected exception during message handling (</span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">)</span> <span class="o">%</span>
+                      <span class="n">e</span><span class="o">.</span><span class="n">_exc_info</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s">&#39;exc&#39;</span><span class="p">:</span>
+                    <span class="n">rpc_common</span><span class="o">.</span><span class="n">serialize_remote_exception</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">_exc_info</span><span class="p">,</span>
+                                                          <span class="n">log_failure</span><span class="o">=</span><span class="bp">False</span><span class="p">)}</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Exception during message handling&quot;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s">&#39;exc&#39;</span><span class="p">:</span>
+                    <span class="n">rpc_common</span><span class="o">.</span><span class="n">serialize_remote_exception</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())}</span>
+
+<div class="viewcode-block" id="InternalContext.reply"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.InternalContext.reply">[docs]</a>    <span class="k">def</span> <span class="nf">reply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span>
+              <span class="n">msg_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reply to a casted call.&quot;&quot;&quot;</span>
+        <span class="c"># NOTE(ewindisch): context kwarg exists for Grizzly compat.</span>
+        <span class="c">#                  this may be able to be removed earlier than</span>
+        <span class="c">#                  &#39;I&#39; if ConsumerBase.process were refactored.</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">msg</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">msg</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">ConsumerBase</span><span class="o">.</span><span class="n">normalize_reply</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_response</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">payload</span><span class="p">),</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">replies</span><span class="p">)</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Sending reply&quot;</span><span class="p">))</span>
+        <span class="n">_multi_send</span><span class="p">(</span><span class="n">_cast</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="s">&#39;-process_reply&#39;</span><span class="p">,</span>
+            <span class="s">&#39;args&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;msg_id&#39;</span><span class="p">:</span> <span class="n">msg_id</span><span class="p">,</span>  <span class="c"># Include for Folsom compat.</span>
+                <span class="s">&#39;response&#39;</span><span class="p">:</span> <span class="n">response</span>
+            <span class="p">}</span>
+        <span class="p">},</span> <span class="n">_msg_id</span><span class="o">=</span><span class="n">msg_id</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="ConsumerBase"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ConsumerBase">[docs]</a><span class="k">class</span> <span class="nc">ConsumerBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base Consumer.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">private_ctx</span> <span class="o">=</span> <span class="n">InternalContext</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ConsumerBase.normalize_reply"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ConsumerBase.normalize_reply">[docs]</a>    <span class="k">def</span> <span class="nf">normalize_reply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">replies</span><span class="p">):</span>
+        <span class="c">#TODO(ewindisch): re-evaluate and document this method.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">replies</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">replies</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">result</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="ConsumerBase.process"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ConsumerBase.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;version&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="c"># Method starting with - are</span>
+        <span class="c"># processed internally. (non-valid method name)</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;method&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">method</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;RPC message did not include method.&quot;</span><span class="p">))</span>
+            <span class="k">return</span>
+
+        <span class="c"># Internal method</span>
+        <span class="c"># uses internal context for safety.</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;-reply&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">private_ctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;args&#39;</span><span class="p">])</span>
+            <span class="k">return</span>
+
+        <span class="n">proxy</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">],</span>
+                       <span class="n">data</span><span class="p">[</span><span class="s">&#39;method&#39;</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;namespace&#39;</span><span class="p">),</span> <span class="o">**</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;args&#39;</span><span class="p">])</span>
+
+</div></div>
+<div class="viewcode-block" id="ZmqBaseReactor"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqBaseReactor">[docs]</a><span class="k">class</span> <span class="nc">ZmqBaseReactor</span><span class="p">(</span><span class="n">ConsumerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A consumer class implementing a</span>
+<span class="sd">    centralized casting broker (PULL-PUSH)</span>
+<span class="sd">    for RoundRobin requests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ZmqBaseReactor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threads</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sockets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subscribe</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">eventlet</span><span class="o">.</span><span class="n">greenpool</span><span class="o">.</span><span class="n">GreenPool</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">rpc_thread_pool_size</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZmqBaseReactor.register"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqBaseReactor.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">in_addr</span><span class="p">,</span> <span class="n">zmq_type_in</span><span class="p">,</span> <span class="n">out_addr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">zmq_type_out</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">in_bind</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">out_bind</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">subscribe</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Registering reactor&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">zmq_type_in</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">PULL</span><span class="p">,</span> <span class="n">zmq</span><span class="o">.</span><span class="n">SUB</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="s">&quot;Bad input socktype&quot;</span><span class="p">)</span>
+
+        <span class="c"># Items push in.</span>
+        <span class="n">inq</span> <span class="o">=</span> <span class="n">ZmqSocket</span><span class="p">(</span><span class="n">in_addr</span><span class="p">,</span> <span class="n">zmq_type_in</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="n">in_bind</span><span class="p">,</span>
+                        <span class="n">subscribe</span><span class="o">=</span><span class="n">subscribe</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span><span class="p">[</span><span class="n">inq</span><span class="p">]</span> <span class="o">=</span> <span class="n">proxy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sockets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inq</span><span class="p">)</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;In reactor registered&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">out_addr</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">zmq_type_out</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">PUSH</span><span class="p">,</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PUB</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="s">&quot;Bad output socktype&quot;</span><span class="p">)</span>
+
+        <span class="c"># Items push out.</span>
+        <span class="n">outq</span> <span class="o">=</span> <span class="n">ZmqSocket</span><span class="p">(</span><span class="n">out_addr</span><span class="p">,</span> <span class="n">zmq_type_out</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="n">out_bind</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="n">inq</span><span class="p">]</span> <span class="o">=</span> <span class="n">outq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="n">outq</span><span class="p">]</span> <span class="o">=</span> <span class="n">inq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sockets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outq</span><span class="p">)</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Out reactor registered&quot;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="ZmqBaseReactor.consume_in_thread"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqBaseReactor.consume_in_thread">[docs]</a>    <span class="k">def</span> <span class="nf">consume_in_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_consume</span><span class="p">(</span><span class="n">sock</span><span class="p">):</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Consuming socket&quot;</span><span class="p">))</span>
+            <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="n">sock</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">_consume</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ZmqBaseReactor.wait"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqBaseReactor.wait">[docs]</a>    <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">threads</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ZmqBaseReactor.close"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqBaseReactor.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sockets</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">threads</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="ZmqProxy"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqProxy">[docs]</a><span class="k">class</span> <span class="nc">ZmqProxy</span><span class="p">(</span><span class="n">ZmqBaseReactor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A consumer class implementing a</span>
+<span class="sd">    topic-based proxy, forwarding to</span>
+<span class="sd">    IPC sockets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ZmqProxy</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+        <span class="n">pathsep</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">altsep</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">badchars</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;[</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pathsep</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">topic_proxy</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ZmqProxy.consume"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqProxy.consume">[docs]</a>    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+        <span class="n">ipc_dir</span> <span class="o">=</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_ipc_dir</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bytes</span>
+
+        <span class="k">if</span> <span class="n">topic</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;fanout~&#39;</span><span class="p">):</span>
+            <span class="n">sock_type</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PUB</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">topic</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;zmq_replies&#39;</span><span class="p">):</span>
+            <span class="n">sock_type</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PUB</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sock_type</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PUSH</span>
+
+        <span class="k">if</span> <span class="n">topic</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topic_proxy</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">publisher</span><span class="p">(</span><span class="n">waiter</span><span class="p">):</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating proxy for topic: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">topic</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c"># The topic is received over the network,</span>
+                    <span class="c"># don&#39;t trust this input.</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">badchars</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">emsg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Topic contained dangerous characters.&quot;</span><span class="p">)</span>
+                        <span class="n">LOG</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+
+                    <span class="n">out_sock</span> <span class="o">=</span> <span class="n">ZmqSocket</span><span class="p">(</span><span class="s">&quot;ipc://</span><span class="si">%s</span><span class="s">/zmq_topic_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                                         <span class="p">(</span><span class="n">ipc_dir</span><span class="p">,</span> <span class="n">topic</span><span class="p">),</span>
+                                         <span class="n">sock_type</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">RPCException</span><span class="p">:</span>
+                    <span class="n">waiter</span><span class="o">.</span><span class="n">send_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
+                    <span class="k">return</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">topic_proxy</span><span class="p">[</span><span class="n">topic</span><span class="p">]</span> <span class="o">=</span> <span class="n">eventlet</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">LightQueue</span><span class="p">(</span>
+                    <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_topic_backlog</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sockets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_sock</span><span class="p">)</span>
+
+                <span class="c"># It takes some time for a pub socket to open,</span>
+                <span class="c"># before we can have any faith in doing a send() to it.</span>
+                <span class="k">if</span> <span class="n">sock_type</span> <span class="o">==</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PUB</span><span class="p">:</span>
+                    <span class="n">eventlet</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>
+
+                <span class="n">waiter</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+
+                <span class="k">while</span><span class="p">(</span><span class="bp">True</span><span class="p">):</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topic_proxy</span><span class="p">[</span><span class="n">topic</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                    <span class="n">out_sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+            <span class="n">wait_sock_creation</span> <span class="o">=</span> <span class="n">eventlet</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+            <span class="n">eventlet</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">publisher</span><span class="p">,</span> <span class="n">wait_sock_creation</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">wait_sock_creation</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">RPCException</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Topic socket file creation failed.&quot;</span><span class="p">))</span>
+                <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">topic_proxy</span><span class="p">[</span><span class="n">topic</span><span class="p">]</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">eventlet</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">Full</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Local per-topic backlog buffer full for topic &quot;</span>
+                        <span class="s">&quot;</span><span class="si">%(topic)s</span><span class="s">. Dropping message.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;topic&#39;</span><span class="p">:</span> <span class="n">topic</span><span class="p">})</span>
+</div>
+<div class="viewcode-block" id="ZmqProxy.consume_in_thread"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqProxy.consume_in_thread">[docs]</a>    <span class="k">def</span> <span class="nf">consume_in_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs the ZmqProxy service.&quot;&quot;&quot;</span>
+        <span class="n">ipc_dir</span> <span class="o">=</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_ipc_dir</span>
+        <span class="n">consume_in</span> <span class="o">=</span> <span class="s">&quot;tcp://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_bind_address</span><span class="p">,</span>
+             <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_port</span><span class="p">)</span>
+        <span class="n">consumption_proxy</span> <span class="o">=</span> <span class="n">InternalContext</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ipc_dir</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">os</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">ipc_dir</span><span class="p">):</span>
+                <span class="k">with</span> <span class="n">excutils</span><span class="o">.</span><span class="n">save_and_reraise_exception</span><span class="p">():</span>
+                    <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Required IPC directory does not exist at&quot;</span>
+                                <span class="s">&quot; </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ipc_dir</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">consumption_proxy</span><span class="p">,</span>
+                          <span class="n">consume_in</span><span class="p">,</span>
+                          <span class="n">zmq</span><span class="o">.</span><span class="n">PULL</span><span class="p">,</span>
+                          <span class="n">out_bind</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">zmq</span><span class="o">.</span><span class="n">ZMQError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">ipc_dir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
+                <span class="k">with</span> <span class="n">excutils</span><span class="o">.</span><span class="n">save_and_reraise_exception</span><span class="p">():</span>
+                    <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Permission denied to IPC directory at&quot;</span>
+                                <span class="s">&quot; </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ipc_dir</span><span class="p">,</span> <span class="p">))</span>
+            <span class="k">with</span> <span class="n">excutils</span><span class="o">.</span><span class="n">save_and_reraise_exception</span><span class="p">():</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not create ZeroMQ receiver daemon. &quot;</span>
+                            <span class="s">&quot;Socket may already be in use.&quot;</span><span class="p">))</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">ZmqProxy</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">consume_in_thread</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="unflatten_envelope"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.unflatten_envelope">[docs]</a><span class="k">def</span> <span class="nf">unflatten_envelope</span><span class="p">(</span><span class="n">packenv</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Unflattens the RPC envelope.</span>
+<span class="sd">       Takes a list and returns a dictionary.</span>
+<span class="sd">       i.e. [1,2,3,4] =&gt; {1: 2, 3: 4}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">packenv</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+            <span class="n">h</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">h</span>
+
+</div>
+<div class="viewcode-block" id="ZmqReactor"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqReactor">[docs]</a><span class="k">class</span> <span class="nc">ZmqReactor</span><span class="p">(</span><span class="n">ZmqBaseReactor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A consumer class implementing a</span>
+<span class="sd">    consumer for messages. Can also be</span>
+<span class="sd">    used as a 1:1 proxy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ZmqReactor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZmqReactor.consume"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.ZmqReactor.consume">[docs]</a>    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">):</span>
+        <span class="c">#TODO(ewindisch): use zero-copy (i.e. references, not copying)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;CONSUMER RECEIVED DATA: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sock</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;ROUTER RELAY-OUT </span><span class="si">%(data)s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span>
+                <span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span><span class="p">[</span><span class="n">sock</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">proxy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxies</span><span class="p">[</span><span class="n">sock</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cast&#39;</span><span class="p">:</span>  <span class="c"># Legacy protocol</span>
+            <span class="n">packenv</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+            <span class="n">ctx</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">packenv</span><span class="p">)</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">deserialize_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">RpcContext</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;impl_zmq_v2&#39;</span><span class="p">:</span>
+            <span class="n">packenv</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">unflatten_envelope</span><span class="p">(</span><span class="n">packenv</span><span class="p">)</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">deserialize_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="c"># Unmarshal only after verifying the message.</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">RpcContext</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;ZMQ Envelope version unsupported or unknown.&quot;</span><span class="p">))</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">spawn_n</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="Connection"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.Connection">[docs]</a><span class="k">class</span> <span class="nc">Connection</span><span class="p">(</span><span class="n">rpc_common</span><span class="o">.</span><span class="n">Connection</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Manages connections and threads.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactor</span> <span class="o">=</span> <span class="n">ZmqReactor</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Connection.create_consumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.Connection.create_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">create_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">fanout</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="c"># Register with matchmaker.</span>
+        <span class="n">_get_matchmaker</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_host</span><span class="p">)</span>
+
+        <span class="c"># Subscription scenarios</span>
+        <span class="k">if</span> <span class="n">fanout</span><span class="p">:</span>
+            <span class="n">sock_type</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">SUB</span>
+            <span class="n">subscribe</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">fanout</span><span class="p">)[</span><span class="nb">type</span><span class="p">(</span><span class="n">fanout</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">]</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="s">&#39;fanout~&#39;</span> <span class="o">+</span> <span class="n">topic</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sock_type</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">PULL</span>
+            <span class="n">subscribe</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">topic</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_host</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">topic</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topics</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Skipping topic registration. Already registered.&quot;</span><span class="p">))</span>
+            <span class="k">return</span>
+
+        <span class="c"># Receive messages from (local) proxy</span>
+        <span class="n">inaddr</span> <span class="o">=</span> <span class="s">&quot;ipc://</span><span class="si">%s</span><span class="s">/zmq_topic_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_ipc_dir</span><span class="p">,</span> <span class="n">topic</span><span class="p">)</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Consumer is a zmq.</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span>
+                  <span class="p">[</span><span class="s">&#39;PULL&#39;</span><span class="p">,</span> <span class="s">&#39;SUB&#39;</span><span class="p">][</span><span class="n">sock_type</span> <span class="o">==</span> <span class="n">zmq</span><span class="o">.</span><span class="n">SUB</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactor</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">proxy</span><span class="p">,</span> <span class="n">inaddr</span><span class="p">,</span> <span class="n">sock_type</span><span class="p">,</span>
+                              <span class="n">subscribe</span><span class="o">=</span><span class="n">subscribe</span><span class="p">,</span> <span class="n">in_bind</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.close"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.Connection.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_get_matchmaker</span><span class="p">()</span><span class="o">.</span><span class="n">stop_heartbeat</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topics</span><span class="p">:</span>
+            <span class="n">_get_matchmaker</span><span class="p">()</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_host</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topics</span> <span class="o">=</span> <span class="p">[]</span>
+</div>
+<div class="viewcode-block" id="Connection.wait"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.Connection.wait">[docs]</a>    <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactor</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Connection.consume_in_thread"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.Connection.consume_in_thread">[docs]</a>    <span class="k">def</span> <span class="nf">consume_in_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_get_matchmaker</span><span class="p">()</span><span class="o">.</span><span class="n">start_heartbeat</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactor</span><span class="o">.</span><span class="n">consume_in_thread</span><span class="p">()</span>
+
+</div></div>
+<span class="k">def</span> <span class="nf">_cast</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+          <span class="n">_msg_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">timeout_cast</span> <span class="o">=</span> <span class="n">timeout</span> <span class="ow">or</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_cast_timeout</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">[</span><span class="n">RpcContext</span><span class="o">.</span><span class="n">marshal</span><span class="p">(</span><span class="n">context</span><span class="p">),</span> <span class="n">msg</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">Timeout</span><span class="p">(</span><span class="n">timeout_cast</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">rpc_common</span><span class="o">.</span><span class="n">Timeout</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">ZmqClient</span><span class="p">(</span><span class="n">addr</span><span class="p">)</span>
+
+            <span class="c"># assumes cast can&#39;t return an exception</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">_msg_id</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">envelope</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">zmq</span><span class="o">.</span><span class="n">ZMQError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="s">&quot;Cast failed. ZMQ Socket Exception&quot;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;conn&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_call</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+          <span class="n">envelope</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="c"># timeout_response is how long we wait for a response</span>
+    <span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span> <span class="ow">or</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_response_timeout</span>
+
+    <span class="c"># The msg_id is used to track replies.</span>
+    <span class="n">msg_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
+
+    <span class="c"># Replies always come into the reply service.</span>
+    <span class="n">reply_topic</span> <span class="o">=</span> <span class="s">&quot;zmq_replies.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_host</span>
+
+    <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating payload&quot;</span><span class="p">))</span>
+    <span class="c"># Curry the original request into a reply method.</span>
+    <span class="n">mcontext</span> <span class="o">=</span> <span class="n">RpcContext</span><span class="o">.</span><span class="n">marshal</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="s">&#39;-reply&#39;</span><span class="p">,</span>
+        <span class="s">&#39;args&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;msg_id&#39;</span><span class="p">:</span> <span class="n">msg_id</span><span class="p">,</span>
+            <span class="s">&#39;topic&#39;</span><span class="p">:</span> <span class="n">reply_topic</span><span class="p">,</span>
+            <span class="c"># TODO(ewindisch): safe to remove mcontext in I.</span>
+            <span class="s">&#39;msg&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">mcontext</span><span class="p">,</span> <span class="n">msg</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating queue socket for reply waiter&quot;</span><span class="p">))</span>
+
+    <span class="c"># Messages arriving async.</span>
+    <span class="c"># TODO(ewindisch): have reply consumer with dynamic subscription mgmt</span>
+    <span class="k">with</span> <span class="n">Timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">rpc_common</span><span class="o">.</span><span class="n">Timeout</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">msg_waiter</span> <span class="o">=</span> <span class="n">ZmqSocket</span><span class="p">(</span>
+                <span class="s">&quot;ipc://</span><span class="si">%s</span><span class="s">/zmq_topic_zmq_replies.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_ipc_dir</span><span class="p">,</span>
+                 <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_host</span><span class="p">),</span>
+                <span class="n">zmq</span><span class="o">.</span><span class="n">SUB</span><span class="p">,</span> <span class="n">subscribe</span><span class="o">=</span><span class="n">msg_id</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="bp">False</span>
+            <span class="p">)</span>
+
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Sending cast&quot;</span><span class="p">))</span>
+            <span class="n">_cast</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">envelope</span><span class="p">)</span>
+
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Cast sent; Waiting reply&quot;</span><span class="p">))</span>
+            <span class="c"># Blocks until receives reply</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_waiter</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Received message: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Unpacking response&quot;</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cast&#39;</span><span class="p">:</span>  <span class="c"># Legacy version</span>
+                <span class="n">raw_msg</span> <span class="o">=</span> <span class="n">_deserialize</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;impl_zmq_v2&#39;</span><span class="p">:</span>
+                <span class="n">rpc_envelope</span> <span class="o">=</span> <span class="n">unflatten_envelope</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="mi">4</span><span class="p">:])</span>
+                <span class="n">raw_msg</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">deserialize_msg</span><span class="p">(</span><span class="n">rpc_envelope</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">UnsupportedRpcEnvelopeVersion</span><span class="p">(</span>
+                    <span class="n">_</span><span class="p">(</span><span class="s">&quot;Unsupported or unknown ZMQ envelope returned.&quot;</span><span class="p">))</span>
+
+            <span class="n">responses</span> <span class="o">=</span> <span class="n">raw_msg</span><span class="p">[</span><span class="s">&#39;args&#39;</span><span class="p">][</span><span class="s">&#39;response&#39;</span><span class="p">]</span>
+        <span class="c"># ZMQError trumps the Timeout error.</span>
+        <span class="k">except</span> <span class="n">zmq</span><span class="o">.</span><span class="n">ZMQError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="s">&quot;ZMQ Socket Error&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">RPCException</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;RPC Message Invalid.&quot;</span><span class="p">))</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;msg_waiter&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
+                <span class="n">msg_waiter</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c"># It seems we don&#39;t need to do all of the following,</span>
+    <span class="c"># but perhaps it would be useful for multicall?</span>
+    <span class="c"># One effect of this is that we&#39;re checking all</span>
+    <span class="c"># responses for Exceptions.</span>
+    <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">responses</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">DictType</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&#39;exc&#39;</span> <span class="ow">in</span> <span class="n">resp</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">deserialize_remote_exception</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">resp</span><span class="p">[</span><span class="s">&#39;exc&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">responses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_multi_send</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">envelope</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">_msg_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps the sending of messages,</span>
+<span class="sd">    dispatches to the matchmaker and sends</span>
+<span class="sd">    message to all relevant hosts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">CONF</span>
+    <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%(msg)s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;msg&#39;</span><span class="p">:</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">pformat</span><span class="p">,</span> <span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">)))})</span>
+
+    <span class="n">queues</span> <span class="o">=</span> <span class="n">_get_matchmaker</span><span class="p">()</span><span class="o">.</span><span class="n">queues</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+    <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Sending message(s) to: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">),</span> <span class="n">queues</span><span class="p">)</span>
+
+    <span class="c"># Don&#39;t stack if we have no matchmaker results</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">queues</span><span class="p">:</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No matchmaker results. Not casting.&quot;</span><span class="p">))</span>
+        <span class="c"># While not strictly a timeout, callers know how to handle</span>
+        <span class="c"># this exception and a timeout isn&#39;t too big a lie.</span>
+        <span class="k">raise</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">Timeout</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No match from matchmaker.&quot;</span><span class="p">))</span>
+
+    <span class="c"># This supports brokerless fanout (addresses &gt; 1)</span>
+    <span class="k">for</span> <span class="n">queue</span> <span class="ow">in</span> <span class="n">queues</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">_topic</span><span class="p">,</span> <span class="n">ip_addr</span><span class="p">)</span> <span class="o">=</span> <span class="n">queue</span>
+        <span class="n">_addr</span> <span class="o">=</span> <span class="s">&quot;tcp://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ip_addr</span><span class="p">,</span> <span class="n">conf</span><span class="o">.</span><span class="n">rpc_zmq_port</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;_cast&#39;</span><span class="p">:</span>
+            <span class="n">eventlet</span><span class="o">.</span><span class="n">spawn_n</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">_addr</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span>
+                             <span class="n">_topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">envelope</span><span class="p">,</span>
+                             <span class="n">_msg_id</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">_addr</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">_topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span>
+                      <span class="n">envelope</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_connection"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.create_connection">[docs]</a><span class="k">def</span> <span class="nf">create_connection</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Connection</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="multicall"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.multicall">[docs]</a><span class="k">def</span> <span class="nf">multicall</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multiple calls.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_multi_send</span><span class="p">(</span><span class="n">_call</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="call"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.call">[docs]</a><span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Send a message, expect a response.&quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">_multi_send</span><span class="p">(</span><span class="n">_call</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="cast"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.cast">[docs]</a><span class="k">def</span> <span class="nf">cast</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Send a message expecting no reply.&quot;&quot;&quot;</span>
+    <span class="n">_multi_send</span><span class="p">(</span><span class="n">_cast</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="fanout_cast"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.fanout_cast">[docs]</a><span class="k">def</span> <span class="nf">fanout_cast</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Send a message to all listening and expect no reply.&quot;&quot;&quot;</span>
+    <span class="c"># NOTE(ewindisch): fanout~ is used because it avoid splitting on .</span>
+    <span class="c"># and acts as a non-subtle hint to the matchmaker and ZmqProxy.</span>
+    <span class="n">_multi_send</span><span class="p">(</span><span class="n">_cast</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s">&#39;fanout~&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">topic</span><span class="p">),</span> <span class="n">msg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="notify"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.notify">[docs]</a><span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">envelope</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send notification event.</span>
+<span class="sd">    Notifications are sent to topic-priority.</span>
+<span class="sd">    This differs from the AMQP drivers which send to topic.priority.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># NOTE(ewindisch): dot-priority in rpc notifier does not</span>
+    <span class="c"># work with our assumptions.</span>
+    <span class="n">topic</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
+    <span class="n">cast</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="n">envelope</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="cleanup"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_zmq.html#openstack_dashboard.openstack.common.rpc.impl_zmq.cleanup">[docs]</a><span class="k">def</span> <span class="nf">cleanup</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Clean up resources in use by implementation.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">ZMQ_CTX</span>
+    <span class="k">if</span> <span class="n">ZMQ_CTX</span><span class="p">:</span>
+        <span class="n">ZMQ_CTX</span><span class="o">.</span><span class="n">term</span><span class="p">()</span>
+    <span class="n">ZMQ_CTX</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">global</span> <span class="n">matchmaker</span>
+    <span class="n">matchmaker</span> <span class="o">=</span> <span class="bp">None</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_get_ctxt</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">zmq</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s">&quot;Failed to import eventlet.green.zmq&quot;</span><span class="p">)</span>
+
+    <span class="k">global</span> <span class="n">ZMQ_CTX</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ZMQ_CTX</span><span class="p">:</span>
+        <span class="n">ZMQ_CTX</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_contexts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ZMQ_CTX</span>
+
+
+<span class="k">def</span> <span class="nf">_get_matchmaker</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">matchmaker</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">matchmaker</span><span class="p">:</span>
+        <span class="n">mm</span> <span class="o">=</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_matchmaker</span>
+        <span class="k">if</span> <span class="n">mm</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;matchmaker.MatchMakerRing&#39;</span><span class="p">):</span>
+            <span class="n">mm</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;matchmaker&#39;</span><span class="p">,</span> <span class="s">&#39;matchmaker_ring&#39;</span><span class="p">)</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;rpc_zmq_matchmaker = </span><span class="si">%(orig)s</span><span class="s"> is deprecated; use&#39;</span>
+                       <span class="s">&#39; </span><span class="si">%(new)s</span><span class="s"> instead&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="nb">dict</span><span class="p">(</span>
+                     <span class="n">orig</span><span class="o">=</span><span class="n">CONF</span><span class="o">.</span><span class="n">rpc_zmq_matchmaker</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="n">mm</span><span class="p">))</span>
+        <span class="n">matchmaker</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">import_object</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">matchmaker</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../rpc.html" accesskey="U">openstack_dashboard.openstack.common.rpc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

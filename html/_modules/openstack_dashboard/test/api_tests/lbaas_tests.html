@@ -1,0 +1,460 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.test.api_tests.lbaas_tests &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.test.api_tests.lbaas_tests</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c">#    Copyright 2013, Big Switch Networks, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+<span class="kn">from</span> <span class="nn">neutronclient.v2_0</span> <span class="kn">import</span> <span class="n">client</span>
+
+<span class="n">neutronclient</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">Client</span>
+
+
+<div class="viewcode-block" id="LbaasApiTests"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests">[docs]</a><span class="k">class</span> <span class="nc">LbaasApiTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">APITestCase</span><span class="p">):</span>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_vip&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_vip_create"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_vip_create">[docs]</a>    <span class="k">def</span> <span class="nf">test_vip_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">vip1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_vips</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;subnet_id&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;protocol_port&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;protocol&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;pool_id&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;session_persistence&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;session_persistence&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;connection_limit&#39;</span><span class="p">],</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">]</span>
+                     <span class="p">}</span>
+        <span class="n">vip</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;vip&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_vips</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_vip</span><span class="p">({</span><span class="s">&#39;vip&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">})</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">vip</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">vip_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Vip</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_vip&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_vip_create_skip_address_if_empty"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_vip_create_skip_address_if_empty">[docs]</a>    <span class="k">def</span> <span class="nf">test_vip_create_skip_address_if_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">vip1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_vips</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">vipform_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;subnet_id&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;protocol_port&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;protocol&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;pool_id&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;session_persistence&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;session_persistence&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;connection_limit&#39;</span><span class="p">],</span>
+                        <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="n">vip1</span><span class="p">[</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">]</span>
+                        <span class="p">}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_vip</span><span class="p">({</span><span class="s">&#39;vip&#39;</span><span class="p">:</span> <span class="n">vipform_data</span><span class="p">})</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">vipform_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">form_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">vipform_data</span><span class="p">)</span>
+        <span class="n">form_data</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">vip_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Vip</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;list_vips&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_vip_list"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_vip_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_vip_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">vips</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;vips&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.100&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vip1name&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vip1description&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;8913dde8-4915-4b90-8d3e-b95eeedb0d49&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                          <span class="p">},</span> <span class="p">]}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_vips</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">vips</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">vip_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ret_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Vip</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_vip&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_vip_get"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_vip_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_vip_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">vip</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;vip&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.100&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vip1name&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vip1description&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;8913dde8-4915-4b90-8d3e-b95eeedb0d49&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                       <span class="p">}}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_vip</span><span class="p">(</span><span class="n">vip</span><span class="p">[</span><span class="s">&#39;vip&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">vip</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">vip_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">vip</span><span class="p">[</span><span class="s">&#39;vip&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Vip</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;update_vip&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_vip_update"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_vip_update">[docs]</a>    <span class="k">def</span> <span class="nf">test_vip_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.100&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vip1name&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vip1description&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;8913dde8-4915-4b90-8d3e-b95eeedb0d49&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                     <span class="p">}</span>
+
+        <span class="n">vip</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;vip&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.100&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vip1name&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vip1description&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;8913dde8-4915-4b90-8d3e-b95eeedb0d49&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                       <span class="p">}}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">update_vip</span><span class="p">(</span><span class="n">vip</span><span class="p">[</span><span class="s">&#39;vip&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">form_data</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">vip</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">vip_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                       <span class="n">vip</span><span class="p">[</span><span class="s">&#39;vip&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Vip</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_pool&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_pool_create"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_pool_create">[docs]</a>    <span class="k">def</span> <span class="nf">test_pool_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;pool1name&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;pool1description&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;lb_method&#39;</span><span class="p">:</span> <span class="s">&#39;ROUND_ROBIN&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                     <span class="s">&#39;provider&#39;</span><span class="p">:</span> <span class="s">&#39;dummy&#39;</span>
+                     <span class="p">}</span>
+
+        <span class="n">pool</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;pool1name&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;pool1description&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;lb_method&#39;</span><span class="p">:</span> <span class="s">&#39;ROUND_ROBIN&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                         <span class="s">&#39;provider&#39;</span><span class="p">:</span> <span class="s">&#39;dummy&#39;</span>
+                         <span class="p">}}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_pool</span><span class="p">({</span><span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">})</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">pool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">pool_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Pool</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;list_pools&#39;</span><span class="p">,</span> <span class="s">&#39;list_vips&#39;</span><span class="p">),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;subnet_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_pool_list"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_pool_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_pool_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pools</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pools&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_pools</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+        <span class="n">subnets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">vips</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;vips&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_vips</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_pools</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">pools</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="o">.</span><span class="n">subnet_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">subnets</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_vips</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">vips</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">pool_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ret_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Pool</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_pool&#39;</span><span class="p">,</span> <span class="s">&#39;show_vip&#39;</span><span class="p">),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;subnet_get&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_pool_get"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_pool_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_pool_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">subnet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">pool_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_pools</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+        <span class="n">vip_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;vip&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_vips</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_pool</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">pool_dict</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="o">.</span><span class="n">subnet_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">subnet</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">subnet</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_vip</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">vip_id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">vip_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">pool_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">pool</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Pool</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;update_pool&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_pool_update"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_pool_update">[docs]</a>    <span class="k">def</span> <span class="nf">test_pool_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;pool1name&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;pool1description&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTPS&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;lb_method&#39;</span><span class="p">:</span> <span class="s">&#39;LEAST_CONNECTION&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                     <span class="p">}</span>
+
+        <span class="n">pool</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;pool1name&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;pool1description&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="s">&#39;12381d38-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTPS&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;lb_method&#39;</span><span class="p">:</span> <span class="s">&#39;LEAST_CONNECTION&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                         <span class="p">}}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">update_pool</span><span class="p">(</span><span class="n">pool</span><span class="p">[</span><span class="s">&#39;pool&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                                  <span class="n">form_data</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">pool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">pool_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                        <span class="n">pool</span><span class="p">[</span><span class="s">&#39;pool&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Pool</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_health_monitor&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_pool_health_monitor_create"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_pool_health_monitor_create">[docs]</a>    <span class="k">def</span> <span class="nf">test_pool_health_monitor_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;PING&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;delay&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;max_retries&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                     <span class="p">}</span>
+        <span class="n">monitor</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;health_monitor&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+            <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;PING&#39;</span><span class="p">,</span>
+            <span class="s">&#39;delay&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+            <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+            <span class="s">&#39;max_retries&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+            <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_health_monitor</span><span class="p">({</span>
+            <span class="s">&#39;health_monitor&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">})</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">monitor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">pool_health_monitor_create</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">PoolMonitor</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;list_health_monitors&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_pool_health_monitor_list"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_pool_health_monitor_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_pool_health_monitor_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">monitors</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;health_monitors&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+             <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;PING&#39;</span><span class="p">,</span>
+             <span class="s">&#39;delay&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+             <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+             <span class="s">&#39;max_retries&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+             <span class="s">&#39;http_method&#39;</span><span class="p">:</span> <span class="s">&#39;GET&#39;</span><span class="p">,</span>
+             <span class="s">&#39;url_path&#39;</span><span class="p">:</span> <span class="s">&#39;/monitor&#39;</span><span class="p">,</span>
+             <span class="s">&#39;expected_codes&#39;</span><span class="p">:</span> <span class="s">&#39;200&#39;</span><span class="p">,</span>
+             <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span> <span class="p">]}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_health_monitors</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">monitors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">pool_health_monitor_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ret_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">PoolMonitor</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_health_monitor&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_pool_health_monitor_get"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_pool_health_monitor_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_pool_health_monitor_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">monitor</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;health_monitor&#39;</span><span class="p">:</span>
+                   <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;PING&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;delay&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;max_retries&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;http_method&#39;</span><span class="p">:</span> <span class="s">&#39;GET&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;url_path&#39;</span><span class="p">:</span> <span class="s">&#39;/monitor&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;expected_codes&#39;</span><span class="p">:</span> <span class="s">&#39;200&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_health_monitor</span><span class="p">(</span>
+            <span class="n">monitor</span><span class="p">[</span><span class="s">&#39;health_monitor&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">monitor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">pool_health_monitor_get</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">monitor</span><span class="p">[</span><span class="s">&#39;health_monitor&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">PoolMonitor</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_member&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_member_create"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_member_create">[docs]</a>    <span class="k">def</span> <span class="nf">test_member_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.1.2&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;weight&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                     <span class="p">}</span>
+
+        <span class="n">member</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;member&#39;</span><span class="p">:</span>
+                  <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.1.2&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;weight&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_member</span><span class="p">({</span><span class="s">&#39;member&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">})</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">member_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Member</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;list_members&#39;</span><span class="p">,</span> <span class="s">&#39;list_pools&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_member_list"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_member_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_member_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;members&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_members</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+        <span class="n">pools</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pools&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_pools</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_members</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">members</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_pools</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">pools</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">member_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ret_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Member</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_member&#39;</span><span class="p">,</span> <span class="s">&#39;show_pool&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_member_get"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_member_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_member_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">member</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">member_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;member&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_members</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+        <span class="n">pool_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_pools</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_member</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">member_dict</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_pool</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">pool_id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">pool_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">member_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Member</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;update_member&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="LbaasApiTests.test_member_update"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.lbaas_tests.html#openstack_dashboard.test.api_tests.lbaas_tests.LbaasApiTests.test_member_update">[docs]</a>    <span class="k">def</span> <span class="nf">test_member_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.1.4&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;weight&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                     <span class="p">}</span>
+
+        <span class="n">member</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;member&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.1.2&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;weight&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                             <span class="p">}}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">update_member</span><span class="p">(</span><span class="n">member</span><span class="p">[</span><span class="s">&#39;member&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                                    <span class="n">form_data</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">member_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                          <span class="n">member</span><span class="p">[</span><span class="s">&#39;member&#39;</span><span class="p">][</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Member</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

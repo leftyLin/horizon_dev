@@ -1,0 +1,404 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.openstack.common.rpc &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.openstack.common.rpc</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2010 United States Government as represented by the</span>
+<span class="c"># Administrator of the National Aeronautics and Space Administration.</span>
+<span class="c"># All Rights Reserved.</span>
+<span class="c"># Copyright 2011 Red Hat, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A remote procedure call (rpc) abstraction.</span>
+
+<span class="sd">For some wrappers that add message versioning to rpc, see:</span>
+<span class="sd">    rpc.dispatcher</span>
+<span class="sd">    rpc.proxy</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<span class="kn">from</span> <span class="nn">oslo.config</span> <span class="kn">import</span> <span class="n">cfg</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.gettextutils</span> <span class="kn">import</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">importutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">local</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">logging</span>
+
+
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="n">rpc_opts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;rpc_backend&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.impl_kombu&#39;</span> <span class="o">%</span> <span class="n">__package__</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&quot;The messaging module to use, defaults to kombu.&quot;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;rpc_thread_pool_size&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Size of RPC thread pool&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;rpc_conn_pool_size&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Size of RPC connection pool&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;rpc_response_timeout&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Seconds to wait for a response from call or multicall&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;rpc_cast_timeout&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Seconds to wait before a cast expires (TTL). &#39;</span>
+                    <span class="s">&#39;Only supported by impl_zmq.&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">ListOpt</span><span class="p">(</span><span class="s">&#39;allowed_rpc_exception_modules&#39;</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;openstack_dashboard.openstack.common.exception&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;nova.exception&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;cinder.exception&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;exceptions&#39;</span><span class="p">,</span>
+                         <span class="p">],</span>
+                <span class="n">help</span><span class="o">=</span><span class="s">&#39;Modules of exceptions that are permitted to be recreated&#39;</span>
+                     <span class="s">&#39;upon receiving exception data from an rpc call.&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">BoolOpt</span><span class="p">(</span><span class="s">&#39;fake_rabbit&#39;</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">help</span><span class="o">=</span><span class="s">&#39;If passed, use a fake RabbitMQ provider&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;control_exchange&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="s">&#39;openstack&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;AMQP exchange to connect to if using RabbitMQ or Qpid&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">CONF</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">CONF</span>
+<span class="n">CONF</span><span class="o">.</span><span class="n">register_opts</span><span class="p">(</span><span class="n">rpc_opts</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="set_defaults"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.set_defaults">[docs]</a><span class="k">def</span> <span class="nf">set_defaults</span><span class="p">(</span><span class="n">control_exchange</span><span class="p">):</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">rpc_opts</span><span class="p">,</span>
+                     <span class="n">control_exchange</span><span class="o">=</span><span class="n">control_exchange</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="create_connection"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.create_connection">[docs]</a><span class="k">def</span> <span class="nf">create_connection</span><span class="p">(</span><span class="n">new</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a connection to the message bus used for rpc.</span>
+
+<span class="sd">    For some example usage of creating a connection and some consumers on that</span>
+<span class="sd">    connection, see nova.service.</span>
+
+<span class="sd">    :param new: Whether or not to create a new connection.  A new connection</span>
+<span class="sd">                will be created by default.  If new is False, the</span>
+<span class="sd">                implementation is free to return an existing connection from a</span>
+<span class="sd">                pool.</span>
+
+<span class="sd">    :returns: An instance of openstack.common.rpc.common.Connection</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="n">new</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_check_for_lock</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">CONF</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="p">((</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">local</span><span class="o">.</span><span class="n">strong_store</span><span class="p">,</span> <span class="s">&#39;locks_held&#39;</span><span class="p">)</span>
+         <span class="ow">and</span> <span class="n">local</span><span class="o">.</span><span class="n">strong_store</span><span class="o">.</span><span class="n">locks_held</span><span class="p">)):</span>
+        <span class="n">stack</span> <span class="o">=</span> <span class="s">&#39; :: &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">frame</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">()])</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;A RPC is being made while holding a lock. The locks &#39;</span>
+                   <span class="s">&#39;currently held are </span><span class="si">%(locks)s</span><span class="s">. This is probably a bug. &#39;</span>
+                   <span class="s">&#39;Please report it. Include the following: [</span><span class="si">%(stack)s</span><span class="s">].&#39;</span><span class="p">),</span>
+                 <span class="p">{</span><span class="s">&#39;locks&#39;</span><span class="p">:</span> <span class="n">local</span><span class="o">.</span><span class="n">strong_store</span><span class="o">.</span><span class="n">locks_held</span><span class="p">,</span>
+                  <span class="s">&#39;stack&#39;</span><span class="p">:</span> <span class="n">stack</span><span class="p">})</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">return</span> <span class="bp">False</span>
+
+
+<div class="viewcode-block" id="call"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.call">[docs]</a><span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">check_for_lock</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invoke a remote method that returns something.</span>
+
+<span class="sd">    :param context: Information that identifies the user that has made this</span>
+<span class="sd">                    request.</span>
+<span class="sd">    :param topic: The topic to send the rpc message to.  This correlates to the</span>
+<span class="sd">                  topic argument of</span>
+<span class="sd">                  openstack.common.rpc.common.Connection.create_consumer()</span>
+<span class="sd">                  and only applies when the consumer was created with</span>
+<span class="sd">                  fanout=False.</span>
+<span class="sd">    :param msg: This is a dict in the form { &quot;method&quot; : &quot;method_to_invoke&quot;,</span>
+<span class="sd">                                             &quot;args&quot; : dict_of_kwargs }</span>
+<span class="sd">    :param timeout: int, number of seconds to use for a response timeout.</span>
+<span class="sd">                    If set, this overrides the rpc_response_timeout option.</span>
+<span class="sd">    :param check_for_lock: if True, a warning is emitted if a RPC call is made</span>
+<span class="sd">                    with a lock held.</span>
+
+<span class="sd">    :returns: A dict from the remote method.</span>
+
+<span class="sd">    :raises: openstack.common.rpc.common.Timeout if a complete response</span>
+<span class="sd">             is not received before the timeout is reached.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">check_for_lock</span><span class="p">:</span>
+        <span class="n">_check_for_lock</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="cast"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.cast">[docs]</a><span class="k">def</span> <span class="nf">cast</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invoke a remote method that does not return anything.</span>
+
+<span class="sd">    :param context: Information that identifies the user that has made this</span>
+<span class="sd">                    request.</span>
+<span class="sd">    :param topic: The topic to send the rpc message to.  This correlates to the</span>
+<span class="sd">                  topic argument of</span>
+<span class="sd">                  openstack.common.rpc.common.Connection.create_consumer()</span>
+<span class="sd">                  and only applies when the consumer was created with</span>
+<span class="sd">                  fanout=False.</span>
+<span class="sd">    :param msg: This is a dict in the form { &quot;method&quot; : &quot;method_to_invoke&quot;,</span>
+<span class="sd">                                             &quot;args&quot; : dict_of_kwargs }</span>
+
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="fanout_cast"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.fanout_cast">[docs]</a><span class="k">def</span> <span class="nf">fanout_cast</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Broadcast a remote method invocation with no return.</span>
+
+<span class="sd">    This method will get invoked on all consumers that were set up with this</span>
+<span class="sd">    topic name and fanout=True.</span>
+
+<span class="sd">    :param context: Information that identifies the user that has made this</span>
+<span class="sd">                    request.</span>
+<span class="sd">    :param topic: The topic to send the rpc message to.  This correlates to the</span>
+<span class="sd">                  topic argument of</span>
+<span class="sd">                  openstack.common.rpc.common.Connection.create_consumer()</span>
+<span class="sd">                  and only applies when the consumer was created with</span>
+<span class="sd">                  fanout=True.</span>
+<span class="sd">    :param msg: This is a dict in the form { &quot;method&quot; : &quot;method_to_invoke&quot;,</span>
+<span class="sd">                                             &quot;args&quot; : dict_of_kwargs }</span>
+
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">fanout_cast</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="multicall"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.multicall">[docs]</a><span class="k">def</span> <span class="nf">multicall</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">check_for_lock</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invoke a remote method and get back an iterator.</span>
+
+<span class="sd">    In this case, the remote method will be returning multiple values in</span>
+<span class="sd">    separate messages, so the return values can be processed as the come in via</span>
+<span class="sd">    an iterator.</span>
+
+<span class="sd">    :param context: Information that identifies the user that has made this</span>
+<span class="sd">                    request.</span>
+<span class="sd">    :param topic: The topic to send the rpc message to.  This correlates to the</span>
+<span class="sd">                  topic argument of</span>
+<span class="sd">                  openstack.common.rpc.common.Connection.create_consumer()</span>
+<span class="sd">                  and only applies when the consumer was created with</span>
+<span class="sd">                  fanout=False.</span>
+<span class="sd">    :param msg: This is a dict in the form { &quot;method&quot; : &quot;method_to_invoke&quot;,</span>
+<span class="sd">                                             &quot;args&quot; : dict_of_kwargs }</span>
+<span class="sd">    :param timeout: int, number of seconds to use for a response timeout.</span>
+<span class="sd">                    If set, this overrides the rpc_response_timeout option.</span>
+<span class="sd">    :param check_for_lock: if True, a warning is emitted if a RPC call is made</span>
+<span class="sd">                    with a lock held.</span>
+
+<span class="sd">    :returns: An iterator.  The iterator will yield a tuple (N, X) where N is</span>
+<span class="sd">              an index that starts at 0 and increases by one for each value</span>
+<span class="sd">              returned and X is the Nth value that was returned by the remote</span>
+<span class="sd">              method.</span>
+
+<span class="sd">    :raises: openstack.common.rpc.common.Timeout if a complete response</span>
+<span class="sd">             is not received before the timeout is reached.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">check_for_lock</span><span class="p">:</span>
+        <span class="n">_check_for_lock</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">multicall</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="notify"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.notify">[docs]</a><span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Send notification event.</span>
+
+<span class="sd">    :param context: Information that identifies the user that has made this</span>
+<span class="sd">                    request.</span>
+<span class="sd">    :param topic: The topic to send the notification to.</span>
+<span class="sd">    :param msg: This is a dict of content of event.</span>
+<span class="sd">    :param envelope: Set to True to enable message envelope for notifications.</span>
+
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">CONF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">envelope</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="cleanup"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.cleanup">[docs]</a><span class="k">def</span> <span class="nf">cleanup</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Clean up resoruces in use by implementation.</span>
+
+<span class="sd">    Clean up any resources that have been allocated by the RPC implementation.</span>
+<span class="sd">    This is typically open connections to a messaging service.  This function</span>
+<span class="sd">    would get called before an application using this API exits to allow</span>
+<span class="sd">    connections to get torn down cleanly.</span>
+
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="cast_to_server"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.cast_to_server">[docs]</a><span class="k">def</span> <span class="nf">cast_to_server</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invoke a remote method that does not return anything.</span>
+
+<span class="sd">    :param context: Information that identifies the user that has made this</span>
+<span class="sd">                    request.</span>
+<span class="sd">    :param server_params: Connection information</span>
+<span class="sd">    :param topic: The topic to send the notification to.</span>
+<span class="sd">    :param msg: This is a dict in the form { &quot;method&quot; : &quot;method_to_invoke&quot;,</span>
+<span class="sd">                                             &quot;args&quot; : dict_of_kwargs }</span>
+
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">cast_to_server</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span>
+                                      <span class="n">msg</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="fanout_cast_to_server"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.fanout_cast_to_server">[docs]</a><span class="k">def</span> <span class="nf">fanout_cast_to_server</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Broadcast to a remote method invocation with no return.</span>
+
+<span class="sd">    :param context: Information that identifies the user that has made this</span>
+<span class="sd">                    request.</span>
+<span class="sd">    :param server_params: Connection information</span>
+<span class="sd">    :param topic: The topic to send the notification to.</span>
+<span class="sd">    :param msg: This is a dict in the form { &quot;method&quot; : &quot;method_to_invoke&quot;,</span>
+<span class="sd">                                             &quot;args&quot; : dict_of_kwargs }</span>
+
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_impl</span><span class="p">()</span><span class="o">.</span><span class="n">fanout_cast_to_server</span><span class="p">(</span><span class="n">CONF</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span>
+                                             <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="queue_get_for"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.html#openstack_dashboard.openstack.common.rpc.queue_get_for">[docs]</a><span class="k">def</span> <span class="nf">queue_get_for</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get a queue name for a given topic + host.</span>
+
+<span class="sd">    This function only works if this naming convention is followed on the</span>
+<span class="sd">    consumer side, as well.  For example, in nova, every instance of the</span>
+<span class="sd">    nova-foo service calls create_consumer() for two topics:</span>
+
+<span class="sd">        foo</span>
+<span class="sd">        foo.&lt;host&gt;</span>
+
+<span class="sd">    Messages sent to the &#39;foo&#39; topic are distributed to exactly one instance of</span>
+<span class="sd">    the nova-foo service.  The services are chosen in a round-robin fashion.</span>
+<span class="sd">    Messages sent to the &#39;foo.&lt;host&gt;&#39; topic are sent to the nova-foo service on</span>
+<span class="sd">    &lt;host&gt;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span> <span class="k">if</span> <span class="n">host</span> <span class="k">else</span> <span class="n">topic</span>
+
+</div>
+<span class="n">_RPCIMPL</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+<span class="k">def</span> <span class="nf">_get_impl</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Delay import of rpc_backend until configuration is loaded.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_RPCIMPL</span>
+    <span class="k">if</span> <span class="n">_RPCIMPL</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_RPCIMPL</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">CONF</span><span class="o">.</span><span class="n">rpc_backend</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="c"># For backwards compatibility with older nova config.</span>
+            <span class="n">impl</span> <span class="o">=</span> <span class="n">CONF</span><span class="o">.</span><span class="n">rpc_backend</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;nova.rpc&#39;</span><span class="p">,</span>
+                                            <span class="s">&#39;nova.openstack.common.rpc&#39;</span><span class="p">)</span>
+            <span class="n">_RPCIMPL</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">impl</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_RPCIMPL</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.dashboards.admin.flavors.extras.tests &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.dashboards.admin.flavors.extras.tests</h1><div class="highlight"><pre>
+<span class="c"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c"># a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#      http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c"># License for the specific language governing permissions and limitations</span>
+<span class="c"># under the License.</span>
+
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">http</span>
+
+<span class="kn">from</span> <span class="nn">mox</span> <span class="kn">import</span> <span class="n">IsA</span>  <span class="c"># noqa</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+
+<div class="viewcode-block" id="FlavorExtrasTests"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.extras.tests.html#openstack_dashboard.dashboards.admin.flavors.extras.tests.FlavorExtrasTests">[docs]</a><span class="k">class</span> <span class="nc">FlavorExtrasTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">BaseAdminViewTests</span><span class="p">):</span>
+
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get_extras&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_get&#39;</span><span class="p">),</span> <span class="p">})</span>
+<div class="viewcode-block" id="FlavorExtrasTests.test_list_extras_when_none_exists"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.extras.tests.html#openstack_dashboard.dashboards.admin.flavors.extras.tests.FlavorExtrasTests.test_list_extras_when_none_exists">[docs]</a>    <span class="k">def</span> <span class="nf">test_list_extras_when_none_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">extras</span> <span class="o">=</span> <span class="p">[</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">FlavorExtraSpec</span><span class="p">(</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s">&#39;k1&#39;</span><span class="p">,</span> <span class="s">&#39;v1&#39;</span><span class="p">)]</span>
+
+        <span class="c"># GET -- to determine correctness of output</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get_extras</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                 <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">extras</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:extras:index&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/extras/index.html&quot;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_extra_set&#39;</span><span class="p">,</span> <span class="p">),</span> <span class="p">})</span>
+    <span class="k">def</span> <span class="nf">_generic_extra_create_post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_name</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">create_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:extras:create&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:extras:index&#39;</span><span class="p">,</span>
+                            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+
+        <span class="c"># GET to display the flavor_name</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_extra_set</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                  <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                  <span class="p">{</span><span class="n">key_name</span><span class="p">:</span> <span class="s">&#39;v1&#39;</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&#39;keys&#39;</span><span class="p">:</span> <span class="s">&#39;custom&#39;</span><span class="p">,</span>
+                <span class="s">&#39;key&#39;</span><span class="p">:</span> <span class="n">key_name</span><span class="p">,</span>
+                <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;v1&#39;</span><span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">create_url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">UnsetStubs</span><span class="p">()</span>
+
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_extra_set&#39;</span><span class="p">,</span> <span class="p">),</span> <span class="p">})</span>
+<div class="viewcode-block" id="FlavorExtrasTests.test_extra_create_with_template"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.extras.tests.html#openstack_dashboard.dashboards.admin.flavors.extras.tests.FlavorExtrasTests.test_extra_create_with_template">[docs]</a>    <span class="k">def</span> <span class="nf">test_extra_create_with_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">create_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:extras:create&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">index_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:extras:index&#39;</span><span class="p">,</span>
+                            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+
+        <span class="c"># GET to display the flavor_name</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_extra_set</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                  <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                  <span class="p">{</span><span class="s">&#39;quota:read_bytes_sec&#39;</span><span class="p">:</span> <span class="s">&#39;1000&#39;</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&#39;keys&#39;</span><span class="p">:</span> <span class="s">&#39;quota:read_bytes_sec&#39;</span><span class="p">,</span>
+                <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;1000&#39;</span><span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">create_url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">index_url</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span> <span class="p">),</span> <span class="p">})</span>
+<div class="viewcode-block" id="FlavorExtrasTests.test_extra_create_get"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.extras.tests.html#openstack_dashboard.dashboards.admin.flavors.extras.tests.FlavorExtrasTests.test_extra_create_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_extra_create_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">create_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:extras:create&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">create_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span>
+                                <span class="s">&#39;admin/flavors/extras/create.html&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span> <span class="p">),</span> <span class="p">})</span>
+    <span class="k">def</span> <span class="nf">_generic_extra_create_names_format_fail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_name</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">create_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:extras:create&#39;</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&#39;keys&#39;</span><span class="p">:</span> <span class="s">&#39;custom&#39;</span><span class="p">,</span>
+                <span class="s">&#39;key&#39;</span><span class="p">:</span> <span class="n">key_name</span><span class="p">,</span>
+                <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="s">&#39;v1&#39;</span><span class="p">}</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">create_url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Name may only contain letters, numbers, underscores, periods, &#39;</span>
+              <span class="s">&#39;colons, spaces and hyphens.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">UnsetStubs</span><span class="p">()</span>
+
+<div class="viewcode-block" id="FlavorExtrasTests.test_create_extra_key_names_valid_formats"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.extras.tests.html#openstack_dashboard.dashboards.admin.flavors.extras.tests.FlavorExtrasTests.test_create_extra_key_names_valid_formats">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_extra_key_names_valid_formats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">valid_keys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;key1&quot;</span><span class="p">,</span> <span class="s">&quot;month.price&quot;</span><span class="p">,</span> <span class="s">&quot;I-Am:AK-ey. 22-&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">valid_keys</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generic_extra_create_post</span><span class="p">(</span><span class="n">key_name</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="FlavorExtrasTests.test_create_extra_key_names_invalid_formats"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.extras.tests.html#openstack_dashboard.dashboards.admin.flavors.extras.tests.FlavorExtrasTests.test_create_extra_key_names_invalid_formats">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_extra_key_names_invalid_formats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">invalid_keys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;key1/&quot;</span><span class="p">,</span> <span class="s">&quot;&lt;key&gt;&quot;</span><span class="p">,</span> <span class="s">&quot;$$akey$&quot;</span><span class="p">,</span> <span class="s">&quot;!akey&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">invalid_keys</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generic_extra_create_names_format_fail</span><span class="p">(</span><span class="n">key_name</span><span class="o">=</span><span class="n">x</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

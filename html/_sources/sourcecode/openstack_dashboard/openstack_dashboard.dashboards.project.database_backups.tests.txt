@@ -1,0 +1,8 @@
+===============================================================================
+The :mod:`openstack_dashboard.dashboards.project.database_backups.tests` Module
+===============================================================================
+.. automodule:: openstack_dashboard.dashboards.project.database_backups.tests
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

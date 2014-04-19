@@ -1,0 +1,192 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.test.tests.policy &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.test.tests.policy</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright (c) 2013 Hewlett-Packard Development Company, L.P.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">policy</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+
+<div class="viewcode-block" id="PolicyTestCase"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase">[docs]</a><span class="k">class</span> <span class="nc">PolicyTestCase</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="PolicyTestCase.test_policy_file_load"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase.test_policy_file_load">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_file_load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">enforcer</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">_get_enforcer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">enforcer</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="s">&#39;identity&#39;</span> <span class="ow">in</span> <span class="n">enforcer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="s">&#39;compute&#39;</span> <span class="ow">in</span> <span class="n">enforcer</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCase.test_policy_reset"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase.test_policy_reset">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">_get_enforcer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">policy</span><span class="o">.</span><span class="n">_ENFORCER</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">policy</span><span class="o">.</span><span class="n">_ENFORCER</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCase.test_check_admin_required_false"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase.test_check_admin_required_false">[docs]</a>    <span class="k">def</span> <span class="nf">test_check_admin_required_false</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;admin_required&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCase.test_check_identity_rule_not_found_false"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase.test_check_identity_rule_not_found_false">[docs]</a>    <span class="k">def</span> <span class="nf">test_check_identity_rule_not_found_false</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;i_dont_exist&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="c"># this should fail because the default check for</span>
+        <span class="c"># identity is admin_required</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCase.test_check_nova_context_is_admin_false"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase.test_check_nova_context_is_admin_false">[docs]</a>    <span class="k">def</span> <span class="nf">test_check_nova_context_is_admin_false</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;compute&quot;</span><span class="p">,</span> <span class="s">&quot;context_is_admin&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCase.test_compound_check_false"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase.test_compound_check_false">[docs]</a>    <span class="k">def</span> <span class="nf">test_compound_check_false</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;admin_required&quot;</span><span class="p">),</span>
+                              <span class="p">(</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;identity:default&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCase.test_scope_not_found"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCase.test_scope_not_found">[docs]</a>    <span class="k">def</span> <span class="nf">test_scope_not_found</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;dummy&quot;</span><span class="p">,</span> <span class="s">&quot;default&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="PolicyTestCaseAdmin"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCaseAdmin">[docs]</a><span class="k">class</span> <span class="nc">PolicyTestCaseAdmin</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">BaseAdminViewTests</span><span class="p">):</span>
+<div class="viewcode-block" id="PolicyTestCaseAdmin.test_check_admin_required_true"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCaseAdmin.test_check_admin_required_true">[docs]</a>    <span class="k">def</span> <span class="nf">test_check_admin_required_true</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;admin_required&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCaseAdmin.test_check_identity_rule_not_found_true"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCaseAdmin.test_check_identity_rule_not_found_true">[docs]</a>    <span class="k">def</span> <span class="nf">test_check_identity_rule_not_found_true</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;i_dont_exist&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="c"># this should succeed because the default check for</span>
+        <span class="c"># identity is admin_required</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCaseAdmin.test_compound_check_true"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCaseAdmin.test_compound_check_true">[docs]</a>    <span class="k">def</span> <span class="nf">test_compound_check_true</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;admin_required&quot;</span><span class="p">),</span>
+                              <span class="p">(</span><span class="s">&quot;identity&quot;</span><span class="p">,</span> <span class="s">&quot;identity:default&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PolicyTestCaseAdmin.test_check_nova_context_is_admin_true"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.tests.policy.html#openstack_dashboard.test.tests.policy.PolicyTestCaseAdmin.test_check_nova_context_is_admin_true">[docs]</a>    <span class="k">def</span> <span class="nf">test_check_nova_context_is_admin_true</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">check</span><span class="p">(((</span><span class="s">&quot;compute&quot;</span><span class="p">,</span> <span class="s">&quot;context_is_admin&quot;</span><span class="p">),),</span>
+                             <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

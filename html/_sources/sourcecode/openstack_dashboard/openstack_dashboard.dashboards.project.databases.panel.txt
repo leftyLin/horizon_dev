@@ -1,0 +1,8 @@
+========================================================================
+The :mod:`openstack_dashboard.dashboards.project.databases.panel` Module
+========================================================================
+.. automodule:: openstack_dashboard.dashboards.project.databases.panel
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

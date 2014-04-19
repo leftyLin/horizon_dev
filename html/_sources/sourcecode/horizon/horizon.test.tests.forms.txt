@@ -1,0 +1,8 @@
+==========================================
+The :mod:`horizon.test.tests.forms` Module
+==========================================
+.. automodule:: horizon.test.tests.forms
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

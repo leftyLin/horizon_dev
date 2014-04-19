@@ -1,0 +1,8 @@
+=========================================================
+The :mod:`openstack_dashboard.test.tests.selenium` Module
+=========================================================
+.. automodule:: openstack_dashboard.test.tests.selenium
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,8 @@
+=====================================================================
+The :mod:`openstack_dashboard.openstack.common.rpc.impl_kombu` Module
+=====================================================================
+.. automodule:: openstack_dashboard.openstack.common.rpc.impl_kombu
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

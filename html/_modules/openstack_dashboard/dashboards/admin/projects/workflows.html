@@ -1,0 +1,833 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.dashboards.admin.projects.workflows &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.dashboards.admin.projects.workflows</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2012 United States Government as represented by the</span>
+<span class="c"># Administrator of the National Aeronautics and Space Administration.</span>
+<span class="c"># All Rights Reserved.</span>
+<span class="c">#</span>
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="kn">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">exceptions</span>
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">forms</span>
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">messages</span>
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">workflows</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">base</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">cinder</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">keystone</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">nova</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.usage</span> <span class="kn">import</span> <span class="n">quotas</span>
+
+<span class="n">INDEX_URL</span> <span class="o">=</span> <span class="s">&quot;horizon:admin:projects:index&quot;</span>
+<span class="n">ADD_USER_URL</span> <span class="o">=</span> <span class="s">&quot;horizon:admin:projects:create_user&quot;</span>
+<span class="n">PROJECT_GROUP_ENABLED</span> <span class="o">=</span> <span class="n">keystone</span><span class="o">.</span><span class="n">VERSIONS</span><span class="o">.</span><span class="n">active</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+<span class="n">PROJECT_USER_MEMBER_SLUG</span> <span class="o">=</span> <span class="s">&quot;update_members&quot;</span>
+<span class="n">PROJECT_GROUP_MEMBER_SLUG</span> <span class="o">=</span> <span class="s">&quot;update_group_members&quot;</span>
+
+
+<div class="viewcode-block" id="UpdateProjectQuotaAction"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectQuotaAction">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectQuotaAction</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">Action</span><span class="p">):</span>
+    <span class="n">ifcb_label</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Injected File Content Bytes&quot;</span><span class="p">)</span>
+    <span class="n">metadata_items</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                        <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Metadata Items&quot;</span><span class="p">))</span>
+    <span class="n">cores</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;VCPUs&quot;</span><span class="p">))</span>
+    <span class="n">instances</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Instances&quot;</span><span class="p">))</span>
+    <span class="n">injected_files</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                        <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Injected Files&quot;</span><span class="p">))</span>
+    <span class="n">injected_file_content_bytes</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                                     <span class="n">label</span><span class="o">=</span><span class="n">ifcb_label</span><span class="p">)</span>
+    <span class="n">volumes</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Volumes&quot;</span><span class="p">))</span>
+    <span class="n">snapshots</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Volume Snapshots&quot;</span><span class="p">))</span>
+    <span class="n">gigabytes</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span>
+        <span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Total Size of Volumes and Snapshots (GB)&quot;</span><span class="p">))</span>
+    <span class="n">ram</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;RAM (MB)&quot;</span><span class="p">))</span>
+    <span class="n">floating_ips</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Floating IPs&quot;</span><span class="p">))</span>
+    <span class="n">fixed_ips</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Fixed IPs&quot;</span><span class="p">))</span>
+    <span class="n">security_groups</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                         <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Security Groups&quot;</span><span class="p">))</span>
+    <span class="n">security_group_rules</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                              <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Security Group Rules&quot;</span><span class="p">))</span>
+
+    <span class="c"># Neutron</span>
+    <span class="n">security_group</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                        <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Security Groups&quot;</span><span class="p">))</span>
+    <span class="n">security_group_rule</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                             <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Security Group Rules&quot;</span><span class="p">))</span>
+    <span class="n">floatingip</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Floating IPs&quot;</span><span class="p">))</span>
+    <span class="n">network</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Networks&quot;</span><span class="p">))</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Ports&quot;</span><span class="p">))</span>
+    <span class="n">router</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Routers&quot;</span><span class="p">))</span>
+    <span class="n">subnet</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Subnets&quot;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UpdateProjectQuotaAction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                       <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                                       <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">disabled_quotas</span> <span class="o">=</span> <span class="n">quotas</span><span class="o">.</span><span class="n">get_disabled_quotas</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">disabled_quotas</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">required</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">widget</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">HiddenInput</span><span class="p">()</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Quota&quot;</span><span class="p">)</span>
+        <span class="n">slug</span> <span class="o">=</span> <span class="s">&#39;update_quotas&#39;</span>
+        <span class="n">help_text</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;From here you can set quotas &quot;</span>
+                      <span class="s">&quot;(max limits) for the project.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="UpdateProjectQuota"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectQuota">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectQuota</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">Step</span><span class="p">):</span>
+    <span class="n">action_class</span> <span class="o">=</span> <span class="n">UpdateProjectQuotaAction</span>
+    <span class="n">depends_on</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;project_id&quot;</span><span class="p">,)</span>
+    <span class="n">contributes</span> <span class="o">=</span> <span class="n">quotas</span><span class="o">.</span><span class="n">QUOTA_FIELDS</span>
+
+</div>
+<div class="viewcode-block" id="CreateProjectInfoAction"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.CreateProjectInfoAction">[docs]</a><span class="k">class</span> <span class="nc">CreateProjectInfoAction</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">Action</span><span class="p">):</span>
+    <span class="c"># Hide the domain_id and domain_name by default</span>
+    <span class="n">domain_id</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Domain ID&quot;</span><span class="p">),</span>
+                                <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">HiddenInput</span><span class="p">())</span>
+    <span class="n">domain_name</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Domain Name&quot;</span><span class="p">),</span>
+                                  <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                  <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">HiddenInput</span><span class="p">())</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Name&quot;</span><span class="p">),</span>
+                           <span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">Textarea</span><span class="p">(),</span>
+                                  <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Description&quot;</span><span class="p">),</span>
+                                  <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">enabled</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Enabled&quot;</span><span class="p">),</span>
+                                 <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">initial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CreateProjectInfoAction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                      <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c"># For keystone V3, display the two fields in read-only</span>
+        <span class="k">if</span> <span class="n">keystone</span><span class="o">.</span><span class="n">VERSIONS</span><span class="o">.</span><span class="n">active</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">readonlyInput</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;readonly&#39;</span><span class="p">:</span> <span class="s">&#39;readonly&#39;</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&quot;domain_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">widget</span> <span class="o">=</span> <span class="n">readonlyInput</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&quot;domain_name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">widget</span> <span class="o">=</span> <span class="n">readonlyInput</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Project Info&quot;</span><span class="p">)</span>
+        <span class="n">help_text</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;From here you can create a new &quot;</span>
+                      <span class="s">&quot;project to organize users.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="CreateProjectInfo"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.CreateProjectInfo">[docs]</a><span class="k">class</span> <span class="nc">CreateProjectInfo</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">Step</span><span class="p">):</span>
+    <span class="n">action_class</span> <span class="o">=</span> <span class="n">CreateProjectInfoAction</span>
+    <span class="n">contributes</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;domain_id&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;domain_name&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;project_id&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;name&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;description&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;enabled&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="UpdateProjectMembersAction"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectMembersAction">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectMembersAction</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">MembershipAction</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UpdateProjectMembersAction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                         <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">err_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Unable to retrieve user list. Please try again later.&#39;</span><span class="p">)</span>
+        <span class="c"># Use the domain_id from the project</span>
+        <span class="n">domain_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;domain_id&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">if</span> <span class="s">&#39;project_id&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">:</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;project_id&#39;</span><span class="p">]</span>
+
+        <span class="c"># Get the default role</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">default_role</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">get_default_role</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+            <span class="c"># Default role is necessary to add members to a project</span>
+            <span class="k">if</span> <span class="n">default_role</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">default</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span>
+                                  <span class="s">&quot;OPENSTACK_KEYSTONE_DEFAULT_ROLE&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Could not find default role &quot;</span><span class="si">%s</span><span class="s">&quot; in Keystone&#39;</span><span class="p">)</span> <span class="o">%</span> \
+                        <span class="n">default</span>
+                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">NotFound</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                              <span class="n">err_msg</span><span class="p">,</span>
+                              <span class="n">redirect</span><span class="o">=</span><span class="n">reverse</span><span class="p">(</span><span class="n">INDEX_URL</span><span class="p">))</span>
+        <span class="n">default_role_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_role_field_name</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">default_role_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">default_role_name</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">default_role</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="c"># Get list of available users</span>
+        <span class="n">all_users</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">all_users</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">user_list</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                               <span class="n">domain</span><span class="o">=</span><span class="n">domain_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">err_msg</span><span class="p">)</span>
+        <span class="n">users_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">all_users</span><span class="p">]</span>
+
+        <span class="c"># Get list of roles</span>
+        <span class="n">role_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">role_list</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">role_list</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                              <span class="n">err_msg</span><span class="p">,</span>
+                              <span class="n">redirect</span><span class="o">=</span><span class="n">reverse</span><span class="p">(</span><span class="n">INDEX_URL</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">role_list</span><span class="p">:</span>
+            <span class="n">field_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">role</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">MultipleChoiceField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                                                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">choices</span> <span class="o">=</span> <span class="n">users_list</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Figure out users &amp; roles</span>
+        <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">project_members</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">user_list</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                    <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">err_msg</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">project_members</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">roles_for_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                                        <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                        <span class="n">project_id</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                      <span class="n">err_msg</span><span class="p">,</span>
+                                      <span class="n">redirect</span><span class="o">=</span><span class="n">reverse</span><span class="p">(</span><span class="n">INDEX_URL</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">roles</span><span class="p">:</span>
+                    <span class="n">field_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Project Members&quot;</span><span class="p">)</span>
+        <span class="n">slug</span> <span class="o">=</span> <span class="n">PROJECT_USER_MEMBER_SLUG</span>
+
+</div>
+<div class="viewcode-block" id="UpdateProjectMembers"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectMembers">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectMembers</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">UpdateMembersStep</span><span class="p">):</span>
+    <span class="n">action_class</span> <span class="o">=</span> <span class="n">UpdateProjectMembersAction</span>
+    <span class="n">available_list_title</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;All Users&quot;</span><span class="p">)</span>
+    <span class="n">members_list_title</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Project Members&quot;</span><span class="p">)</span>
+    <span class="n">no_available_text</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;No users found.&quot;</span><span class="p">)</span>
+    <span class="n">no_members_text</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;No users.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UpdateProjectMembers.contribute"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectMembers.contribute">[docs]</a>    <span class="k">def</span> <span class="nf">contribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">role_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                  <span class="n">_</span><span class="p">(</span><span class="s">&#39;Unable to retrieve user list.&#39;</span><span class="p">))</span>
+
+            <span class="n">post</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span>
+            <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">roles</span><span class="p">:</span>
+                <span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="n">context</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">post</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span>
+
+</div></div>
+<div class="viewcode-block" id="UpdateProjectGroupsAction"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectGroupsAction">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectGroupsAction</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">MembershipAction</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UpdateProjectGroupsAction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">err_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Unable to retrieve group list. Please try again later.&#39;</span><span class="p">)</span>
+        <span class="c"># Use the domain_id from the project</span>
+        <span class="n">domain_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;domain_id&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">if</span> <span class="s">&#39;project_id&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">:</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;project_id&#39;</span><span class="p">]</span>
+
+        <span class="c"># Get the default role</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">default_role</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">get_default_role</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+            <span class="c"># Default role is necessary to add members to a project</span>
+            <span class="k">if</span> <span class="n">default_role</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">default</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span>
+                                  <span class="s">&quot;OPENSTACK_KEYSTONE_DEFAULT_ROLE&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Could not find default role &quot;</span><span class="si">%s</span><span class="s">&quot; in Keystone&#39;</span><span class="p">)</span> <span class="o">%</span> \
+                        <span class="n">default</span>
+                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">NotFound</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                              <span class="n">err_msg</span><span class="p">,</span>
+                              <span class="n">redirect</span><span class="o">=</span><span class="n">reverse</span><span class="p">(</span><span class="n">INDEX_URL</span><span class="p">))</span>
+        <span class="n">default_role_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_role_field_name</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">default_role_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">default_role_name</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">default_role</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="c"># Get list of available groups</span>
+        <span class="n">all_groups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">all_groups</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">group_list</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                 <span class="n">domain</span><span class="o">=</span><span class="n">domain_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">err_msg</span><span class="p">)</span>
+        <span class="n">groups_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">group</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">group</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">all_groups</span><span class="p">]</span>
+
+        <span class="c"># Get list of roles</span>
+        <span class="n">role_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">role_list</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">role_list</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                              <span class="n">err_msg</span><span class="p">,</span>
+                              <span class="n">redirect</span><span class="o">=</span><span class="n">reverse</span><span class="p">(</span><span class="n">INDEX_URL</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">role_list</span><span class="p">:</span>
+            <span class="n">field_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">role</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">MultipleChoiceField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                                                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">choices</span> <span class="o">=</span> <span class="n">groups_list</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Figure out groups &amp; roles</span>
+        <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">all_groups</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">roles_for_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                                         <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                         <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                      <span class="n">err_msg</span><span class="p">,</span>
+                                      <span class="n">redirect</span><span class="o">=</span><span class="n">reverse</span><span class="p">(</span><span class="n">INDEX_URL</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">roles</span><span class="p">:</span>
+                    <span class="n">field_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Project Groups&quot;</span><span class="p">)</span>
+        <span class="n">slug</span> <span class="o">=</span> <span class="n">PROJECT_GROUP_MEMBER_SLUG</span>
+
+</div>
+<div class="viewcode-block" id="UpdateProjectGroups"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectGroups">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectGroups</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">UpdateMembersStep</span><span class="p">):</span>
+    <span class="n">action_class</span> <span class="o">=</span> <span class="n">UpdateProjectGroupsAction</span>
+    <span class="n">available_list_title</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;All Groups&quot;</span><span class="p">)</span>
+    <span class="n">members_list_title</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Project Groups&quot;</span><span class="p">)</span>
+    <span class="n">no_available_text</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;No groups found.&quot;</span><span class="p">)</span>
+    <span class="n">no_members_text</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;No groups.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UpdateProjectGroups.contribute"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectGroups.contribute">[docs]</a>    <span class="k">def</span> <span class="nf">contribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">role_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                  <span class="n">_</span><span class="p">(</span><span class="s">&#39;Unable to retrieve role list.&#39;</span><span class="p">))</span>
+
+            <span class="n">post</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span>
+            <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">roles</span><span class="p">:</span>
+                <span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="n">context</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">post</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span>
+
+</div></div>
+<div class="viewcode-block" id="CreateProject"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.CreateProject">[docs]</a><span class="k">class</span> <span class="nc">CreateProject</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">Workflow</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;create_project&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Create Project&quot;</span><span class="p">)</span>
+    <span class="n">finalize_button_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Create Project&quot;</span><span class="p">)</span>
+    <span class="n">success_message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Created new project &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span><span class="p">)</span>
+    <span class="n">failure_message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Unable to create project &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span><span class="p">)</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="s">&quot;horizon:admin:projects:index&quot;</span>
+    <span class="n">default_steps</span> <span class="o">=</span> <span class="p">(</span><span class="n">CreateProjectInfo</span><span class="p">,</span>
+                     <span class="n">UpdateProjectMembers</span><span class="p">,</span>
+                     <span class="n">UpdateProjectQuota</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">context_seed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">entry_point</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">PROJECT_GROUP_ENABLED</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">default_steps</span> <span class="o">=</span> <span class="p">(</span><span class="n">CreateProjectInfo</span><span class="p">,</span>
+                                  <span class="n">UpdateProjectMembers</span><span class="p">,</span>
+                                  <span class="n">UpdateProjectGroups</span><span class="p">,</span>
+                                  <span class="n">UpdateProjectQuota</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CreateProject</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
+                                            <span class="n">context_seed</span><span class="o">=</span><span class="n">context_seed</span><span class="p">,</span>
+                                            <span class="n">entry_point</span><span class="o">=</span><span class="n">entry_point</span><span class="p">,</span>
+                                            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CreateProject.format_status_message"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.CreateProject.format_status_message">[docs]</a>    <span class="k">def</span> <span class="nf">format_status_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">message</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;unknown project&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CreateProject.handle"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.CreateProject.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="c"># create the project</span>
+        <span class="n">domain_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;domain_id&#39;</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">desc</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_create</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                     <span class="n">name</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                                     <span class="n">description</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span>
+                                                     <span class="n">enabled</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;enabled&#39;</span><span class="p">],</span>
+                                                     <span class="n">domain</span><span class="o">=</span><span class="n">domain_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="c"># update project members</span>
+        <span class="n">users_to_add</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">available_roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">role_list</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="n">member_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_step</span><span class="p">(</span><span class="n">PROJECT_USER_MEMBER_SLUG</span><span class="p">)</span>
+            <span class="c"># count how many users are to be added</span>
+            <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="n">role_list</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span>
+                <span class="n">users_to_add</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">role_list</span><span class="p">)</span>
+            <span class="c"># add new users to project</span>
+            <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="n">role_list</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span>
+                <span class="n">users_added</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">role_list</span><span class="p">:</span>
+                    <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">add_tenant_user_role</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                      <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                                                      <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+                                                      <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="n">users_added</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">users_to_add</span> <span class="o">-=</span> <span class="n">users_added</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">PROJECT_GROUP_ENABLED</span><span class="p">:</span>
+                <span class="n">group_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;, add project groups&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">group_msg</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Failed to add </span><span class="si">%(users_to_add)s</span><span class="s"> &#39;</span>
+                                         <span class="s">&#39;project members</span><span class="si">%(group_msg)s</span><span class="s"> and &#39;</span>
+                                         <span class="s">&#39;set project quotas.&#39;</span><span class="p">)</span>
+                                      <span class="o">%</span> <span class="p">{</span><span class="s">&#39;users_to_add&#39;</span><span class="p">:</span> <span class="n">users_to_add</span><span class="p">,</span>
+                                         <span class="s">&#39;group_msg&#39;</span><span class="p">:</span> <span class="n">group_msg</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">PROJECT_GROUP_ENABLED</span><span class="p">:</span>
+            <span class="c"># update project groups</span>
+            <span class="n">groups_to_add</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">available_roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">role_list</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+                <span class="n">member_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_step</span><span class="p">(</span><span class="n">PROJECT_GROUP_MEMBER_SLUG</span><span class="p">)</span>
+
+                <span class="c"># count how many groups are to be added</span>
+                <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                    <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="n">role_list</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span>
+                    <span class="n">groups_to_add</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">role_list</span><span class="p">)</span>
+                <span class="c"># add new groups to project</span>
+                <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                    <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="n">role_list</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span>
+                    <span class="n">groups_added</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">role_list</span><span class="p">:</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">add_group_role</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                    <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                    <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">,</span>
+                                                    <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+                        <span class="n">groups_added</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">groups_to_add</span> <span class="o">-=</span> <span class="n">groups_added</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Failed to add </span><span class="si">%s</span><span class="s"> project groups &#39;</span>
+                                             <span class="s">&#39;and update project quotas.&#39;</span>
+                                             <span class="o">%</span> <span class="n">groups_to_add</span><span class="p">))</span>
+
+        <span class="c"># Update the project quota.</span>
+        <span class="n">nova_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">quotas</span><span class="o">.</span><span class="n">NOVA_QUOTA_FIELDS</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nova</span><span class="o">.</span><span class="n">tenant_quota_update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="o">**</span><span class="n">nova_data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">base</span><span class="o">.</span><span class="n">is_service_enabled</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;volume&#39;</span><span class="p">):</span>
+                <span class="n">cinder_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span>
+                                    <span class="n">quotas</span><span class="o">.</span><span class="n">CINDER_QUOTA_FIELDS</span><span class="p">])</span>
+                <span class="n">cinder</span><span class="o">.</span><span class="n">tenant_quota_update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                           <span class="n">project_id</span><span class="p">,</span>
+                                           <span class="o">**</span><span class="n">cinder_data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">api</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">is_service_enabled</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;network&#39;</span><span class="p">)</span> <span class="ow">and</span> \
+                    <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="o">.</span><span class="n">is_quotas_extension_supported</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+                <span class="n">neutron_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span>
+                                     <span class="n">quotas</span><span class="o">.</span><span class="n">NEUTRON_QUOTA_FIELDS</span><span class="p">])</span>
+                <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="o">.</span><span class="n">tenant_quota_update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                <span class="n">project_id</span><span class="p">,</span>
+                                                <span class="o">**</span><span class="n">neutron_data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Unable to set project quotas.&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+</div></div>
+<div class="viewcode-block" id="UpdateProjectInfoAction"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectInfoAction">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectInfoAction</span><span class="p">(</span><span class="n">CreateProjectInfoAction</span><span class="p">):</span>
+    <span class="n">enabled</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Enabled&quot;</span><span class="p">))</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Project Info&quot;</span><span class="p">)</span>
+        <span class="n">slug</span> <span class="o">=</span> <span class="s">&#39;update_info&#39;</span>
+        <span class="n">help_text</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;From here you can edit the project details.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="UpdateProjectInfo"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectInfo">[docs]</a><span class="k">class</span> <span class="nc">UpdateProjectInfo</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">Step</span><span class="p">):</span>
+    <span class="n">action_class</span> <span class="o">=</span> <span class="n">UpdateProjectInfoAction</span>
+    <span class="n">depends_on</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;project_id&quot;</span><span class="p">,)</span>
+    <span class="n">contributes</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;domain_id&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;domain_name&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;name&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;description&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;enabled&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="UpdateProject"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProject">[docs]</a><span class="k">class</span> <span class="nc">UpdateProject</span><span class="p">(</span><span class="n">workflows</span><span class="o">.</span><span class="n">Workflow</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;update_project&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Edit Project&quot;</span><span class="p">)</span>
+    <span class="n">finalize_button_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Save&quot;</span><span class="p">)</span>
+    <span class="n">success_message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Modified project &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span><span class="p">)</span>
+    <span class="n">failure_message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Unable to modify project &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span><span class="p">)</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="s">&quot;horizon:admin:projects:index&quot;</span>
+    <span class="n">default_steps</span> <span class="o">=</span> <span class="p">(</span><span class="n">UpdateProjectInfo</span><span class="p">,</span>
+                     <span class="n">UpdateProjectMembers</span><span class="p">,</span>
+                     <span class="n">UpdateProjectQuota</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">context_seed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">entry_point</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">PROJECT_GROUP_ENABLED</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">default_steps</span> <span class="o">=</span> <span class="p">(</span><span class="n">UpdateProjectInfo</span><span class="p">,</span>
+                                  <span class="n">UpdateProjectMembers</span><span class="p">,</span>
+                                  <span class="n">UpdateProjectGroups</span><span class="p">,</span>
+                                  <span class="n">UpdateProjectQuota</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">UpdateProject</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span>
+                                            <span class="n">context_seed</span><span class="o">=</span><span class="n">context_seed</span><span class="p">,</span>
+                                            <span class="n">entry_point</span><span class="o">=</span><span class="n">entry_point</span><span class="p">,</span>
+                                            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UpdateProject.format_status_message"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProject.format_status_message">[docs]</a>    <span class="k">def</span> <span class="nf">format_status_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">message</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;unknown project&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="UpdateProject.handle"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.html#openstack_dashboard.dashboards.admin.projects.workflows.UpdateProject.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="c"># FIXME(gabriel): This should be refactored to use Python&#39;s built-in</span>
+        <span class="c"># sets and do this all in a single &quot;roles to add&quot; and &quot;roles to remove&quot;</span>
+        <span class="c"># pass instead of the multi-pass thing happening now.</span>
+
+        <span class="n">project_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;project_id&#39;</span><span class="p">]</span>
+        <span class="n">domain_id</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="c"># update project info</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">project</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_update</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="n">project_id</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">],</span>
+                <span class="n">enabled</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;enabled&#39;</span><span class="p">])</span>
+            <span class="c"># Use the domain_id from the project if available</span>
+            <span class="n">domain_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="s">&quot;domain_id&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># update project members</span>
+        <span class="n">users_to_modify</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c"># Project-user member step</span>
+        <span class="n">member_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_step</span><span class="p">(</span><span class="n">PROJECT_USER_MEMBER_SLUG</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Get our role options</span>
+            <span class="n">available_roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">role_list</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="c"># Get the users currently associated with this project so we</span>
+            <span class="c"># can diff against it.</span>
+            <span class="n">project_members</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">user_list</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                     <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+            <span class="n">users_to_modify</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">project_members</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">project_members</span><span class="p">:</span>
+                <span class="c"># Check if there have been any changes in the roles of</span>
+                <span class="c"># Existing project members.</span>
+                <span class="n">current_roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">roles_for_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                                            <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                            <span class="n">project_id</span><span class="p">)</span>
+                <span class="n">current_role_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">role</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">current_roles</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                    <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="c"># Check if the user is in the list of users with this role.</span>
+                    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]:</span>
+                        <span class="c"># Add it if necessary</span>
+                        <span class="k">if</span> <span class="n">role</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_role_ids</span><span class="p">:</span>
+                            <span class="c"># user role has changed</span>
+                            <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">add_tenant_user_role</span><span class="p">(</span>
+                                <span class="n">request</span><span class="p">,</span>
+                                <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                                <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c"># User role is unchanged, so remove it from the</span>
+                            <span class="c"># remaining roles list to avoid removing it later.</span>
+                            <span class="n">index</span> <span class="o">=</span> <span class="n">current_role_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                            <span class="n">current_role_ids</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+                <span class="c"># Prevent admins from doing stupid things to themselves.</span>
+                <span class="n">is_current_user</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">is_current_project</span> <span class="o">=</span> <span class="n">project_id</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">tenant_id</span>
+                <span class="n">admin_roles</span> <span class="o">=</span> <span class="p">[</span><span class="n">role</span> <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">current_roles</span>
+                               <span class="k">if</span> <span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;admin&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">admin_roles</span><span class="p">):</span>
+                    <span class="n">removing_admin</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="n">role</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">current_role_ids</span>
+                                          <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">admin_roles</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">removing_admin</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">if</span> <span class="n">is_current_user</span> <span class="ow">and</span> <span class="n">is_current_project</span> <span class="ow">and</span> <span class="n">removing_admin</span><span class="p">:</span>
+                    <span class="c"># Cannot remove &quot;admin&quot; role on current(admin) project</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;You cannot revoke your administrative privileges &#39;</span>
+                            <span class="s">&#39;from the project you are currently logged into. &#39;</span>
+                            <span class="s">&#39;Please switch to another project with &#39;</span>
+                            <span class="s">&#39;administrative privileges or remove the &#39;</span>
+                            <span class="s">&#39;administrative role manually via the CLI.&#39;</span><span class="p">)</span>
+                    <span class="n">messages</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+
+                <span class="c"># Otherwise go through and revoke any removed roles.</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">id_to_delete</span> <span class="ow">in</span> <span class="n">current_role_ids</span><span class="p">:</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">remove_tenant_user_role</span><span class="p">(</span>
+                            <span class="n">request</span><span class="p">,</span>
+                            <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                            <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                            <span class="n">role</span><span class="o">=</span><span class="n">id_to_delete</span><span class="p">)</span>
+                <span class="n">users_to_modify</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="c"># Grant new roles on the project.</span>
+            <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="c"># Count how many users may be added for exception handling.</span>
+                <span class="n">users_to_modify</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                <span class="n">users_added</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">user_id</span> <span class="o">==</span> <span class="n">x</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">project_members</span><span class="p">):</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">add_tenant_user_role</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                          <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                                                          <span class="n">user</span><span class="o">=</span><span class="n">user_id</span><span class="p">,</span>
+                                                          <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="n">users_added</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">users_to_modify</span> <span class="o">-=</span> <span class="n">users_added</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">PROJECT_GROUP_ENABLED</span><span class="p">:</span>
+                <span class="n">group_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;, update project groups&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">group_msg</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Failed to modify </span><span class="si">%(users_to_modify)s</span><span class="s">&#39;</span>
+                                         <span class="s">&#39; project members</span><span class="si">%(group_msg)s</span><span class="s"> and &#39;</span>
+                                         <span class="s">&#39;update project quotas.&#39;</span><span class="p">)</span>
+                                       <span class="o">%</span> <span class="p">{</span><span class="s">&#39;users_to_modify&#39;</span><span class="p">:</span> <span class="n">users_to_modify</span><span class="p">,</span>
+                                          <span class="s">&#39;group_msg&#39;</span><span class="p">:</span> <span class="n">group_msg</span><span class="p">})</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">PROJECT_GROUP_ENABLED</span><span class="p">:</span>
+            <span class="c"># update project groups</span>
+            <span class="n">groups_to_modify</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">member_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_step</span><span class="p">(</span><span class="n">PROJECT_GROUP_MEMBER_SLUG</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c"># Get the groups currently associated with this project so we</span>
+                <span class="c"># can diff against it.</span>
+                <span class="n">project_groups</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">group_list</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                         <span class="n">domain</span><span class="o">=</span><span class="n">domain_id</span><span class="p">,</span>
+                                                         <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+                <span class="n">groups_to_modify</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">project_groups</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">project_groups</span><span class="p">:</span>
+                    <span class="c"># Check if there have been any changes in the roles of</span>
+                    <span class="c"># Existing project members.</span>
+                    <span class="n">current_roles</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">roles_for_group</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                        <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                        <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+                    <span class="n">current_role_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">role</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">current_roles</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                        <span class="c"># Check if the group is in the list of groups with</span>
+                        <span class="c"># this role.</span>
+                        <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">group</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]:</span>
+                            <span class="c"># Add it if necessary</span>
+                            <span class="k">if</span> <span class="n">role</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_role_ids</span><span class="p">:</span>
+                                <span class="c"># group role has changed</span>
+                                <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">add_group_role</span><span class="p">(</span>
+                                    <span class="n">request</span><span class="p">,</span>
+                                    <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                    <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                    <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c"># Group role is unchanged, so remove it from</span>
+                                <span class="c"># the remaining roles list to avoid removing it</span>
+                                <span class="c"># later.</span>
+                                <span class="n">index</span> <span class="o">=</span> <span class="n">current_role_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                                <span class="n">current_role_ids</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+                    <span class="c"># Revoke any removed roles.</span>
+                    <span class="k">for</span> <span class="n">id_to_delete</span> <span class="ow">in</span> <span class="n">current_role_ids</span><span class="p">:</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">remove_group_role</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                       <span class="n">role</span><span class="o">=</span><span class="n">id_to_delete</span><span class="p">,</span>
+                                                       <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                       <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+                    <span class="n">groups_to_modify</span> <span class="o">-=</span> <span class="mi">1</span>
+
+                <span class="c"># Grant new roles on the project.</span>
+                <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                    <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="c"># Count how many groups may be added for error handling.</span>
+                    <span class="n">groups_to_modify</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">available_roles</span><span class="p">:</span>
+                    <span class="n">groups_added</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">field_name</span> <span class="o">=</span> <span class="n">member_step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">group_id</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">group_id</span> <span class="o">==</span> <span class="n">x</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                      <span class="n">project_groups</span><span class="p">):</span>
+                            <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">add_group_role</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                        <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                        <span class="n">group</span><span class="o">=</span><span class="n">group_id</span><span class="p">,</span>
+                                                        <span class="n">project</span><span class="o">=</span><span class="n">project_id</span><span class="p">)</span>
+                        <span class="n">groups_added</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">groups_to_modify</span> <span class="o">-=</span> <span class="n">groups_added</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Failed to modify </span><span class="si">%s</span><span class="s"> project &#39;</span>
+                                             <span class="s">&#39;members, update project groups &#39;</span>
+                                             <span class="s">&#39;and update project quotas.&#39;</span>
+                                             <span class="o">%</span> <span class="n">groups_to_modify</span><span class="p">))</span>
+                <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="c"># update the project quota</span>
+        <span class="n">nova_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">quotas</span><span class="o">.</span><span class="n">NOVA_QUOTA_FIELDS</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nova</span><span class="o">.</span><span class="n">tenant_quota_update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                     <span class="n">project_id</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">nova_data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">base</span><span class="o">.</span><span class="n">is_service_enabled</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;volume&#39;</span><span class="p">):</span>
+                <span class="n">cinder_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span>
+                                    <span class="n">quotas</span><span class="o">.</span><span class="n">CINDER_QUOTA_FIELDS</span><span class="p">])</span>
+                <span class="n">cinder</span><span class="o">.</span><span class="n">tenant_quota_update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                           <span class="n">project_id</span><span class="p">,</span>
+                                           <span class="o">**</span><span class="n">cinder_data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">api</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">is_service_enabled</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;network&#39;</span><span class="p">)</span> <span class="ow">and</span> \
+                    <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="o">.</span><span class="n">is_quotas_extension_supported</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+                <span class="n">neutron_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span>
+                                     <span class="n">quotas</span><span class="o">.</span><span class="n">NEUTRON_QUOTA_FIELDS</span><span class="p">])</span>
+                <span class="n">api</span><span class="o">.</span><span class="n">neutron</span><span class="o">.</span><span class="n">tenant_quota_update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                <span class="n">project_id</span><span class="p">,</span>
+                                                <span class="o">**</span><span class="n">neutron_data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">exceptions</span><span class="o">.</span><span class="n">handle</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Modified project information and &#39;</span>
+                                         <span class="s">&#39;members, but unable to modify &#39;</span>
+                                         <span class="s">&#39;project quotas.&#39;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">True</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

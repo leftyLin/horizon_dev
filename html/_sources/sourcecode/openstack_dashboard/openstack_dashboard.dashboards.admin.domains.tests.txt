@@ -1,0 +1,8 @@
+====================================================================
+The :mod:`openstack_dashboard.dashboards.admin.domains.tests` Module
+====================================================================
+.. automodule:: openstack_dashboard.dashboards.admin.domains.tests
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

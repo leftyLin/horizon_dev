@@ -1,0 +1,613 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.dashboards.admin.groups.tables Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.dashboards.admin.groups.constants Module" href="openstack_dashboard.dashboards.admin.groups.constants.html" />
+    <link rel="prev" title="The openstack_dashboard.dashboards.admin.groups.tests Module" href="openstack_dashboard.dashboards.admin.groups.tests.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-dashboards-admin-groups-tables-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.groups.tables</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-dashboards-admin-groups-tables-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">AddMembers</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#AddMembers"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.BatchAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">action</tt><big>(</big><em>request</em>, <em>obj_id</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#AddMembers.action"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">action_past</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x98e3cd0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">action_present</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x98e3590&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>user=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#AddMembers.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', 'data_type_singular': &lt;django.utils.functional.__proxy__ object at 0x98e3490&gt;, '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'requires_input': True, 'update': &lt;function update at 0x5ac4b90&gt;, 'policy_rules': (('identity', 'identity:add_user_to_group'),), 'get_success_url': &lt;function get_success_url at 0xa912938&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, 'allowed': &lt;function allowed at 0xa912848&gt;, 'handle': &lt;function handle at 0x5ac4c80&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5a51500&gt;, 'name': 'addMember', 'data_type_plural': &lt;django.utils.functional.__proxy__ object at 0x98e36d0&gt;, 'action_present': &lt;django.utils.functional.__proxy__ object at 0x98e3590&gt;, 'action_past': &lt;django.utils.functional.__proxy__ object at 0x98e3cd0&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'get_param_name': &lt;function get_param_name at 0x5a51b18&gt;, '_allowed': &lt;function _allowed at 0x5a51410&gt;, 'classes': ('btn-create',), '_get_action_name': &lt;function _get_action_name at 0x5a51398&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'action': &lt;function action at 0xa9128c0&gt;, 'success_url': 'horizon:admin:groups:manage_members', 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, '__doc__': 'A table action which takes batch action on one or more\n    objects. This action should not require user input on a\n    per-object basis.\n\n    .. attribute:: name\n\n       An internal name for this action.\n\n    .. attribute:: action_present\n\n       String or tuple/list. The display forms of the name.\n       Should be a transitive verb, capitalized and translated. (&quot;Delete&quot;,\n       &quot;Rotate&quot;, etc.) If tuple or list - then setting\n       self.current_present_action = n will set the current active item\n       from the list(action_present[n])\n\n       You can pass a complete action name including \'data_type\' by specifying\n       \'%(data_type)s\' substitution in action_present (&quot;Delete %(data_type)s&quot;).\n       Otherwise a complete action name is a format of &quot;&lt;action&gt; &lt;data_type&gt;&quot;.\n       &lt;data_type&gt; is determined based on the number of items.\n       By passing a complete action name you allow translators to control\n       the order of words as they want.\n\n    .. attribute:: action_past\n\n       String or tuple/list. The past tense of action_present. (&quot;Deleted&quot;,\n       &quot;Rotated&quot;, etc.) If tuple or list - then\n       setting self.current_past_action = n will set the current active item\n       from the list(action_past[n])\n\n    .. attribute:: data_type_singular\n\n       A display name for the type of data that receives the\n       action. (&quot;Key Pair&quot;, &quot;Floating IP&quot;, etc.)\n\n    .. attribute:: data_type_plural\n\n       Optional plural word for the type of data being acted\n       on. Defaults to appending \'s\'. Relying on the default is bad\n       for translations and should not be done.\n\n    .. attribute:: success_url\n\n       Optional location to redirect after completion of the delete\n       action. Defaults to the current page.\n    '}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">classes</tt><em class="property"> = ('btn-create',)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">data_type_plural</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x98e36d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">data_type_singular</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x98e3490&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">get_success_url</tt><big>(</big><em>request=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#AddMembers.get_success_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">name</tt><em class="property"> = 'addMember'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">policy_rules</tt><em class="property"> = (('identity', 'identity:add_user_to_group'),)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">requires_input</tt><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembers.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:admin:groups:manage_members'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">AddMembersLink</tt><big>(</big><em>attrs=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#AddMembersLink"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.LinkAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>user=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#AddMembersLink.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'policy_rules': (('identity', 'identity:list_users'), ('identity', 'identity:add_user_to_group')), 'get_link_url': &lt;function get_link_url at 0xa912668&gt;, 'allowed': &lt;function allowed at 0xa9125f0&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5a51a28&gt;, 'name': 'add_user_link', 'url': 'horizon:admin:groups:add_members', 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, 'classes': ('ajax-modal', 'btn-create'), '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'verbose_name': &lt;django.utils.functional.__proxy__ object at 0x87fa150&gt;, '__doc__': 'A table action which is simply a link rather than a form POST.\n\n    .. attribute:: name\n\n        Required. The short name or &quot;slug&quot; representing this\n        action. This name should not be changed at runtime.\n\n    .. attribute:: verbose_name\n\n        A string which will be rendered as the link text. (Required)\n\n    .. attribute:: url\n\n        A string or a callable which resolves to a url to be used as the link\n        target. You must either define the ``url`` attribute or override\n        the ``get_link_url`` method on the class.\n\n    .. attribute:: allowed_data_types\n\n        A list that contains the allowed data types of the action.  If the\n        datum\'s type is in this list, the action will be shown on the row\n        for the datum.\n\n        Defaults to be an empty list (``[]``). When set to empty, the action\n        will accept any kind of data.\n    '}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">classes</tt><em class="property"> = ('ajax-modal', 'btn-create')</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">get_link_url</tt><big>(</big><em>datum=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#AddMembersLink.get_link_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">name</tt><em class="property"> = 'add_user_link'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">policy_rules</tt><em class="property"> = (('identity', 'identity:list_users'), ('identity', 'identity:add_user_to_group'))</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">url</tt><em class="property"> = 'horizon:admin:groups:add_members'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">AddMembersLink.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87fa150&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">CreateGroupLink</tt><big>(</big><em>attrs=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#CreateGroupLink"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.LinkAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateGroupLink.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>group</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#CreateGroupLink.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateGroupLink.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'policy_rules': (('identity', 'identity:create_group'),), 'get_link_url': &lt;function get_link_url at 0x5a519b0&gt;, 'allowed': &lt;function allowed at 0xa911f50&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5a51a28&gt;, 'name': 'create', 'url': 'horizon:admin:groups:create', 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, 'classes': ('ajax-modal', 'btn-create'), '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'verbose_name': &lt;django.utils.functional.__proxy__ object at 0x87faa90&gt;, '__doc__': 'A table action which is simply a link rather than a form POST.\n\n    .. attribute:: name\n\n        Required. The short name or &quot;slug&quot; representing this\n        action. This name should not be changed at runtime.\n\n    .. attribute:: verbose_name\n\n        A string which will be rendered as the link text. (Required)\n\n    .. attribute:: url\n\n        A string or a callable which resolves to a url to be used as the link\n        target. You must either define the ``url`` attribute or override\n        the ``get_link_url`` method on the class.\n\n    .. attribute:: allowed_data_types\n\n        A list that contains the allowed data types of the action.  If the\n        datum\'s type is in this list, the action will be shown on the row\n        for the datum.\n\n        Defaults to be an empty list (``[]``). When set to empty, the action\n        will accept any kind of data.\n    '}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateGroupLink.</tt><tt class="descname">classes</tt><em class="property"> = ('ajax-modal', 'btn-create')</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateGroupLink.</tt><tt class="descname">name</tt><em class="property"> = 'create'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateGroupLink.</tt><tt class="descname">policy_rules</tt><em class="property"> = (('identity', 'identity:create_group'),)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateGroupLink.</tt><tt class="descname">url</tt><em class="property"> = 'horizon:admin:groups:create'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateGroupLink.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87faa90&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">DeleteGroupsAction</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#DeleteGroupsAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.DeleteAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">DeleteGroupsAction.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>datum</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#DeleteGroupsAction.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">DeleteGroupsAction.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_singular': &lt;django.utils.functional.__proxy__ object at 0x82b7510&gt;, 'update': &lt;function update at 0x5ac4b90&gt;, 'policy_rules': (('identity', 'identity:delete_group'),), 'get_success_url': &lt;function get_success_url at 0x5ac4c08&gt;, 'get_param_name': &lt;function get_param_name at 0x5a51b18&gt;, 'allowed': &lt;function allowed at 0xa9120c8&gt;, 'handle': &lt;function handle at 0x5ac4c80&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5ac4cf8&gt;, 'name': 'delete', 'data_type_plural': &lt;django.utils.functional.__proxy__ object at 0x87fa810&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5ac4e60&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51410&gt;, '_get_action_name': &lt;function _get_action_name at 0x5a51398&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'action': &lt;function action at 0x5ac4d70&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, '__doc__': 'Doc missing.', 'delete': &lt;function delete at 0xa912140&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">DeleteGroupsAction.</tt><tt class="descname">data_type_plural</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87fa810&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">DeleteGroupsAction.</tt><tt class="descname">data_type_singular</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x82b7510&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">DeleteGroupsAction.</tt><tt class="descname">delete</tt><big>(</big><em>request</em>, <em>obj_id</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#DeleteGroupsAction.delete"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">DeleteGroupsAction.</tt><tt class="descname">name</tt><em class="property"> = 'delete'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">DeleteGroupsAction.</tt><tt class="descname">policy_rules</tt><em class="property"> = (('identity', 'identity:delete_group'),)</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">EditGroupLink</tt><big>(</big><em>attrs=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#EditGroupLink"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.LinkAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">EditGroupLink.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>group</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#EditGroupLink.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">EditGroupLink.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'policy_rules': (('identity', 'identity:update_group'),), 'get_link_url': &lt;function get_link_url at 0x5a519b0&gt;, 'allowed': &lt;function allowed at 0xa912050&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5a51a28&gt;, 'name': 'edit', 'url': 'horizon:admin:groups:update', 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, 'classes': ('ajax-modal', 'btn-edit'), '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'verbose_name': &lt;django.utils.functional.__proxy__ object at 0x82b7750&gt;, '__doc__': 'A table action which is simply a link rather than a form POST.\n\n    .. attribute:: name\n\n        Required. The short name or &quot;slug&quot; representing this\n        action. This name should not be changed at runtime.\n\n    .. attribute:: verbose_name\n\n        A string which will be rendered as the link text. (Required)\n\n    .. attribute:: url\n\n        A string or a callable which resolves to a url to be used as the link\n        target. You must either define the ``url`` attribute or override\n        the ``get_link_url`` method on the class.\n\n    .. attribute:: allowed_data_types\n\n        A list that contains the allowed data types of the action.  If the\n        datum\'s type is in this list, the action will be shown on the row\n        for the datum.\n\n        Defaults to be an empty list (``[]``). When set to empty, the action\n        will accept any kind of data.\n    '}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">EditGroupLink.</tt><tt class="descname">classes</tt><em class="property"> = ('ajax-modal', 'btn-edit')</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">EditGroupLink.</tt><tt class="descname">name</tt><em class="property"> = 'edit'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">EditGroupLink.</tt><tt class="descname">policy_rules</tt><em class="property"> = (('identity', 'identity:update_group'),)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">EditGroupLink.</tt><tt class="descname">url</tt><em class="property"> = 'horizon:admin:groups:update'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">EditGroupLink.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x82b7750&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">GroupFilterAction</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupFilterAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.FilterAction</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupFilterAction.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5a51848&gt;, 'filter': &lt;function filter at 0xa912230&gt;, 'name': 'filter', 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51578&gt;, 'get_param_name': &lt;function get_param_name at 0x5a518c0&gt;, 'data_type_filter': &lt;function data_type_filter at 0x5a51668&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'assign_type_string': &lt;function assign_type_string at 0x5a51758&gt;, '__doc__': 'A base class representing a filter action for a table.\n\n    .. attribute:: name\n\n        The short name or &quot;slug&quot; representing this action. Defaults to\n        ``&quot;filter&quot;``.\n\n    .. attribute:: verbose_name\n\n        A descriptive name used for display purposes. Defaults to the\n        value of ``name`` with the first letter of each word capitalized.\n\n    .. attribute:: param_name\n\n        A string representing the name of the request parameter used for the\n        search term. Default: ``&quot;q&quot;``.\n\n    .. attribute: filter_type\n\n        A string representing the type of this filter. Default: ``&quot;query&quot;``.\n\n    .. attribute: needs_preloading\n\n        If True, the filter function will be called for the initial\n        GET request with an empty ``filter_string``, regardless of the\n        value of ``method``.\n    '}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">GroupFilterAction.</tt><tt class="descname">filter</tt><big>(</big><em>table</em>, <em>groups</em>, <em>filter_string</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupFilterAction.filter"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Naive case-insensitive search.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">GroupMembersTable</tt><big>(</big><em>request</em>, <em>data=None</em>, <em>needs_form_wrapper=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupMembersTable"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.groups.tables.UsersTable</span></tt></p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">GroupMembersTable.</tt><tt class="descname">Meta</tt><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupMembersTable.Meta"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="attribute">
+<dt>
+<tt class="descclassname">GroupMembersTable.Meta.</tt><tt class="descname">name</tt><em class="property"> = 'group_members'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupMembersTable.Meta.</tt><tt class="descname">table_actions</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.admin.groups.tables.UserFilterAction'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.groups.tables.AddMembersLink'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.groups.tables.RemoveMembers'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupMembersTable.Meta.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x98e3c50&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupMembersTable.</tt><tt class="descname">base_actions</tt><em class="property"> = {'add_user_link': &lt;AddMembersLink: add_user_link&gt;, 'filter': &lt;UserFilterAction: filter&gt;, 'removeGroupMember': &lt;RemoveMembers: removeGroupMember&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupMembersTable.</tt><tt class="descname">base_columns</tt><em class="property"> = {'name': &lt;Column: name&gt;, 'email': &lt;Column: email&gt;, 'id': &lt;Column: id&gt;, 'enabled': &lt;Column: enabled&gt;}</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">GroupNonMembersTable</tt><big>(</big><em>request</em>, <em>data=None</em>, <em>needs_form_wrapper=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupNonMembersTable"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.groups.tables.UsersTable</span></tt></p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">GroupNonMembersTable.</tt><tt class="descname">Meta</tt><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupNonMembersTable.Meta"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="attribute">
+<dt>
+<tt class="descclassname">GroupNonMembersTable.Meta.</tt><tt class="descname">name</tt><em class="property"> = 'group_non_members'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupNonMembersTable.Meta.</tt><tt class="descname">table_actions</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.admin.groups.tables.UserFilterAction'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.groups.tables.AddMembers'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupNonMembersTable.Meta.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0xa07c110&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupNonMembersTable.</tt><tt class="descname">base_actions</tt><em class="property"> = {'addMember': &lt;AddMembers: addMember&gt;, 'filter': &lt;UserFilterAction: filter&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupNonMembersTable.</tt><tt class="descname">base_columns</tt><em class="property"> = {'name': &lt;Column: name&gt;, 'email': &lt;Column: email&gt;, 'id': &lt;Column: id&gt;, 'enabled': &lt;Column: enabled&gt;}</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">GroupsTable</tt><big>(</big><em>request</em>, <em>data=None</em>, <em>needs_form_wrapper=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupsTable"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.base.DataTable</span></tt></p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">GroupsTable.</tt><tt class="descname">Meta</tt><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#GroupsTable.Meta"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="attribute">
+<dt>
+<tt class="descclassname">GroupsTable.Meta.</tt><tt class="descname">name</tt><em class="property"> = 'groups'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupsTable.Meta.</tt><tt class="descname">row_actions</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.admin.groups.tables.ManageUsersLink'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.groups.tables.EditGroupLink'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.groups.tables.DeleteGroupsAction'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupsTable.Meta.</tt><tt class="descname">table_actions</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.admin.groups.tables.GroupFilterAction'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.groups.tables.CreateGroupLink'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.groups.tables.DeleteGroupsAction'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupsTable.Meta.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87fa550&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupsTable.</tt><tt class="descname">base_actions</tt><em class="property"> = {'create': &lt;CreateGroupLink: create&gt;, 'delete': &lt;DeleteGroupsAction: delete&gt;, 'edit': &lt;EditGroupLink: edit&gt;, 'filter': &lt;GroupFilterAction: filter&gt;, 'users': &lt;ManageUsersLink: users&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">GroupsTable.</tt><tt class="descname">base_columns</tt><em class="property"> = {'name': &lt;Column: name&gt;, 'description': &lt;Column: description&gt;, 'id': &lt;Column: id&gt;}</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">ManageUsersLink</tt><big>(</big><em>attrs=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#ManageUsersLink"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.LinkAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">ManageUsersLink.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>datum</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#ManageUsersLink.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ManageUsersLink.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'policy_rules': (('identity', 'identity:get_group'), ('identity', 'identity:list_users')), 'get_link_url': &lt;function get_link_url at 0x5a519b0&gt;, 'allowed': &lt;function allowed at 0xa9121b8&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5a51a28&gt;, 'name': 'users', 'url': 'horizon:admin:groups:manage_members', 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, 'classes': 'btn-edit', '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'verbose_name': &lt;django.utils.functional.__proxy__ object at 0x82b7890&gt;, '__doc__': 'A table action which is simply a link rather than a form POST.\n\n    .. attribute:: name\n\n        Required. The short name or &quot;slug&quot; representing this\n        action. This name should not be changed at runtime.\n\n    .. attribute:: verbose_name\n\n        A string which will be rendered as the link text. (Required)\n\n    .. attribute:: url\n\n        A string or a callable which resolves to a url to be used as the link\n        target. You must either define the ``url`` attribute or override\n        the ``get_link_url`` method on the class.\n\n    .. attribute:: allowed_data_types\n\n        A list that contains the allowed data types of the action.  If the\n        datum\'s type is in this list, the action will be shown on the row\n        for the datum.\n\n        Defaults to be an empty list (``[]``). When set to empty, the action\n        will accept any kind of data.\n    '}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ManageUsersLink.</tt><tt class="descname">classes</tt><em class="property"> = 'btn-edit'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ManageUsersLink.</tt><tt class="descname">name</tt><em class="property"> = 'users'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ManageUsersLink.</tt><tt class="descname">policy_rules</tt><em class="property"> = (('identity', 'identity:get_group'), ('identity', 'identity:list_users'))</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ManageUsersLink.</tt><tt class="descname">url</tt><em class="property"> = 'horizon:admin:groups:manage_members'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ManageUsersLink.</tt><tt class="descname">verbose_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x82b7890&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">RemoveMembers</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#RemoveMembers"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.DeleteAction</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">action</tt><big>(</big><em>request</em>, <em>obj_id</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#RemoveMembers.action"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">action_past</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87fad10&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">action_present</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87fa790&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">allowed</tt><big>(</big><em>request</em>, <em>user=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#RemoveMembers.allowed"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_singular': &lt;django.utils.functional.__proxy__ object at 0x87faf50&gt;, 'update': &lt;function update at 0x5ac4b90&gt;, 'policy_rules': (('identity', 'identity:remove_user_from_group'),), 'get_success_url': &lt;function get_success_url at 0x5ac4c08&gt;, 'get_param_name': &lt;function get_param_name at 0x5a51b18&gt;, 'allowed': &lt;function allowed at 0xa912500&gt;, 'handle': &lt;function handle at 0x5ac4c80&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5ac4cf8&gt;, 'name': 'removeGroupMember', 'data_type_plural': &lt;django.utils.functional.__proxy__ object at 0x87faad0&gt;, 'action_present': &lt;django.utils.functional.__proxy__ object at 0x87fa790&gt;, 'action_past': &lt;django.utils.functional.__proxy__ object at 0x87fad10&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5ac4e60&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51410&gt;, '_get_action_name': &lt;function _get_action_name at 0x5a51398&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'action': &lt;function action at 0xa912578&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, '__doc__': 'Doc missing.', 'delete': &lt;function delete at 0x5ac4de8&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">data_type_plural</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87faad0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">data_type_singular</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x87faf50&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">name</tt><em class="property"> = 'removeGroupMember'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">RemoveMembers.</tt><tt class="descname">policy_rules</tt><em class="property"> = (('identity', 'identity:remove_user_from_group'),)</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">UserFilterAction</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#UserFilterAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.actions.FilterAction</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UserFilterAction.</tt><tt class="descname">base_options</tt><em class="property"> = {'__module__': 'openstack_dashboard.dashboards.admin.groups.tables', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'base_options': {'__module__': 'horizon.tables.actions', '__metaclass__': &lt;class 'horizon.tables.actions.BaseActionMetaClass'&gt;, 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51d70&gt;, 'update': &lt;function update at 0x5a51de8&gt;, 'get_policy_target': &lt;function get_policy_target at 0x5a51f50&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'allowed': &lt;function allowed at 0x5a51ed8&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'base_options': {...}, '__doc__': 'Common base class for all ``Action`` classes.', '__init__': &lt;function __init__ at 0x5a510c8&gt;}, '__init__': &lt;function __init__ at 0x5a51848&gt;, 'filter': &lt;function filter at 0xa912488&gt;, 'name': 'filter', 'data_type_matched': &lt;function data_type_matched at 0x5a51488&gt;, 'get_default_classes': &lt;function get_default_classes at 0x5a51578&gt;, 'get_param_name': &lt;function get_param_name at 0x5a518c0&gt;, 'data_type_filter': &lt;function data_type_filter at 0x5a51668&gt;, '_allowed': &lt;function _allowed at 0x5a51e60&gt;, '__repr__': &lt;function __repr__ at 0x5a51b90&gt;, 'get_default_attrs': &lt;function get_default_attrs at 0x5a51cf8&gt;, 'assign_type_string': &lt;function assign_type_string at 0x5a51758&gt;, '__doc__': 'A base class representing a filter action for a table.\n\n    .. attribute:: name\n\n        The short name or &quot;slug&quot; representing this action. Defaults to\n        ``&quot;filter&quot;``.\n\n    .. attribute:: verbose_name\n\n        A descriptive name used for display purposes. Defaults to the\n        value of ``name`` with the first letter of each word capitalized.\n\n    .. attribute:: param_name\n\n        A string representing the name of the request parameter used for the\n        search term. Default: ``&quot;q&quot;``.\n\n    .. attribute: filter_type\n\n        A string representing the type of this filter. Default: ``&quot;query&quot;``.\n\n    .. attribute: needs_preloading\n\n        If True, the filter function will be called for the initial\n        GET request with an empty ``filter_string``, regardless of the\n        value of ``method``.\n    '}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UserFilterAction.</tt><tt class="descname">filter</tt><big>(</big><em>table</em>, <em>users</em>, <em>filter_string</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#UserFilterAction.filter"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Naive case-insensitive search.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.groups.tables.</tt><tt class="descname">UsersTable</tt><big>(</big><em>request</em>, <em>data=None</em>, <em>needs_form_wrapper=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/groups/tables.html#UsersTable"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.tables.base.DataTable</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UsersTable.</tt><tt class="descname">base_actions</tt><em class="property"> = {}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UsersTable.</tt><tt class="descname">base_columns</tt><em class="property"> = {'name': &lt;Column: name&gt;, 'email': &lt;Column: email&gt;, 'id': &lt;Column: id&gt;, 'enabled': &lt;Column: enabled&gt;}</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.admin.groups.tests.html"
+                                  title="previous chapter">The <tt class="docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.groups.tests</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.admin.groups.constants.html"
+                                  title="next chapter">The <tt class="docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.groups.constants</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.groups.tables.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.admin.groups.constants.html" title="The openstack_dashboard.dashboards.admin.groups.constants Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.admin.groups.tests.html" title="The openstack_dashboard.dashboards.admin.groups.tests Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,393 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.dashboards.project.images.images.tests &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.dashboards.project.images.images.tests</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2012 United States Government as represented by the</span>
+<span class="c"># Administrator of the National Aeronautics and Space Administration.</span>
+<span class="c"># All Rights Reserved.</span>
+<span class="c">#</span>
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.core.files.uploadedfile</span> <span class="kn">import</span> <span class="n">InMemoryUploadedFile</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">django.forms.widgets</span> <span class="kn">import</span> <span class="n">HiddenInput</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">http</span>
+<span class="kn">from</span> <span class="nn">django.test.utils</span> <span class="kn">import</span> <span class="n">override_settings</span>
+
+<span class="kn">from</span> <span class="nn">mox</span> <span class="kn">import</span> <span class="n">IsA</span>  <span class="c"># noqa</span>
+
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">tables</span> <span class="k">as</span> <span class="n">horizon_tables</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.dashboards.project.images.images</span> <span class="kn">import</span> <span class="n">forms</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.dashboards.project.images.images</span> <span class="kn">import</span> <span class="n">tables</span>
+
+
+<span class="n">IMAGES_INDEX_URL</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:index&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CreateImageFormTests"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.CreateImageFormTests">[docs]</a><span class="k">class</span> <span class="nc">CreateImageFormTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="CreateImageFormTests.test_no_location_or_file"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.CreateImageFormTests.test_no_location_or_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_no_location_or_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The form will not be valid if both copy_from and image_file are not</span>
+<span class="sd">        provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">post</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">u&#39;Ubuntu 11.10&#39;</span><span class="p">,</span>
+            <span class="s">&#39;source_type&#39;</span><span class="p">:</span> <span class="s">u&#39;file&#39;</span><span class="p">,</span>
+            <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">u&#39;Login with admin/admin&#39;</span><span class="p">,</span>
+            <span class="s">&#39;disk_format&#39;</span><span class="p">:</span> <span class="s">u&#39;qcow2&#39;</span><span class="p">,</span>
+            <span class="s">&#39;architecture&#39;</span><span class="p">:</span> <span class="s">u&#39;x86-64&#39;</span><span class="p">,</span>
+            <span class="s">&#39;minimum_disk&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+            <span class="s">&#39;minimum_ram&#39;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CreateImageForm</span><span class="p">(</span><span class="n">post</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
+</div>
+    <span class="nd">@override_settings</span><span class="p">(</span><span class="n">HORIZON_IMAGES_ALLOW_UPLOAD</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<div class="viewcode-block" id="CreateImageFormTests.test_image_upload_disabled"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.CreateImageFormTests.test_image_upload_disabled">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_upload_disabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;If HORIZON_IMAGES_ALLOW_UPLOAD is false, the image_file field widget</span>
+<span class="sd">        will be a HiddenInput widget instead of a FileInput widget.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CreateImageForm</span><span class="p">({})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;image_file&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">widget</span><span class="p">,</span> <span class="n">HiddenInput</span><span class="p">),</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">source_type_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;source_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">choices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotIn</span><span class="p">(</span><span class="s">&#39;file&#39;</span><span class="p">,</span> <span class="n">source_type_dict</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="ImageViewTests"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests">[docs]</a><span class="k">class</span> <span class="nc">ImageViewTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="ImageViewTests.test_image_create_get"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_image_create_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_create_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span>
+                            <span class="s">&#39;project/images/images/create.html&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;image_create&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="ImageViewTests.test_image_create_post_copy_from"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_image_create_post_copy_from">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_create_post_copy_from</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">u&#39;Ubuntu 11.10&#39;</span><span class="p">,</span>
+            <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">u&#39;Login with admin/admin&#39;</span><span class="p">,</span>
+            <span class="s">&#39;source_type&#39;</span><span class="p">:</span> <span class="s">u&#39;url&#39;</span><span class="p">,</span>
+            <span class="s">&#39;copy_from&#39;</span><span class="p">:</span> <span class="s">u&#39;http://cloud-images.ubuntu.com/releases/&#39;</span>
+                         <span class="s">u&#39;oneiric/release/ubuntu-11.10-server-cloudimg&#39;</span>
+                         <span class="s">u&#39;-amd64-disk1.img&#39;</span><span class="p">,</span>
+            <span class="s">&#39;disk_format&#39;</span><span class="p">:</span> <span class="s">u&#39;qcow2&#39;</span><span class="p">,</span>
+            <span class="s">&#39;architecture&#39;</span><span class="p">:</span> <span class="s">u&#39;x86-64&#39;</span><span class="p">,</span>
+            <span class="s">&#39;minimum_disk&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+            <span class="s">&#39;minimum_ram&#39;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;protected&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="s">&#39;CreateImageForm&#39;</span><span class="p">}</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                <span class="n">container_format</span><span class="o">=</span><span class="s">&quot;bare&quot;</span><span class="p">,</span>
+                                <span class="n">copy_from</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;copy_from&#39;</span><span class="p">],</span>
+                                <span class="n">disk_format</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;disk_format&#39;</span><span class="p">],</span>
+                                <span class="n">is_public</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">protected</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">min_disk</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;minimum_disk&#39;</span><span class="p">],</span>
+                                <span class="n">min_ram</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;minimum_ram&#39;</span><span class="p">],</span>
+                                <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+                                    <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">],</span>
+                                    <span class="s">&#39;architecture&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;architecture&#39;</span><span class="p">]},</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span><span class="o">.</span> \
+                        <span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">first</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">302</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;image_create&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="ImageViewTests.test_image_create_post_upload"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_image_create_post_upload">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_create_post_upload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">temp_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryFile</span><span class="p">()</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;123&#39;</span><span class="p">)</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">u&#39;Test Image&#39;</span><span class="p">,</span>
+            <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">u&#39;Login with admin/admin&#39;</span><span class="p">,</span>
+            <span class="s">&#39;source_type&#39;</span><span class="p">:</span> <span class="s">u&#39;file&#39;</span><span class="p">,</span>
+            <span class="s">&#39;image_file&#39;</span><span class="p">:</span> <span class="n">temp_file</span><span class="p">,</span>
+            <span class="s">&#39;disk_format&#39;</span><span class="p">:</span> <span class="s">u&#39;qcow2&#39;</span><span class="p">,</span>
+            <span class="s">&#39;architecture&#39;</span><span class="p">:</span> <span class="s">u&#39;x86-64&#39;</span><span class="p">,</span>
+            <span class="s">&#39;minimum_disk&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+            <span class="s">&#39;minimum_ram&#39;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;protected&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;method&#39;</span><span class="p">:</span> <span class="s">&#39;CreateImageForm&#39;</span><span class="p">}</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                <span class="n">container_format</span><span class="o">=</span><span class="s">&quot;bare&quot;</span><span class="p">,</span>
+                                <span class="n">disk_format</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;disk_format&#39;</span><span class="p">],</span>
+                                <span class="n">is_public</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">protected</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">min_disk</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;minimum_disk&#39;</span><span class="p">],</span>
+                                <span class="n">min_ram</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;minimum_ram&#39;</span><span class="p">],</span>
+                                <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+                                    <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">],</span>
+                                    <span class="s">&#39;architecture&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;architecture&#39;</span><span class="p">]},</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span>
+                                <span class="n">data</span><span class="o">=</span><span class="n">IsA</span><span class="p">(</span><span class="n">InMemoryUploadedFile</span><span class="p">))</span><span class="o">.</span> \
+                        <span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">first</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">302</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;image_get&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="ImageViewTests.test_image_detail_get"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_image_detail_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_detail_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">))</span> \
+                                 <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">first</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:detail&#39;</span><span class="p">,</span>
+                                      <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span>
+                            <span class="s">&#39;project/images/images/detail.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;image&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;image&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">protected</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">protected</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;&lt;h2&gt;Image Details: </span><span class="si">%s</span><span class="s">&lt;/h2&gt;&quot;</span> <span class="o">%</span> <span class="n">image</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                            <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;image_get&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="ImageViewTests.test_image_detail_custom_props_get"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_image_detail_custom_props_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_detail_custom_props_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">8</span><span class="p">]</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">))</span> \
+                                 <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:detail&#39;</span><span class="p">,</span>
+                                      <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">]))</span>
+
+        <span class="n">image_props</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;image_props&#39;</span><span class="p">]</span>
+
+        <span class="c"># Test description property not displayed</span>
+        <span class="n">image_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">prop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">image_props</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotIn</span><span class="p">((</span><span class="s">&#39;description&#39;</span><span class="p">),</span> <span class="n">image_keys</span><span class="p">)</span>
+
+        <span class="c"># Test custom properties are sorted</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">image_props</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="s">&#39;bar&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">,</span> <span class="s">&#39;bar val&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">image_props</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;foo val&#39;</span><span class="p">))</span>
+
+        <span class="c"># Test all custom properties appear in template</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;&lt;dt title=&quot;bar&quot;&gt;bar&lt;/dt&gt;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;&lt;dd&gt;bar val&lt;/dd&gt;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;&lt;dt title=&quot;foo&quot;&gt;foo&lt;/dt&gt;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;&lt;dd&gt;foo val&lt;/dd&gt;&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;image_get&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="ImageViewTests.test_protected_image_detail_get"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_protected_image_detail_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_protected_image_detail_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">))</span> \
+                                 <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:detail&#39;</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span>
+                            <span class="s">&#39;project/images/images/detail.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;image&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">protected</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">protected</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;image_get&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="ImageViewTests.test_image_detail_get_with_exception"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_image_detail_get_with_exception">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_detail_get_with_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">))</span> \
+                  <span class="o">.</span><span class="n">AndRaise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">glance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:detail&#39;</span><span class="p">,</span>
+                      <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">IMAGES_INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;image_get&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="ImageViewTests.test_image_update_get"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.ImageViewTests.test_image_update_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_image_update_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">disk_format</span> <span class="o">=</span> <span class="s">&quot;ami&quot;</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">is_public</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">))</span> \
+           <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:project:images:images:update&#39;</span><span class="p">,</span>
+                    <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">id</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span>
+                            <span class="s">&#39;project/images/images/_update.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;image&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="c"># Bug 1076216 - is_public checkbox not being set correctly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;&lt;input type=&#39;checkbox&#39; id=&#39;id_public&#39;&quot;</span>
+                                 <span class="s">&quot; name=&#39;public&#39; checked=&#39;checked&#39;&gt;&quot;</span><span class="p">,</span>
+                            <span class="n">html</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">msg_prefix</span><span class="o">=</span><span class="s">&quot;The is_public checkbox is not checked&quot;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="OwnerFilterTests"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.OwnerFilterTests">[docs]</a><span class="k">class</span> <span class="nc">OwnerFilterTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="OwnerFilterTests.setUp"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.OwnerFilterTests.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OwnerFilterTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">CreateMock</span><span class="p">(</span><span class="n">horizon_tables</span><span class="o">.</span><span class="n">DataTable</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span>
+</div>
+    <span class="nd">@override_settings</span><span class="p">(</span><span class="n">IMAGES_LIST_FILTER_TENANTS</span><span class="o">=</span><span class="p">[{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Official&#39;</span><span class="p">,</span>
+                                                    <span class="s">&#39;tenant&#39;</span><span class="p">:</span> <span class="s">&#39;officialtenant&#39;</span><span class="p">,</span>
+                                                    <span class="s">&#39;icon&#39;</span><span class="p">:</span> <span class="s">&#39;icon-ok&#39;</span><span class="p">}])</span>
+<div class="viewcode-block" id="OwnerFilterTests.test_filter"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tests.html#openstack_dashboard.dashboards.project.images.images.tests.OwnerFilterTests.test_filter">[docs]</a>    <span class="k">def</span> <span class="nf">test_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+        <span class="n">all_images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_tenants</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">IMAGES_LIST_FILTER_TENANTS</span>
+
+        <span class="n">filter_</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">OwnerFilter</span><span class="p">()</span>
+
+        <span class="n">images</span> <span class="o">=</span> <span class="n">filter_</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">all_images</span><span class="p">,</span> <span class="s">&#39;project&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected</span><span class="p">(</span><span class="s">&#39;project&#39;</span><span class="p">))</span>
+
+        <span class="n">images</span> <span class="o">=</span> <span class="n">filter_</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">all_images</span><span class="p">,</span> <span class="s">&#39;public&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected</span><span class="p">(</span><span class="s">&#39;public&#39;</span><span class="p">))</span>
+
+        <span class="n">images</span> <span class="o">=</span> <span class="n">filter_</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">all_images</span><span class="p">,</span> <span class="s">&#39;shared&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected</span><span class="p">(</span><span class="s">&#39;shared&#39;</span><span class="p">))</span>
+
+        <span class="n">images</span> <span class="o">=</span> <span class="n">filter_</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">all_images</span><span class="p">,</span> <span class="s">&#39;officialtenant&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected</span><span class="p">(</span><span class="s">&#39;officialtenant&#39;</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">_expected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_string</span><span class="p">):</span>
+        <span class="n">my_tenant_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">tenant_id</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">special</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;tenant&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_tenants</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">filter_string</span> <span class="o">==</span> <span class="s">&#39;public&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">im</span><span class="p">:</span> <span class="n">im</span><span class="o">.</span><span class="n">is_public</span><span class="p">,</span> <span class="n">images</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filter_string</span> <span class="o">==</span> <span class="s">&#39;shared&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">im</span><span class="p">:</span> <span class="ow">not</span> <span class="n">im</span><span class="o">.</span><span class="n">is_public</span> <span class="ow">and</span>
+                                     <span class="n">im</span><span class="o">.</span><span class="n">owner</span> <span class="o">!=</span> <span class="n">my_tenant_id</span> <span class="ow">and</span>
+                                     <span class="n">im</span><span class="o">.</span><span class="n">owner</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">special</span><span class="p">,</span> <span class="n">images</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filter_string</span> <span class="o">==</span> <span class="s">&#39;project&#39;</span><span class="p">:</span>
+            <span class="n">filter_string</span> <span class="o">=</span> <span class="n">my_tenant_id</span>
+        <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">im</span><span class="p">:</span> <span class="n">im</span><span class="o">.</span><span class="n">owner</span> <span class="o">==</span> <span class="n">filter_string</span><span class="p">,</span> <span class="n">images</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

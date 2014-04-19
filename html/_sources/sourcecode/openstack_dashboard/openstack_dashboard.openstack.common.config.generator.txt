@@ -1,0 +1,8 @@
+=======================================================================
+The :mod:`openstack_dashboard.openstack.common.config.generator` Module
+=======================================================================
+.. automodule:: openstack_dashboard.openstack.common.config.generator
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

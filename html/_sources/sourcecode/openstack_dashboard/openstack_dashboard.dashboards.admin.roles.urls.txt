@@ -1,0 +1,8 @@
+=================================================================
+The :mod:`openstack_dashboard.dashboards.admin.roles.urls` Module
+=================================================================
+.. automodule:: openstack_dashboard.dashboards.admin.roles.urls
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,854 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.dashboards.admin.flavors.tests &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.dashboards.admin.flavors.tests</h1><div class="highlight"><pre>
+<span class="c"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c"># a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#      http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c"># License for the specific language governing permissions and limitations</span>
+<span class="c"># under the License.</span>
+
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">http</span>
+<span class="kn">from</span> <span class="nn">mox</span> <span class="kn">import</span> <span class="n">IsA</span>  <span class="c"># noqa</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">flavors</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.dashboards.admin.flavors</span> <span class="kn">import</span> <span class="n">workflows</span>
+
+<span class="n">INDEX_URL</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:index&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FlavorsViewTests"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.FlavorsViewTests">[docs]</a><span class="k">class</span> <span class="nc">FlavorsViewTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">BaseAdminViewTests</span><span class="p">):</span>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_list&#39;</span><span class="p">,),</span> <span class="p">})</span>
+<div class="viewcode-block" id="FlavorsViewTests.test_index"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.FlavorsViewTests.test_index">[docs]</a>    <span class="k">def</span> <span class="nf">test_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">INDEX_URL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;admin/flavors/index.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertItemsEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;table&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+</div></div>
+<div class="viewcode-block" id="BaseFlavorWorkflowTests"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.BaseFlavorWorkflowTests">[docs]</a><span class="k">class</span> <span class="nc">BaseFlavorWorkflowTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">BaseAdminViewTests</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_flavor_create_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flavor</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">flavor_info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                       <span class="s">&quot;vcpu&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                       <span class="s">&quot;memory&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                       <span class="s">&quot;disk&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                       <span class="s">&quot;swap&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                       <span class="s">&quot;ephemeral&quot;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                       <span class="s">&quot;is_public&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">is_public</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">id</span><span class="p">:</span>
+            <span class="n">flavor_info</span><span class="p">[</span><span class="s">&quot;flavorid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="k">return</span> <span class="n">flavor_info</span>
+
+    <span class="k">def</span> <span class="nf">_get_workflow_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flavor</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">access</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">flavor_info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                       <span class="s">&quot;vcpus&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                       <span class="s">&quot;memory_mb&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                       <span class="s">&quot;disk_gb&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                       <span class="s">&quot;swap_mb&quot;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                       <span class="s">&quot;eph_gb&quot;</span><span class="p">:</span> <span class="n">eph</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">access</span><span class="p">:</span>
+            <span class="n">access_field_name</span> <span class="o">=</span> <span class="s">&#39;update_flavor_access_role_member&#39;</span>
+            <span class="n">flavor_info</span><span class="p">[</span><span class="n">access_field_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">access</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">id</span><span class="p">:</span>
+            <span class="n">flavor_info</span><span class="p">[</span><span class="s">&#39;flavor_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="k">return</span> <span class="n">flavor_info</span>
+
+    <span class="k">def</span> <span class="nf">_get_workflow_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flavor</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">access</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">flavor_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_fields</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="n">access</span><span class="o">=</span><span class="n">access</span><span class="p">,</span>
+                                                <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">flavor_info</span>
+
+</div>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests">[docs]</a><span class="k">class</span> <span class="nc">CreateFlavorWorkflowTests</span><span class="p">(</span><span class="n">BaseFlavorWorkflowTests</span><span class="p">):</span>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span> <span class="p">})</span>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests.test_workflow_get"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests.test_workflow_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_workflow_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;admin/flavors/create.html&#39;</span><span class="p">)</span>
+        <span class="n">workflow</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;workflow&#39;</span><span class="p">]</span>
+        <span class="n">expected_name</span> <span class="o">=</span> <span class="n">workflows</span><span class="o">.</span><span class="n">CreateFlavor</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;workflow&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">expected_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
+                            <span class="p">[</span><span class="s">&#39;&lt;CreateFlavorInfo: createflavorinfoaction&gt;&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;&lt;UpdateFlavorAccess: update_flavor_access&gt;&#39;</span><span class="p">])</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_create&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests.test_create_flavor_without_projects_post"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests.test_create_flavor_without_projects_post">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_flavor_without_projects_post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c"># init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">([])</span>
+
+        <span class="c"># handle</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flavor_create_params</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_data</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_create&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;add_tenant_to_flavor&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests.test_create_flavor_with_projects_post"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests.test_create_flavor_with_projects_post">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_flavor_with_projects_post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c"># init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">([])</span>
+
+        <span class="c"># handle</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flavor_create_params</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
+        <span class="n">params</span><span class="p">[</span><span class="s">&#39;is_public&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="n">projects</span><span class="p">:</span>
+            <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">add_tenant_to_flavor</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                          <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_data</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="n">access</span><span class="o">=</span><span class="n">projects</span><span class="p">)</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests.test_create_existing_flavor_name_error"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests.test_create_existing_flavor_name_error">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_existing_flavor_name_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c"># init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+
+        <span class="c"># handle</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_data</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests.test_create_existing_flavor_id_error"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests.test_create_existing_flavor_id_error">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_existing_flavor_id_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c"># init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+
+        <span class="c"># handle</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_data</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="c"># Name is okay.</span>
+        <span class="n">workflow_data</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;newflavorname&#39;</span>
+        <span class="c"># Flavor id already exists.</span>
+        <span class="n">workflow_data</span><span class="p">[</span><span class="s">&#39;flavor_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_create&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;add_tenant_to_flavor&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests.test_create_flavor_project_update_error"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests.test_create_flavor_project_update_error">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_flavor_project_update_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c"># init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">([])</span>
+
+        <span class="c"># handle</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flavor_create_params</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
+        <span class="n">params</span><span class="p">[</span><span class="s">&#39;is_public&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="n">projects</span><span class="p">:</span>
+            <span class="n">expect</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">add_tenant_to_flavor</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                                   <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">project</span> <span class="o">==</span> <span class="n">projects</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">expect</span><span class="o">.</span><span class="n">AndRaise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">nova</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_data</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="n">access</span><span class="o">=</span><span class="n">projects</span><span class="p">)</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertMessageCount</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">warning</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="CreateFlavorWorkflowTests.test_create_flavor_missing_field_error"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.CreateFlavorWorkflowTests.test_create_flavor_missing_field_error">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_flavor_missing_field_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c"># init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_data</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">workflow_data</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:create&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFormErrors</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;field is required&quot;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests">[docs]</a><span class="k">class</span> <span class="nc">UpdateFlavorWorkflowTests</span><span class="p">(</span><span class="n">BaseFlavorWorkflowTests</span><span class="p">):</span>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_access_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_get"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">flavor_access</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavor_access</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c"># GET/init, set up expected behavior</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span>
+                                                                   <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_access_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor_access</span><span class="p">)</span>
+
+        <span class="c"># Put all mocks created by mox into replay mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;admin/flavors/update.html&#39;</span><span class="p">)</span>
+
+        <span class="n">workflow</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;workflow&#39;</span><span class="p">]</span>
+        <span class="n">expected_name</span> <span class="o">=</span> <span class="n">workflows</span><span class="o">.</span><span class="n">UpdateFlavor</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;workflow&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">expected_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
+                            <span class="p">[</span><span class="s">&#39;&lt;UpdateFlavorInfo: update_info&gt;&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;&lt;UpdateFlavorAccess: update_flavor_access&gt;&#39;</span><span class="p">])</span>
+
+        <span class="n">step</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">get_step</span><span class="p">(</span><span class="s">&quot;update_info&quot;</span><span class="p">)</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;vcpus&#39;</span><span class="p">],</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;memory_mb&#39;</span><span class="p">],</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;disk_gb&#39;</span><span class="p">],</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;swap_mb&#39;</span><span class="p">],</span> <span class="n">flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="s">&#39;eph_gb&#39;</span><span class="p">],</span> <span class="n">eph</span><span class="p">)</span>
+
+        <span class="n">step</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">get_step</span><span class="p">(</span><span class="s">&quot;update_flavor_access&quot;</span><span class="p">)</span>
+        <span class="n">field_name</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">get_member_field_name</span><span class="p">(</span><span class="s">&#39;member&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span><span class="p">,</span>
+                         <span class="p">[</span><span class="n">fa</span><span class="o">.</span><span class="n">tenant_id</span> <span class="k">for</span> <span class="n">fa</span> <span class="ow">in</span> <span class="n">flavor_access</span><span class="p">])</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,),</span> <span class="p">})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_get_flavor_error"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_get_flavor_error">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_get_flavor_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndRaise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">nova</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_get_extras&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_delete&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_create&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_without_extra_specs"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_without_extra_specs">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_without_extra_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># The first element has no extra specs</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">extra_specs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;extra_specs&#39;</span><span class="p">)</span>
+        <span class="n">new_flavor</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                    <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span>
+                                     <span class="s">&quot;cccccccc-cccc-cccc-cccc-cccccccccccc&quot;</span><span class="p">,</span>
+                                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                     <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                     <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                                     <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                                     <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                     <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                                     <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="n">extra_specs</span><span class="p">})</span>
+
+        <span class="c"># GET/init, set up expected behavior</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+        <span class="c"># POST/init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get_extras</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                   <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> \
+                                   <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">extra_specs</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_delete</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                               <span class="n">swap</span><span class="o">=</span><span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                               <span class="n">ephemeral</span><span class="o">=</span><span class="n">eph</span><span class="p">,</span>
+                               <span class="n">is_public</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">new_flavor</span><span class="p">)</span>
+
+        <span class="c"># Put mocks in replay mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="c"># run get test</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/update.html&quot;</span><span class="p">)</span>
+
+        <span class="c"># run post test</span>
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                         <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                         <span class="s">&#39;memory_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                         <span class="s">&#39;disk_gb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                         <span class="s">&#39;swap_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                         <span class="s">&#39;eph_gb&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                         <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertMessageCount</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_get_extras&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_delete&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_create&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_extra_set&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_with_extra_specs"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_with_extra_specs">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_with_extra_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># The second element has extra specs</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">extra_specs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;extra_specs&#39;</span><span class="p">)</span>
+        <span class="n">new_flavor</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                    <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span>
+                                     <span class="s">&quot;cccccccc-cccc-cccc-cccc-cccccccccccc&quot;</span><span class="p">,</span>
+                                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                    <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                                    <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                                    <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                                    <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                                    <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="n">extra_specs</span><span class="p">})</span>
+
+        <span class="c"># GET/init, set up expected behavior</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+
+        <span class="c"># POST/init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get_extras</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                   <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> \
+                                   <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">extra_specs</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_delete</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                               <span class="n">swap</span><span class="o">=</span><span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                               <span class="n">ephemeral</span><span class="o">=</span><span class="n">eph</span><span class="p">,</span>
+                               <span class="n">is_public</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">new_flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_extra_set</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                  <span class="n">new_flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">extra_specs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="c">#run get test</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/update.html&quot;</span><span class="p">)</span>
+
+        <span class="c">#run post test</span>
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                         <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                         <span class="s">&#39;memory_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                         <span class="s">&#39;disk_gb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                         <span class="s">&#39;swap_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                         <span class="s">&#39;eph_gb&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                         <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertMessageCount</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_get_extras&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_delete&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_create&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_update_flavor_error"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_update_flavor_error">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_update_flavor_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># The first element has no extra specs</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">extra_specs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;extra_specs&#39;</span><span class="p">)</span>
+        <span class="n">new_flavor</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                    <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span>
+                                     <span class="s">&quot;cccccccc-cccc-cccc-cccc-cccccccccccc&quot;</span><span class="p">,</span>
+                                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                     <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                     <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                                     <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                                     <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                     <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                                     <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="n">extra_specs</span><span class="p">})</span>
+
+        <span class="c"># GET/init, set up expected behavior</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+
+        <span class="c"># POST</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+        <span class="c"># POST/init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get_extras</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                   <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> \
+                                   <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">extra_specs</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_delete</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                               <span class="n">swap</span><span class="o">=</span><span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                               <span class="n">ephemeral</span><span class="o">=</span><span class="n">eph</span><span class="p">,</span>
+                               <span class="n">is_public</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>\
+                               <span class="o">.</span><span class="n">AndRaise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">nova</span><span class="p">)</span>
+
+        <span class="c"># Put mocks in replay mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="c"># run get test</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/update.html&quot;</span><span class="p">)</span>
+
+        <span class="c"># run post test</span>
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                         <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                         <span class="s">&#39;memory_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                         <span class="s">&#39;disk_gb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                         <span class="s">&#39;swap_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                         <span class="s">&#39;eph_gb&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                         <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertMessageCount</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_get_extras&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_delete&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_create&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_access_list&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;remove_tenant_from_flavor&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;add_tenant_to_flavor&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_update_projects_error"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_update_projects_error">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_update_projects_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># The first element has no extra specs</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">flavor_projects</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">first</span><span class="p">()]</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">extra_specs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;extra_specs&#39;</span><span class="p">)</span>
+        <span class="n">new_flavor</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                    <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span>
+                                     <span class="s">&quot;cccccccc-cccc-cccc-cccc-cccccccccccc&quot;</span><span class="p">,</span>
+                                     <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                     <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                     <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                                     <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                                     <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                     <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                                     <span class="s">&#39;os-flavor-access:is_public&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                                     <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="n">extra_specs</span><span class="p">})</span>
+
+        <span class="c"># GET/init, set up expected behavior</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+
+        <span class="c"># POST/init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get_extras</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                   <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> \
+                                   <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">extra_specs</span><span class="p">)</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_delete</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_create</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                               <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                               <span class="n">swap</span><span class="o">=</span><span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                               <span class="n">ephemeral</span><span class="o">=</span><span class="n">eph</span><span class="p">,</span>
+                               <span class="n">is_public</span><span class="o">=</span><span class="n">new_flavor</span><span class="o">.</span><span class="n">is_public</span><span class="p">)</span> \
+                               <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">new_flavor</span><span class="p">)</span>
+
+        <span class="n">new_flavor_projects</span> <span class="o">=</span> <span class="n">flavor_projects</span>
+        <span class="k">for</span> <span class="n">project</span> <span class="ow">in</span> <span class="n">new_flavor_projects</span><span class="p">:</span>
+            <span class="n">expect</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">add_tenant_to_flavor</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span>
+                                                   <span class="n">new_flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">project</span> <span class="o">==</span> <span class="n">projects</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">expect</span><span class="o">.</span><span class="n">AndRaise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">nova</span><span class="p">)</span>
+
+        <span class="c"># Put mocks in replay mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="c"># run get test</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/update.html&quot;</span><span class="p">)</span>
+
+        <span class="c"># run post test</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_workflow_data</span><span class="p">(</span><span class="n">new_flavor</span><span class="p">,</span> <span class="n">access</span><span class="o">=</span><span class="n">flavor_projects</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;flavor_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNoFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertMessageCount</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">warning</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirectsNoFollow</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">INDEX_URL</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_set_invalid_name"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_set_invalid_name">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_set_invalid_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">invalid_flavor_name</span> <span class="o">=</span> <span class="s">&quot;m1.tiny()&quot;</span>
+
+        <span class="c"># init</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="c"># run get test</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/update.html&quot;</span><span class="p">)</span>
+
+        <span class="c"># run post test</span>
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">invalid_flavor_name</span><span class="p">,</span>
+                         <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                         <span class="s">&#39;memory_mb&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                         <span class="s">&#39;disk_gb&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                         <span class="s">&#39;swap_mb&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                         <span class="s">&#39;eph_gb&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                         <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Name may only contain letters, &#39;</span>
+                              <span class="s">&#39;numbers, underscores, periods and hyphens.&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_set_existing_name"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_set_existing_name">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_set_existing_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flavor_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">flavor_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor_a</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+        <span class="n">extra_specs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor_a</span><span class="p">,</span> <span class="s">&#39;extra_specs&#39;</span><span class="p">)</span>
+        <span class="n">new_flavor</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                    <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">flavor_a</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">flavor_b</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                    <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">flavor_a</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                                    <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="n">flavor_a</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                                    <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="n">flavor_a</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                                    <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="n">flavor_a</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                                    <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                                    <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="n">extra_specs</span><span class="p">})</span>
+
+        <span class="c"># GET</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor_a</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor_a</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+
+        <span class="c"># POST</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="c"># get test</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor_a</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/update.html&quot;</span><span class="p">)</span>
+
+        <span class="c"># post test</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                <span class="s">&#39;memory_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                <span class="s">&#39;disk_gb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                <span class="s">&#39;swap_mb&#39;</span><span class="p">:</span> <span class="n">new_flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                <span class="s">&#39;eph_gb&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;The name &amp;quot;m1.massive&amp;quot; &#39;</span>
+                              <span class="s">&#39;is already used by another flavor.&#39;</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;tenant_list&#39;</span><span class="p">,),</span>
+                        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;flavor_get&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;flavor_list&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.generic_update_flavor_invalid_data_form_fails"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.generic_update_flavor_invalid_data_form_fails">[docs]</a>    <span class="k">def</span> <span class="nf">generic_update_flavor_invalid_data_form_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">override_data</span><span class="p">,</span>
+                                                      <span class="n">error_msg</span><span class="p">):</span>
+        <span class="n">flavor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">projects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">eph</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flavor</span><span class="p">,</span> <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">)</span>
+
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_get</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">keystone</span><span class="o">.</span><span class="n">tenant_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">))</span> \
+                <span class="o">.</span><span class="n">MultipleTimes</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">([</span><span class="n">projects</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">nova</span><span class="o">.</span><span class="n">flavor_list</span><span class="p">(</span><span class="n">IsA</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">HttpRequest</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="c"># run get test</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s">&#39;horizon:admin:flavors:update&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;admin/flavors/update.html&quot;</span><span class="p">)</span>
+
+        <span class="c"># run post test</span>
+        <span class="n">workflow_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flavor_id&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                         <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                         <span class="s">&#39;memory_mb&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">ram</span><span class="p">,</span>
+                         <span class="s">&#39;disk_gb&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                         <span class="s">&#39;swap_mb&#39;</span><span class="p">:</span> <span class="n">flavor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+                         <span class="s">&#39;eph_gb&#39;</span><span class="p">:</span> <span class="n">eph</span><span class="p">,</span>
+                         <span class="s">&#39;is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+        <span class="n">workflow_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">override_data</span><span class="p">)</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">workflow_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFormErrors</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_invalid_vcpu_fails"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_invalid_vcpu_fails">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_invalid_vcpu_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="s">&#39;Ensure this value is greater than or equal to 1.&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generic_update_flavor_invalid_data_form_fails</span><span class="p">(</span><span class="n">override_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                                                           <span class="n">error_msg</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_invalid_ram_fails"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_invalid_ram_fails">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_invalid_ram_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="s">&#39;Ensure this value is greater than or equal to 1.&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;memory_mb&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generic_update_flavor_invalid_data_form_fails</span><span class="p">(</span><span class="n">override_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                                                           <span class="n">error_msg</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_invalid_disk_gb_fails"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_invalid_disk_gb_fails">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_invalid_disk_gb_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="s">&#39;Ensure this value is greater than or equal to 0.&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;disk_gb&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generic_update_flavor_invalid_data_form_fails</span><span class="p">(</span><span class="n">override_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                                                           <span class="n">error_msg</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_invalid_swap_mb_fails"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_invalid_swap_mb_fails">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_invalid_swap_mb_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="s">&#39;Ensure this value is greater than or equal to 0.&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;swap_mb&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generic_update_flavor_invalid_data_form_fails</span><span class="p">(</span><span class="n">override_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                                                           <span class="n">error_msg</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="UpdateFlavorWorkflowTests.test_update_flavor_invalid_eph_gb_fails"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.flavors.tests.html#openstack_dashboard.dashboards.admin.flavors.tests.UpdateFlavorWorkflowTests.test_update_flavor_invalid_eph_gb_fails">[docs]</a>    <span class="k">def</span> <span class="nf">test_update_flavor_invalid_eph_gb_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="s">&#39;Ensure this value is greater than or equal to 0.&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;eph_gb&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generic_update_flavor_invalid_data_form_fails</span><span class="p">(</span><span class="n">override_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                                                           <span class="n">error_msg</span><span class="o">=</span><span class="n">error</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

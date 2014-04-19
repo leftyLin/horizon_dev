@@ -1,0 +1,8 @@
+================================================================
+The :mod:`horizon.test.test_dashboards.cats.tigers.views` Module
+================================================================
+.. automodule:: horizon.test.test_dashboards.cats.tigers.views
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

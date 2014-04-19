@@ -1,0 +1,541 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>horizon.test.tests.base &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="horizon" href="../../../horizon.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for horizon.test.tests.base</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2012 United States Government as represented by the</span>
+<span class="c"># Administrator of the National Aeronautics and Space Administration.</span>
+<span class="c"># All Rights Reserved.</span>
+<span class="c">#</span>
+<span class="c"># Copyright 2012 OpenStack Foundation</span>
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">User</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="kn">import</span> <span class="n">ImproperlyConfigured</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">django.core</span> <span class="kn">import</span> <span class="n">urlresolvers</span>
+<span class="kn">from</span> <span class="nn">django.utils.importlib</span> <span class="kn">import</span> <span class="n">import_module</span>  <span class="c"># noqa</span>
+
+<span class="kn">import</span> <span class="nn">horizon</span>
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">base</span>
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">conf</span>
+<span class="kn">from</span> <span class="nn">horizon.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+<span class="kn">from</span> <span class="nn">horizon.test.test_dashboards.cats.dashboard</span> <span class="kn">import</span> <span class="n">Cats</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">horizon.test.test_dashboards.cats.kittens.panel</span> <span class="kn">import</span> <span class="n">Kittens</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">horizon.test.test_dashboards.cats.tigers.panel</span> <span class="kn">import</span> <span class="n">Tigers</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">horizon.test.test_dashboards.dogs.dashboard</span> <span class="kn">import</span> <span class="n">Dogs</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">horizon.test.test_dashboards.dogs.puppies.panel</span> <span class="kn">import</span> <span class="n">Puppies</span>  <span class="c"># noqa</span>
+
+
+<div class="viewcode-block" id="MyDash"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.MyDash">[docs]</a><span class="k">class</span> <span class="nc">MyDash</span><span class="p">(</span><span class="n">horizon</span><span class="o">.</span><span class="n">Dashboard</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;My Dashboard&quot;</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;mydash&quot;</span>
+    <span class="n">default_panel</span> <span class="o">=</span> <span class="s">&quot;myslug&quot;</span>
+
+</div>
+<div class="viewcode-block" id="MyPanel"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.MyPanel">[docs]</a><span class="k">class</span> <span class="nc">MyPanel</span><span class="p">(</span><span class="n">horizon</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;My Panel&quot;</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;myslug&quot;</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="s">&#39;horizon.test.test_dashboards.cats.kittens.urls&#39;</span>
+
+</div>
+<div class="viewcode-block" id="AdminPanel"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.AdminPanel">[docs]</a><span class="k">class</span> <span class="nc">AdminPanel</span><span class="p">(</span><span class="n">horizon</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Admin Panel&quot;</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;admin_panel&quot;</span>
+    <span class="n">permissions</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;horizon.test&quot;</span><span class="p">,)</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="s">&#39;horizon.test.test_dashboards.cats.kittens.urls&#39;</span>
+
+</div>
+<div class="viewcode-block" id="BaseHorizonTests"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.BaseHorizonTests">[docs]</a><span class="k">class</span> <span class="nc">BaseHorizonTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+<div class="viewcode-block" id="BaseHorizonTests.setUp"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.BaseHorizonTests.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseHorizonTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="c"># Adjust our horizon config and register our custom dashboards/panels.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">old_default_dash</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;default_dashboard&#39;</span><span class="p">]</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;default_dashboard&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;cats&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">old_dashboards</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;dashboards&#39;</span><span class="p">]</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;dashboards&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;cats&#39;</span><span class="p">,</span> <span class="s">&#39;dogs&#39;</span><span class="p">)</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Cats</span><span class="p">)</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Dogs</span><span class="p">)</span>
+        <span class="n">Cats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Kittens</span><span class="p">)</span>
+        <span class="n">Cats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Tigers</span><span class="p">)</span>
+        <span class="n">Dogs</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Puppies</span><span class="p">)</span>
+        <span class="c"># Trigger discovery, registration, and URLconf generation if it</span>
+        <span class="c"># hasn&#39;t happened yet.</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_urls</span><span class="p">()</span>
+        <span class="c"># Store our original dashboards</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_dashboards</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="c"># Gather up and store our original panels for each dashboard</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_panels</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">dash</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_dashboards</span><span class="p">:</span>
+            <span class="n">panels</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">dash</span><span class="p">]</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_panels</span><span class="p">[</span><span class="n">dash</span><span class="p">]</span> <span class="o">=</span> <span class="n">panels</span>
+</div>
+<div class="viewcode-block" id="BaseHorizonTests.tearDown"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.BaseHorizonTests.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseHorizonTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
+        <span class="c"># Restore our settings</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;default_dashboard&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_default_dash</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;dashboards&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_dashboards</span>
+        <span class="c"># Destroy our singleton and re-create it.</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">HorizonSite</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">del</span> <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">HorizonSite</span><span class="p">()</span>
+        <span class="c"># Reload the convenience references to Horizon stored in __init__</span>
+        <span class="nb">reload</span><span class="p">(</span><span class="n">import_module</span><span class="p">(</span><span class="s">&quot;horizon&quot;</span><span class="p">))</span>
+        <span class="c"># Re-register our original dashboards and panels.</span>
+        <span class="c"># This is necessary because autodiscovery only works on the first</span>
+        <span class="c"># import, and calling reload introduces innumerable additional</span>
+        <span class="c"># problems. Manual re-registration is the only good way for testing.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_dashboards</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">Cats</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_dashboards</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">Dogs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dash</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_dashboards</span><span class="p">:</span>
+            <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">dash</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">panel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_panels</span><span class="p">[</span><span class="n">dash</span><span class="p">]:</span>
+                <span class="n">dash</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">panel</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_reload_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clears out the URL caches, reloads the root urls module, and</span>
+<span class="sd">        re-triggers the autodiscovery mechanism for Horizon. Allows URLs</span>
+<span class="sd">        to be re-calculated after registering new dashboards. Useful</span>
+<span class="sd">        only for testing and should never be used on a live site.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">urlresolvers</span><span class="o">.</span><span class="n">clear_url_caches</span><span class="p">()</span>
+        <span class="nb">reload</span><span class="p">(</span><span class="n">import_module</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">ROOT_URLCONF</span><span class="p">))</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_urls</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="HorizonTests"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests">[docs]</a><span class="k">class</span> <span class="nc">HorizonTests</span><span class="p">(</span><span class="n">BaseHorizonTests</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HorizonTests.test_registry"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_registry">[docs]</a>    <span class="k">def</span> <span class="nf">test_registry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Verify registration and autodiscovery work correctly.</span>
+
+<span class="sd">        Please note that this implicitly tests that autodiscovery works</span>
+<span class="sd">        by virtue of the fact that the dashboards listed in</span>
+<span class="sd">        ``settings.INSTALLED_APPS`` are loaded from the start.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Registration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_registry</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">horizon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">MyDash</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_registry</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+            <span class="n">horizon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">MyPanel</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+            <span class="n">horizon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;MyPanel&quot;</span><span class="p">)</span>
+
+        <span class="c"># Retrieval</span>
+        <span class="n">my_dash_instance_by_name</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;mydash&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">my_dash_instance_by_name</span><span class="p">,</span> <span class="n">MyDash</span><span class="p">)</span>
+        <span class="n">my_dash_instance_by_class</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="n">MyDash</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">my_dash_instance_by_name</span><span class="p">,</span> <span class="n">my_dash_instance_by_class</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">NotRegistered</span><span class="p">):</span>
+            <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;fake&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboards</span><span class="p">(),</span>
+                                 <span class="p">[</span><span class="s">&#39;&lt;Dashboard: cats&gt;&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;&lt;Dashboard: dogs&gt;&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;&lt;Dashboard: mydash&gt;&#39;</span><span class="p">])</span>
+
+        <span class="c"># Removal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_registry</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">horizon</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">MyDash</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">_registry</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">NotRegistered</span><span class="p">):</span>
+            <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="n">MyDash</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_site"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_site">[docs]</a>    <span class="k">def</span> <span class="nf">test_site</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">unicode</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="p">),</span> <span class="s">&quot;Horizon&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="p">),</span> <span class="s">&quot;&lt;Site: horizon&gt;&quot;</span><span class="p">)</span>
+        <span class="n">dash</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&#39;cats&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">get_default_dashboard</span><span class="p">(),</span> <span class="n">dash</span><span class="p">)</span>
+        <span class="n">test_user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">get_user_home</span><span class="p">(</span><span class="n">test_user</span><span class="p">),</span>
+                         <span class="n">dash</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_dashboard"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_dashboard">[docs]</a>    <span class="k">def</span> <span class="nf">test_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cats</span><span class="o">.</span><span class="n">_registered_with</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">cats</span><span class="o">.</span><span class="n">get_panels</span><span class="p">(),</span>
+                                 <span class="p">[</span><span class="s">&#39;&lt;Panel: kittens&gt;&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;&lt;Panel: tigers&gt;&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cats</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span> <span class="s">&quot;/cats/&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cats</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s">&quot;Cats&quot;</span><span class="p">)</span>
+
+        <span class="c"># Test registering a module with a dashboard that defines panels</span>
+        <span class="c"># as a panel group.</span>
+        <span class="n">cats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">MyPanel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">cats</span><span class="o">.</span><span class="n">get_panel_groups</span><span class="p">()[</span><span class="s">&#39;other&#39;</span><span class="p">],</span>
+                                 <span class="p">[</span><span class="s">&#39;&lt;Panel: myslug&gt;&#39;</span><span class="p">])</span>
+
+        <span class="c"># Test that panels defined as a tuple still return a PanelGroup</span>
+        <span class="n">dogs</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;dogs&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">dogs</span><span class="o">.</span><span class="n">get_panel_groups</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+                                 <span class="p">[</span><span class="s">&#39;&lt;PanelGroup: default&gt;&#39;</span><span class="p">])</span>
+
+        <span class="c"># Test registering a module with a dashboard that defines panels</span>
+        <span class="c"># as a tuple.</span>
+        <span class="n">dogs</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;dogs&quot;</span><span class="p">)</span>
+        <span class="n">dogs</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">MyPanel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">dogs</span><span class="o">.</span><span class="n">get_panels</span><span class="p">(),</span>
+                                 <span class="p">[</span><span class="s">&#39;&lt;Panel: puppies&gt;&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;&lt;Panel: myslug&gt;&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_panels"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_panels">[docs]</a>    <span class="k">def</span> <span class="nf">test_panels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="n">tigers</span> <span class="o">=</span> <span class="n">cats</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="s">&quot;tigers&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tigers</span><span class="o">.</span><span class="n">_registered_with</span><span class="p">,</span> <span class="n">cats</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tigers</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span> <span class="s">&quot;/cats/tigers/&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_panel_without_slug_fails"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_panel_without_slug_fails">[docs]</a>    <span class="k">def</span> <span class="nf">test_panel_without_slug_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">class</span> <span class="nc">InvalidPanel</span><span class="p">(</span><span class="n">horizon</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Invalid&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">ImproperlyConfigured</span><span class="p">,</span> <span class="n">InvalidPanel</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_registry_without_registerable_class_attr_fails"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_registry_without_registerable_class_attr_fails">[docs]</a>    <span class="k">def</span> <span class="nf">test_registry_without_registerable_class_attr_fails</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">class</span> <span class="nc">InvalidRegistry</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Registry</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">ImproperlyConfigured</span><span class="p">,</span> <span class="n">InvalidRegistry</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_index_url_name"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_index_url_name">[docs]</a>    <span class="k">def</span> <span class="nf">test_index_url_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="n">tigers</span> <span class="o">=</span> <span class="n">cats</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="s">&quot;tigers&quot;</span><span class="p">)</span>
+        <span class="n">tigers</span><span class="o">.</span><span class="n">index_url_name</span> <span class="o">=</span> <span class="s">&quot;does_not_exist&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">urlresolvers</span><span class="o">.</span><span class="n">NoReverseMatch</span><span class="p">):</span>
+            <span class="n">tigers</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">()</span>
+        <span class="n">tigers</span><span class="o">.</span><span class="n">index_url_name</span> <span class="o">=</span> <span class="s">&quot;index&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tigers</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span> <span class="s">&quot;/cats/tigers/&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_lazy_urls"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_lazy_urls">[docs]</a>    <span class="k">def</span> <span class="nf">test_lazy_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">urls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">urlpatterns</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">LazyURLPattern</span><span class="p">)</span>
+        <span class="c"># The following two methods simply should not raise any exceptions</span>
+        <span class="nb">iter</span><span class="p">(</span><span class="n">urlpatterns</span><span class="p">)</span>
+        <span class="nb">reversed</span><span class="p">(</span><span class="n">urlpatterns</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_horizon_test_isolation_1"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_horizon_test_isolation_1">[docs]</a>    <span class="k">def</span> <span class="nf">test_horizon_test_isolation_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Isolation Test Part 1: sets a value.&quot;&quot;&quot;</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="n">cats</span><span class="o">.</span><span class="n">evil</span> <span class="o">=</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_horizon_test_isolation_2"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_horizon_test_isolation_2">[docs]</a>    <span class="k">def</span> <span class="nf">test_horizon_test_isolation_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Isolation Test Part 2: The value set in part 1 should be gone.&quot;&quot;&quot;</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">cats</span><span class="p">,</span> <span class="s">&quot;evil&quot;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_public"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_public">[docs]</a>    <span class="k">def</span> <span class="nf">test_public</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dogs</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;dogs&quot;</span><span class="p">)</span>
+        <span class="c"># Known to have no restrictions on it other than being logged in.</span>
+        <span class="n">puppies</span> <span class="o">=</span> <span class="n">dogs</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="s">&quot;puppies&quot;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">puppies</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">()</span>
+
+        <span class="c"># Get a clean, logged out client instance.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">redirect_url</span> <span class="o">=</span> <span class="s">&quot;?&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;http://testserver&#39;</span> <span class="o">+</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOGIN_URL</span><span class="p">,</span>
+                                 <span class="s">&quot;next=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">url</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirects</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">redirect_url</span><span class="p">)</span>
+
+        <span class="c"># Simulate ajax call</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">HTTP_X_REQUESTED_WITH</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+        <span class="c"># Response should be HTTP 401 with redirect header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">401</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="p">[</span><span class="s">&quot;X-Horizon-Location&quot;</span><span class="p">],</span>
+                         <span class="n">redirect_url</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_required_permissions"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_required_permissions">[docs]</a>    <span class="k">def</span> <span class="nf">test_required_permissions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dash</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="n">panel</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="s">&#39;tigers&#39;</span><span class="p">)</span>
+
+        <span class="c"># Non-admin user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_all_permissions</span><span class="p">(),</span> <span class="p">[])</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">302</span><span class="p">)</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span>
+                               <span class="n">follow</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">HTTP_X_REQUESTED_WITH</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">401</span><span class="p">)</span>
+
+        <span class="c"># Test insufficient permissions for logged-in user</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span> <span class="n">follow</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;auth/login.html&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;Login as different user&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+
+        <span class="c"># Set roles for admin user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_permissions</span><span class="p">(</span><span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test&#39;</span><span class="p">])</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+
+        <span class="c"># Test modal form</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span>
+                               <span class="n">follow</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">HTTP_X_REQUESTED_WITH</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HorizonTests.test_ssl_redirect_by_proxy"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.HorizonTests.test_ssl_redirect_by_proxy">[docs]</a>    <span class="k">def</span> <span class="nf">test_ssl_redirect_by_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dogs</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;dogs&quot;</span><span class="p">)</span>
+        <span class="n">puppies</span> <span class="o">=</span> <span class="n">dogs</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="s">&quot;puppies&quot;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">puppies</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">()</span>
+        <span class="n">redirect_url</span> <span class="o">=</span> <span class="s">&quot;?&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">settings</span><span class="o">.</span><span class="n">LOGIN_URL</span><span class="p">,</span>
+                                 <span class="s">&quot;next=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">url</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirects</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">redirect_url</span><span class="p">)</span>
+
+        <span class="c"># Set SSL settings for test server</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">SECURE_PROXY_SSL_HEADER</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;HTTP_X_FORWARDED_PROTOCOL&#39;</span><span class="p">,</span>
+                                            <span class="s">&#39;https&#39;</span><span class="p">)</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">HTTP_X_FORWARDED_PROTOCOL</span><span class="o">=</span><span class="s">&quot;https&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">302</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">],</span>
+                         <span class="s">&#39;https://testserver:80</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">redirect_url</span><span class="p">)</span>
+
+        <span class="c"># Restore settings</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">SECURE_PROXY_SSL_HEADER</span> <span class="o">=</span> <span class="bp">None</span>
+
+</div></div>
+<div class="viewcode-block" id="GetUserHomeTests"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.GetUserHomeTests">[docs]</a><span class="k">class</span> <span class="nc">GetUserHomeTests</span><span class="p">(</span><span class="n">BaseHorizonTests</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test get_user_home parameters.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GetUserHomeTests.setUp"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.GetUserHomeTests.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orig_user_home</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;user_home&#39;</span><span class="p">]</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseHorizonTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">original_username</span> <span class="o">=</span> <span class="s">&quot;testname&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_username</span>
+</div>
+<div class="viewcode-block" id="GetUserHomeTests.tearDown"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.GetUserHomeTests.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;user_home&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_user_home</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="GetUserHomeTests.test_using_callable"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.GetUserHomeTests.test_using_callable">[docs]</a>    <span class="k">def</span> <span class="nf">test_using_callable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">fancy_user_fnc</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;user_home&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fancy_user_fnc</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                               <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">get_user_home</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="GetUserHomeTests.test_using_module_function"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.GetUserHomeTests.test_using_module_function">[docs]</a>    <span class="k">def</span> <span class="nf">test_using_module_function</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">module_func</span> <span class="o">=</span> <span class="s">&#39;django.utils.encoding.force_unicode&#39;</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;user_home&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">module_func</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="s">&#39;testname&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_username</span><span class="p">,</span>
+                               <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">get_user_home</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="GetUserHomeTests.test_using_url"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.GetUserHomeTests.test_using_url">[docs]</a>    <span class="k">def</span> <span class="nf">test_using_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fixed_url</span> <span class="o">=</span> <span class="s">&quot;/url&quot;</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;user_home&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_url</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">fixed_url</span><span class="p">,</span>
+                         <span class="n">base</span><span class="o">.</span><span class="n">Horizon</span><span class="o">.</span><span class="n">get_user_home</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="CustomPanelTests"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPanelTests">[docs]</a><span class="k">class</span> <span class="nc">CustomPanelTests</span><span class="p">(</span><span class="n">BaseHorizonTests</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Test customization of dashboards and panels</span>
+<span class="sd">    using &#39;customization_module&#39; to HORIZON_CONFIG.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CustomPanelTests.setUp"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPanelTests.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;customization_module&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="s">&#39;horizon.test.customization.cust_test1&#39;</span>
+        <span class="c"># refresh config</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CustomPanelTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="CustomPanelTests.tearDown"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPanelTests.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Restore dash</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="n">cats</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Cats&quot;</span>
+        <span class="n">horizon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Dogs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_dashboards</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Dogs</span><span class="p">)</span>
+        <span class="n">Dogs</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Puppies</span><span class="p">)</span>
+        <span class="n">Cats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Tigers</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CustomPanelTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;customization_module&#39;</span><span class="p">)</span>
+        <span class="c"># refresh config</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="CustomPanelTests.test_customize_dashboard"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPanelTests.test_customize_dashboard">[docs]</a>    <span class="k">def</span> <span class="nf">test_customize_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cats</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;cats&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cats</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s">&quot;WildCats&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">cats</span><span class="o">.</span><span class="n">get_panels</span><span class="p">(),</span>
+                                 <span class="p">[</span><span class="s">&#39;&lt;Panel: kittens&gt;&#39;</span><span class="p">])</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">NotRegistered</span><span class="p">):</span>
+            <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;dogs&quot;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="CustomPermissionsTests"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPermissionsTests">[docs]</a><span class="k">class</span> <span class="nc">CustomPermissionsTests</span><span class="p">(</span><span class="n">BaseHorizonTests</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Test customization of permissions on panels</span>
+<span class="sd">    using &#39;customization_module&#39; to HORIZON_CONFIG.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CustomPermissionsTests.setUp"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPermissionsTests.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="p">[</span><span class="s">&#39;customization_module&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="s">&#39;horizon.test.customization.cust_test2&#39;</span>
+        <span class="c"># refresh config</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CustomPermissionsTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="CustomPermissionsTests.tearDown"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPermissionsTests.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Restore permissions</span>
+        <span class="n">dogs</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;dogs&quot;</span><span class="p">)</span>
+        <span class="n">puppies</span> <span class="o">=</span> <span class="n">dogs</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="s">&quot;puppies&quot;</span><span class="p">)</span>
+        <span class="n">puppies</span><span class="o">.</span><span class="n">permissions</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([])</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CustomPermissionsTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;customization_module&#39;</span><span class="p">)</span>
+        <span class="c"># refresh config</span>
+        <span class="n">conf</span><span class="o">.</span><span class="n">HORIZON_CONFIG</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="CustomPermissionsTests.test_customized_permissions"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.base.html#horizon.test.tests.base.CustomPermissionsTests.test_customized_permissions">[docs]</a>    <span class="k">def</span> <span class="nf">test_customized_permissions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dogs</span> <span class="o">=</span> <span class="n">horizon</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">(</span><span class="s">&quot;dogs&quot;</span><span class="p">)</span>
+        <span class="n">panel</span> <span class="o">=</span> <span class="n">dogs</span><span class="o">.</span><span class="n">get_panel</span><span class="p">(</span><span class="s">&#39;puppies&#39;</span><span class="p">)</span>
+
+        <span class="c"># Non-admin user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_all_permissions</span><span class="p">(),</span> <span class="p">[])</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">302</span><span class="p">)</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span>
+                               <span class="n">follow</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">HTTP_X_REQUESTED_WITH</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">401</span><span class="p">)</span>
+
+        <span class="c"># Test customized permissions for logged-in user</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span> <span class="n">follow</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTemplateUsed</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;auth/login.html&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="s">&quot;Login as different user&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+
+        <span class="c"># Set roles for admin user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_permissions</span><span class="p">(</span><span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test&#39;</span><span class="p">])</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+
+        <span class="c"># Test modal form</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">panel</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span>
+                               <span class="n">follow</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">HTTP_X_REQUESTED_WITH</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../horizon.html" accesskey="U">horizon</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

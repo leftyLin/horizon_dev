@@ -1,0 +1,8 @@
+===================================================================
+The :mod:`openstack_dashboard.openstack.common.notifier.api` Module
+===================================================================
+.. automodule:: openstack_dashboard.openstack.common.notifier.api
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

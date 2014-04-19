@@ -1,0 +1,334 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.dashboards.project.images.images.tables &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.dashboards.project.images.images.tables</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">defaultfilters</span> <span class="k">as</span> <span class="n">filters</span>
+<span class="kn">from</span> <span class="nn">django.utils.http</span> <span class="kn">import</span> <span class="n">urlencode</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="kn">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">tables</span>
+<span class="kn">from</span> <span class="nn">horizon.utils.memoized</span> <span class="kn">import</span> <span class="n">memoized</span>  <span class="c"># noqa</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">base</span>
+
+<span class="n">NOT_LAUNCHABLE_FORMATS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;aki&#39;</span><span class="p">,</span> <span class="s">&#39;ari&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="LaunchImage"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.LaunchImage">[docs]</a><span class="k">class</span> <span class="nc">LaunchImage</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">LinkAction</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;launch_image&quot;</span>
+    <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Launch&quot;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;horizon:project:instances:launch&quot;</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;btn-launch&quot;</span><span class="p">,</span> <span class="s">&quot;ajax-modal&quot;</span><span class="p">)</span>
+    <span class="n">policy_rules</span> <span class="o">=</span> <span class="p">((</span><span class="s">&quot;compute&quot;</span><span class="p">,</span> <span class="s">&quot;compute:create&quot;</span><span class="p">),)</span>
+
+<div class="viewcode-block" id="LaunchImage.get_link_url"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.LaunchImage.get_link_url">[docs]</a>    <span class="k">def</span> <span class="nf">get_link_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datum</span><span class="p">):</span>
+        <span class="n">base_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">get_image_type</span><span class="p">(</span><span class="n">datum</span><span class="p">)</span> <span class="o">==</span> <span class="s">&quot;image&quot;</span><span class="p">:</span>
+            <span class="n">source_type</span> <span class="o">=</span> <span class="s">&quot;image_id&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source_type</span> <span class="o">=</span> <span class="s">&quot;instance_snapshot_id&quot;</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="n">urlencode</span><span class="p">({</span><span class="s">&quot;source_type&quot;</span><span class="p">:</span> <span class="n">source_type</span><span class="p">,</span>
+                            <span class="s">&quot;source_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">get_object_id</span><span class="p">(</span><span class="n">datum</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="s">&quot;?&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">base_url</span><span class="p">,</span> <span class="n">params</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="LaunchImage.allowed"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.LaunchImage.allowed">[docs]</a>    <span class="k">def</span> <span class="nf">allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">image</span> <span class="ow">and</span> <span class="n">image</span><span class="o">.</span><span class="n">container_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NOT_LAUNCHABLE_FORMATS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;active&quot;</span><span class="p">,)</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="DeleteImage"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.DeleteImage">[docs]</a><span class="k">class</span> <span class="nc">DeleteImage</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">DeleteAction</span><span class="p">):</span>
+    <span class="n">data_type_singular</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Image&quot;</span><span class="p">)</span>
+    <span class="n">data_type_plural</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Images&quot;</span><span class="p">)</span>
+    <span class="n">policy_rules</span> <span class="o">=</span> <span class="p">((</span><span class="s">&quot;image&quot;</span><span class="p">,</span> <span class="s">&quot;delete_image&quot;</span><span class="p">),)</span>
+
+<div class="viewcode-block" id="DeleteImage.allowed"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.DeleteImage.allowed">[docs]</a>    <span class="k">def</span> <span class="nf">allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># Protected images can not be deleted.</span>
+        <span class="k">if</span> <span class="n">image</span> <span class="ow">and</span> <span class="n">image</span><span class="o">.</span><span class="n">protected</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">image</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">owner</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">tenant_id</span>
+        <span class="c"># Return True to allow table-level bulk delete action to appear.</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="DeleteImage.delete"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.DeleteImage.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">obj_id</span><span class="p">):</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">obj_id</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="CreateImage"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.CreateImage">[docs]</a><span class="k">class</span> <span class="nc">CreateImage</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">LinkAction</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;create&quot;</span>
+    <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Create Image&quot;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;horizon:project:images:images:create&quot;</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;ajax-modal&quot;</span><span class="p">,</span> <span class="s">&quot;btn-create&quot;</span><span class="p">)</span>
+    <span class="n">policy_rules</span> <span class="o">=</span> <span class="p">((</span><span class="s">&quot;image&quot;</span><span class="p">,</span> <span class="s">&quot;add_image&quot;</span><span class="p">),)</span>
+
+</div>
+<div class="viewcode-block" id="EditImage"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.EditImage">[docs]</a><span class="k">class</span> <span class="nc">EditImage</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">LinkAction</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;edit&quot;</span>
+    <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Edit&quot;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;horizon:project:images:images:update&quot;</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;ajax-modal&quot;</span><span class="p">,</span> <span class="s">&quot;btn-edit&quot;</span><span class="p">)</span>
+    <span class="n">policy_rules</span> <span class="o">=</span> <span class="p">((</span><span class="s">&quot;image&quot;</span><span class="p">,</span> <span class="s">&quot;modify_image&quot;</span><span class="p">),)</span>
+
+<div class="viewcode-block" id="EditImage.allowed"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.EditImage.allowed">[docs]</a>    <span class="k">def</span> <span class="nf">allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">image</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;active&quot;</span><span class="p">,)</span> <span class="ow">and</span> \
+                <span class="n">image</span><span class="o">.</span><span class="n">owner</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">tenant_id</span>
+        <span class="c"># We don&#39;t have bulk editing, so if there isn&#39;t an image that&#39;s</span>
+        <span class="c"># authorized, don&#39;t allow the action.</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="CreateVolumeFromImage"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.CreateVolumeFromImage">[docs]</a><span class="k">class</span> <span class="nc">CreateVolumeFromImage</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">LinkAction</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;create_volume_from_image&quot;</span>
+    <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Create Volume&quot;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;horizon:project:volumes:volumes:create&quot;</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;ajax-modal&quot;</span><span class="p">,</span> <span class="s">&quot;btn-camera&quot;</span><span class="p">)</span>
+    <span class="n">policy_rules</span> <span class="o">=</span> <span class="p">((</span><span class="s">&quot;volume&quot;</span><span class="p">,</span> <span class="s">&quot;volume:create&quot;</span><span class="p">),)</span>
+
+<div class="viewcode-block" id="CreateVolumeFromImage.get_link_url"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.CreateVolumeFromImage.get_link_url">[docs]</a>    <span class="k">def</span> <span class="nf">get_link_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datum</span><span class="p">):</span>
+        <span class="n">base_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">urlencode</span><span class="p">({</span><span class="s">&quot;image_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">get_object_id</span><span class="p">(</span><span class="n">datum</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="s">&quot;?&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">base_url</span><span class="p">,</span> <span class="n">params</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="CreateVolumeFromImage.allowed"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.CreateVolumeFromImage.allowed">[docs]</a>    <span class="k">def</span> <span class="nf">allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">image</span> <span class="ow">and</span> <span class="n">image</span><span class="o">.</span><span class="n">container_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NOT_LAUNCHABLE_FORMATS</span>
+                <span class="ow">and</span> <span class="n">base</span><span class="o">.</span><span class="n">is_service_enabled</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;volume&#39;</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">&quot;active&quot;</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="filter_tenants"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.filter_tenants">[docs]</a><span class="k">def</span> <span class="nf">filter_tenants</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="s">&#39;IMAGES_LIST_FILTER_TENANTS&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+</div>
+<span class="nd">@memoized</span>
+<div class="viewcode-block" id="filter_tenant_ids"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.filter_tenant_ids">[docs]</a><span class="k">def</span> <span class="nf">filter_tenant_ids</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ft</span><span class="p">:</span> <span class="n">ft</span><span class="p">[</span><span class="s">&#39;tenant&#39;</span><span class="p">],</span> <span class="n">filter_tenants</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="OwnerFilter"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.OwnerFilter">[docs]</a><span class="k">class</span> <span class="nc">OwnerFilter</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">FixedFilterAction</span><span class="p">):</span>
+<div class="viewcode-block" id="OwnerFilter.get_fixed_buttons"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.OwnerFilter.get_fixed_buttons">[docs]</a>    <span class="k">def</span> <span class="nf">get_fixed_buttons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">make_dict</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">tenant</span><span class="p">,</span> <span class="n">icon</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">tenant</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="n">icon</span><span class="p">)</span>
+
+        <span class="n">buttons</span> <span class="o">=</span> <span class="p">[</span><span class="n">make_dict</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Project&#39;</span><span class="p">),</span> <span class="s">&#39;project&#39;</span><span class="p">,</span> <span class="s">&#39;icon-home&#39;</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">button_dict</span> <span class="ow">in</span> <span class="n">filter_tenants</span><span class="p">():</span>
+            <span class="n">new_dict</span> <span class="o">=</span> <span class="n">button_dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">new_dict</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_dict</span><span class="p">[</span><span class="s">&#39;tenant&#39;</span><span class="p">]</span>
+            <span class="n">buttons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_dict</span><span class="p">)</span>
+        <span class="n">buttons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">make_dict</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Shared with Me&#39;</span><span class="p">),</span> <span class="s">&#39;shared&#39;</span><span class="p">,</span> <span class="s">&#39;icon-share&#39;</span><span class="p">))</span>
+        <span class="n">buttons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">make_dict</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Public&#39;</span><span class="p">),</span> <span class="s">&#39;public&#39;</span><span class="p">,</span> <span class="s">&#39;icon-fire&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">buttons</span>
+</div>
+<div class="viewcode-block" id="OwnerFilter.categorize"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.OwnerFilter.categorize">[docs]</a>    <span class="k">def</span> <span class="nf">categorize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">images</span><span class="p">):</span>
+        <span class="n">user_tenant_id</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">tenant_id</span>
+        <span class="n">tenants</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+            <span class="n">categories</span> <span class="o">=</span> <span class="n">get_image_categories</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">user_tenant_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+                <span class="n">tenants</span><span class="p">[</span><span class="n">category</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tenants</span>
+
+</div></div>
+<div class="viewcode-block" id="get_image_categories"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.get_image_categories">[docs]</a><span class="k">def</span> <span class="nf">get_image_categories</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">user_tenant_id</span><span class="p">):</span>
+    <span class="n">categories</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">im</span><span class="o">.</span><span class="n">is_public</span><span class="p">:</span>
+        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;public&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">im</span><span class="o">.</span><span class="n">owner</span> <span class="o">==</span> <span class="n">user_tenant_id</span><span class="p">:</span>
+        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;project&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">im</span><span class="o">.</span><span class="n">owner</span> <span class="ow">in</span> <span class="n">filter_tenant_ids</span><span class="p">():</span>
+        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">owner</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">im</span><span class="o">.</span><span class="n">is_public</span><span class="p">:</span>
+        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;shared&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">categories</span>
+
+</div>
+<div class="viewcode-block" id="get_image_name"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.get_image_name">[docs]</a><span class="k">def</span> <span class="nf">get_image_name</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">image</span><span class="o">.</span><span class="n">id</span>
+
+</div>
+<div class="viewcode-block" id="get_image_type"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.get_image_type">[docs]</a><span class="k">def</span> <span class="nf">get_image_type</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s">&quot;properties&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;image_type&quot;</span><span class="p">,</span> <span class="s">&quot;image&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_format"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.get_format">[docs]</a><span class="k">def</span> <span class="nf">get_format</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="n">format</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s">&quot;disk_format&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="c"># The &quot;container_format&quot; attribute can actually be set to None,</span>
+    <span class="c"># which will raise an error if you call upper() on it.</span>
+    <span class="k">if</span> <span class="n">format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">format</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="UpdateRow"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.UpdateRow">[docs]</a><span class="k">class</span> <span class="nc">UpdateRow</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">Row</span><span class="p">):</span>
+    <span class="n">ajax</span> <span class="o">=</span> <span class="bp">True</span>
+
+<div class="viewcode-block" id="UpdateRow.get_data"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.UpdateRow.get_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">image_id</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">glance</span><span class="o">.</span><span class="n">image_get</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">image_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">image</span>
+</div>
+<div class="viewcode-block" id="UpdateRow.load_cells"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.UpdateRow.load_cells">[docs]</a>    <span class="k">def</span> <span class="nf">load_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UpdateRow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">load_cells</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="c"># Tag the row with the image category for client-side filtering.</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datum</span>
+        <span class="n">my_tenant_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">tenant_id</span>
+        <span class="n">image_categories</span> <span class="o">=</span> <span class="n">get_image_categories</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">my_tenant_id</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">image_categories</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;category-&#39;</span> <span class="o">+</span> <span class="n">category</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="ImagesTable"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.ImagesTable">[docs]</a><span class="k">class</span> <span class="nc">ImagesTable</span><span class="p">(</span><span class="n">tables</span><span class="o">.</span><span class="n">DataTable</span><span class="p">):</span>
+    <span class="n">STATUS_CHOICES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&quot;active&quot;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;saving&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;queued&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;pending_delete&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;killed&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&quot;deleted&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">get_image_name</span><span class="p">,</span>
+                         <span class="n">link</span><span class="o">=</span><span class="p">(</span><span class="s">&quot;horizon:project:images:images:detail&quot;</span><span class="p">),</span>
+                         <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Image Name&quot;</span><span class="p">))</span>
+    <span class="n">image_type</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">get_image_type</span><span class="p">,</span>
+                               <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Type&quot;</span><span class="p">),</span>
+                               <span class="n">filters</span><span class="o">=</span><span class="p">(</span><span class="n">filters</span><span class="o">.</span><span class="n">title</span><span class="p">,))</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&quot;status&quot;</span><span class="p">,</span>
+                           <span class="n">filters</span><span class="o">=</span><span class="p">(</span><span class="n">filters</span><span class="o">.</span><span class="n">title</span><span class="p">,),</span>
+                           <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Status&quot;</span><span class="p">),</span>
+                           <span class="n">status</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                           <span class="n">status_choices</span><span class="o">=</span><span class="n">STATUS_CHOICES</span><span class="p">)</span>
+    <span class="n">public</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&quot;is_public&quot;</span><span class="p">,</span>
+                           <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Public&quot;</span><span class="p">),</span>
+                           <span class="n">empty_value</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">filters</span><span class="o">=</span><span class="p">(</span><span class="n">filters</span><span class="o">.</span><span class="n">yesno</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">capfirst</span><span class="p">))</span>
+    <span class="n">protected</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&quot;protected&quot;</span><span class="p">,</span>
+                              <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Protected&quot;</span><span class="p">),</span>
+                              <span class="n">empty_value</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                              <span class="n">filters</span><span class="o">=</span><span class="p">(</span><span class="n">filters</span><span class="o">.</span><span class="n">yesno</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">capfirst</span><span class="p">))</span>
+    <span class="n">disk_format</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">get_format</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Format&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ImagesTable.Meta"><a class="viewcode-back" href="../../../../../../sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.images.images.tables.html#openstack_dashboard.dashboards.project.images.images.tables.ImagesTable.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;images&quot;</span>
+        <span class="n">row_class</span> <span class="o">=</span> <span class="n">UpdateRow</span>
+        <span class="n">status_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;status&quot;</span><span class="p">]</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Images&quot;</span><span class="p">)</span>
+        <span class="n">table_actions</span> <span class="o">=</span> <span class="p">(</span><span class="n">OwnerFilter</span><span class="p">,</span> <span class="n">CreateImage</span><span class="p">,</span> <span class="n">DeleteImage</span><span class="p">,)</span>
+        <span class="n">row_actions</span> <span class="o">=</span> <span class="p">(</span><span class="n">LaunchImage</span><span class="p">,</span> <span class="n">CreateVolumeFromImage</span><span class="p">,</span>
+                       <span class="n">EditImage</span><span class="p">,</span> <span class="n">DeleteImage</span><span class="p">,)</span>
+        <span class="n">pagination_param</span> <span class="o">=</span> <span class="s">&quot;image_marker&quot;</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

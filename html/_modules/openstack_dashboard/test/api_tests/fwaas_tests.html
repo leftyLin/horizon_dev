@@ -1,0 +1,473 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.test.api_tests.fwaas_tests &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.test.api_tests.fwaas_tests</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c">#    Copyright 2013, Big Switch Networks, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+<span class="c">#</span>
+<span class="c"># @author: KC Wang, Big Switch Networks</span>
+<span class="c">#</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard</span> <span class="kn">import</span> <span class="n">api</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+<span class="kn">from</span> <span class="nn">neutronclient.v2_0.client</span> <span class="kn">import</span> <span class="n">Client</span> <span class="k">as</span> <span class="n">neutronclient</span>  <span class="c"># noqa</span>
+
+
+<div class="viewcode-block" id="FwaasApiTests"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests">[docs]</a><span class="k">class</span> <span class="nc">FwaasApiTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">APITestCase</span><span class="p">):</span>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_firewall_rule&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_rule_create"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_rule_create">[docs]</a>    <span class="k">def</span> <span class="nf">test_rule_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rule1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_rules</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">rule1_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                     <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
+                     <span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">action</span><span class="p">,</span>
+                     <span class="s">&#39;source_ip_address&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">source_ip_address</span><span class="p">,</span>
+                     <span class="s">&#39;source_port&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">source_port</span><span class="p">,</span>
+                     <span class="s">&#39;destination_ip_address&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">destination_ip_address</span><span class="p">,</span>
+                     <span class="s">&#39;destination_port&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">destination_port</span><span class="p">,</span>
+                     <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">shared</span><span class="p">,</span>
+                     <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="n">rule1</span><span class="o">.</span><span class="n">enabled</span>
+                     <span class="p">}</span>
+        <span class="n">form_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rule&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">}</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rule&#39;</span><span class="p">:</span> <span class="n">rule1_dict</span><span class="p">}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_firewall_rule</span><span class="p">(</span><span class="n">form_dict</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">rule_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Rule</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">rule1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;list_firewall_rules&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;list_firewall_policies&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_rule_list"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_rule_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_rule_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">exp_rules</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_rules</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">api_rules</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rules&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+        <span class="n">api_policies</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policies&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_firewall_rules</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">api_rules</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_firewall_policies</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">api_policies</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">rule_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">exp_rules</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Rule</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">policy</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">firewall_policy_id</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">policy</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_firewall_rule&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;show_firewall_policy&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_rule_get"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_rule_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_rule_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">exp_rule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_rules</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rule&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+        <span class="n">policy_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_firewall_rule</span><span class="p">(</span><span class="n">exp_rule</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_firewall_policy</span><span class="p">(</span>
+            <span class="n">exp_rule</span><span class="o">.</span><span class="n">firewall_policy_id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">policy_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">rule_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">exp_rule</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Rule</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">exp_rule</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">exp_rule</span><span class="o">.</span><span class="n">firewall_policy_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">exp_rule</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;update_firewall_rule&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_rule_update"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_rule_update">[docs]</a>    <span class="k">def</span> <span class="nf">test_rule_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_rules</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">rule_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">rule</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;new name&#39;</span>
+        <span class="n">rule</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&#39;new desc&#39;</span>
+        <span class="n">rule</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s">&#39;icmp&#39;</span>
+        <span class="n">rule</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="s">&#39;deny&#39;</span>
+        <span class="n">rule</span><span class="o">.</span><span class="n">shared</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">rule</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">rule_dict</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;new name&#39;</span>
+        <span class="n">rule_dict</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;new desc&#39;</span>
+        <span class="n">rule_dict</span><span class="p">[</span><span class="s">&#39;protocol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;icmp&#39;</span>
+        <span class="n">rule_dict</span><span class="p">[</span><span class="s">&#39;action&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;deny&#39;</span>
+        <span class="n">rule_dict</span><span class="p">[</span><span class="s">&#39;shared&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">rule_dict</span><span class="p">[</span><span class="s">&#39;enabled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">rule</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">rule</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                     <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">rule</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
+                     <span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="n">rule</span><span class="o">.</span><span class="n">action</span><span class="p">,</span>
+                     <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="n">rule</span><span class="o">.</span><span class="n">shared</span><span class="p">,</span>
+                     <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="n">rule</span><span class="o">.</span><span class="n">enabled</span>
+                     <span class="p">}</span>
+        <span class="n">form_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rule&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">}</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rule&#39;</span><span class="p">:</span> <span class="n">rule_dict</span><span class="p">}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">update_firewall_rule</span><span class="p">(</span>
+            <span class="n">rule</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">form_dict</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">rule_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                        <span class="n">rule</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Rule</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_firewall_policy&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_policy_create"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_policy_create">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">policy1_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">policy1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">policy1</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                     <span class="s">&#39;firewall_rules&#39;</span><span class="p">:</span> <span class="n">policy1</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">,</span>
+                     <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="n">policy1</span><span class="o">.</span><span class="n">shared</span><span class="p">,</span>
+                     <span class="s">&#39;audited&#39;</span><span class="p">:</span> <span class="n">policy1</span><span class="o">.</span><span class="n">audited</span>
+                     <span class="p">}</span>
+        <span class="n">form_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">}</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="n">policy1_dict</span><span class="p">}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_firewall_policy</span><span class="p">(</span><span class="n">form_dict</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">policy_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Policy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">policy1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;list_firewall_policies&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;list_firewall_rules&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_policy_list"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_policy_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">exp_policies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">policies_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policies&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+        <span class="n">rules_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rules&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_firewall_policies</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">policies_dict</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_firewall_rules</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">rules_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">policy_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">exp_policies</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Policy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">rules</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">))</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">exp_r</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">rules</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">rules</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">exp_r</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_firewall_policy&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;list_firewall_rules&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_policy_get"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_policy_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">exp_policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">policy_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="c"># The first two rules are associated with the first policy.</span>
+        <span class="n">api_rules</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">list</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="n">policy_dict</span><span class="p">}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_firewall_policy</span><span class="p">(</span><span class="n">exp_policy</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy_id&#39;</span><span class="p">:</span> <span class="n">exp_policy</span><span class="o">.</span><span class="n">id</span><span class="p">}</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rules&#39;</span><span class="p">:</span> <span class="n">api_rules</span><span class="p">}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_firewall_rules</span><span class="p">(</span><span class="o">**</span><span class="n">filters</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">policy_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">exp_policy</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Policy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">exp_policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">exp_policy</span><span class="o">.</span><span class="n">rules</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">rules</span><span class="p">))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">ret</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">exp_policy</span><span class="o">.</span><span class="n">rules</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">rules</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_firewall_policy&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_policy_get_no_rule"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_policy_get_no_rule">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_get_no_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># 2nd policy is not associated with any rules.</span>
+        <span class="n">exp_policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">policy_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="n">policy_dict</span><span class="p">}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_firewall_policy</span><span class="p">(</span><span class="n">exp_policy</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">policy_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">exp_policy</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Policy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">exp_policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">rules</span><span class="p">))</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;update_firewall_policy&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_policy_update"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_policy_update">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">policy_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">policy</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;new name&#39;</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&#39;new desc&#39;</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">shared</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">audited</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">policy_dict</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;new name&#39;</span>
+        <span class="n">policy_dict</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;new desc&#39;</span>
+        <span class="n">policy_dict</span><span class="p">[</span><span class="s">&#39;shared&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">policy_dict</span><span class="p">[</span><span class="s">&#39;audited&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                     <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">shared</span><span class="p">,</span>
+                     <span class="s">&#39;audited&#39;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">audited</span>
+                     <span class="p">}</span>
+
+        <span class="n">form_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">}</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="n">policy_dict</span><span class="p">}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">update_firewall_policy</span><span class="p">(</span>
+            <span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">form_dict</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">policy_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                          <span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Policy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;firewall_policy_insert_rule&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_policy_insert_rule"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_policy_insert_rule">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_insert_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">policy_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">new_rule_id</span> <span class="o">=</span> <span class="s">&#39;h0881d38-c3eb-4fee-9763-12de3338041d&#39;</span>
+        <span class="n">policy</span><span class="o">.</span><span class="n">firewall_rules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_rule_id</span><span class="p">)</span>
+        <span class="n">policy_dict</span><span class="p">[</span><span class="s">&#39;firewall_rules&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_rule_id</span><span class="p">)</span>
+
+        <span class="n">body</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rule_id&#39;</span><span class="p">:</span> <span class="n">new_rule_id</span><span class="p">,</span>
+                <span class="s">&#39;insert_before&#39;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s">&#39;insert_after&#39;</span><span class="p">:</span> <span class="n">policy</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">firewall_policy_insert_rule</span><span class="p">(</span>
+            <span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">policy_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">policy_insert_rule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                               <span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">body</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="n">new_rule_id</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;firewall_policy_remove_rule&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_policy_remove_rule"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_policy_remove_rule">[docs]</a>    <span class="k">def</span> <span class="nf">test_policy_remove_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">policy_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">remove_rule_id</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">policy_dict</span><span class="p">[</span><span class="s">&#39;firewall_rules&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">remove_rule_id</span><span class="p">)</span>
+
+        <span class="n">body</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_rule_id&#39;</span><span class="p">:</span> <span class="n">remove_rule_id</span><span class="p">}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">firewall_policy_remove_rule</span><span class="p">(</span>
+            <span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">policy_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">policy_remove_rule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                               <span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">body</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotIn</span><span class="p">(</span><span class="n">remove_rule_id</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">firewall_rules</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;create_firewall&#39;</span><span class="p">,</span> <span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_firewall_create"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_firewall_create">[docs]</a>    <span class="k">def</span> <span class="nf">test_firewall_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">firewall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firewalls</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">firewall_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_firewalls</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                     <span class="s">&#39;firewall_policy_id&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">firewall_policy_id</span><span class="p">,</span>
+                     <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">shared</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">admin_state_up</span>
+                     <span class="p">}</span>
+
+        <span class="n">form_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">}</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall&#39;</span><span class="p">:</span> <span class="n">firewall_dict</span><span class="p">}</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">create_firewall</span><span class="p">(</span><span class="n">form_dict</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">firewall_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Firewall</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">firewall</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;list_firewalls&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;list_firewall_policies&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_firewall_list"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_firewall_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_firewall_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">exp_firewalls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firewalls</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">firewalls_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewalls&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_firewalls</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+        <span class="n">policies_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policies&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_firewalls</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">firewalls_dict</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">list_firewall_policies</span><span class="p">()</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">policies_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">firewall_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">exp_firewalls</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Firewall</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">firewall_policy_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;show_firewall&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;show_firewall_policy&#39;</span><span class="p">)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_firewall_get"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_firewall_get">[docs]</a>    <span class="k">def</span> <span class="nf">test_firewall_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">exp_firewall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firewalls</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_firewalls</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+        <span class="n">policy_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall_policy&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">first</span><span class="p">()}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_firewall</span><span class="p">(</span><span class="n">exp_firewall</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">show_firewall_policy</span><span class="p">(</span>
+            <span class="n">exp_firewall</span><span class="o">.</span><span class="n">firewall_policy_id</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">policy_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">firewall_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">exp_firewall</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Firewall</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">exp_firewall</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">exp_firewall</span><span class="o">.</span><span class="n">firewall_policy_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">exp_firewall</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+    <span class="nd">@test.create_stubs</span><span class="p">({</span><span class="n">neutronclient</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;update_firewall&#39;</span><span class="p">,)})</span>
+<div class="viewcode-block" id="FwaasApiTests.test_firewall_update"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.api_tests.fwaas_tests.html#openstack_dashboard.test.api_tests.fwaas_tests.FwaasApiTests.test_firewall_update">[docs]</a>    <span class="k">def</span> <span class="nf">test_firewall_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">firewall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firewalls</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">firewall_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_firewalls</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">firewall</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;new name&#39;</span>
+        <span class="n">firewall</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&#39;new desc&#39;</span>
+        <span class="n">firewall</span><span class="o">.</span><span class="n">admin_state_up</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">firewall_dict</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;new name&#39;</span>
+        <span class="n">firewall_dict</span><span class="p">[</span><span class="s">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;new desc&#39;</span>
+        <span class="n">firewall_dict</span><span class="p">[</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">form_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                     <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="n">firewall</span><span class="o">.</span><span class="n">admin_state_up</span>
+                     <span class="p">}</span>
+
+        <span class="n">form_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall&#39;</span><span class="p">:</span> <span class="n">form_data</span><span class="p">}</span>
+        <span class="n">ret_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;firewall&#39;</span><span class="p">:</span> <span class="n">firewall_dict</span><span class="p">}</span>
+
+        <span class="n">neutronclient</span><span class="o">.</span><span class="n">update_firewall</span><span class="p">(</span>
+            <span class="n">firewall</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">form_dict</span><span class="p">)</span><span class="o">.</span><span class="n">AndReturn</span><span class="p">(</span><span class="n">ret_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mox</span><span class="o">.</span><span class="n">ReplayAll</span><span class="p">()</span>
+
+        <span class="n">ret_val</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">firewall_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                            <span class="n">firewall</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="o">**</span><span class="n">form_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">ret_val</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">fwaas</span><span class="o">.</span><span class="n">Firewall</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">firewall</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ret_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">ret_val</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

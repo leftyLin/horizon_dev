@@ -1,0 +1,8 @@
+===================================================================
+The :mod:`openstack_dashboard.test.integration_tests.config` Module
+===================================================================
+.. automodule:: openstack_dashboard.test.integration_tests.config
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

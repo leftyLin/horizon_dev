@@ -1,0 +1,378 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.dashboards.project.networks.workflows Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.dashboards.project.networks.urls Module" href="openstack_dashboard.dashboards.project.networks.urls.html" />
+    <link rel="prev" title="The openstack_dashboard.dashboards.project.networks.views Module" href="openstack_dashboard.dashboards.project.networks.views.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-dashboards-project-networks-workflows-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.dashboards.project.networks.workflows</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-dashboards-project-networks-workflows-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.networks.workflows.</tt><tt class="descname">CreateNetwork</tt><big>(</big><em>request=None</em>, <em>context_seed=None</em>, <em>entry_point=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateNetwork"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Workflow</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">default_steps</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.project.networks.workflows.CreateNetworkInfo'&gt;, &lt;class 'openstack_dashboard.dashboards.project.networks.workflows.CreateSubnetInfo'&gt;, &lt;class 'openstack_dashboard.dashboards.project.networks.workflows.CreateSubnetDetail'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">failure_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x7880850&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">finalize_button_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x78808d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">format_status_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateNetwork.format_status_message"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">get_failure_url</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateNetwork.get_failure_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">get_success_url</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateNetwork.get_success_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">handle</tt><big>(</big><em>request</em>, <em>data</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateNetwork.handle"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x7880510&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">slug</tt><em class="property"> = 'create_network'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">success_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x78802d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetwork.</tt><tt class="descname">wizard</tt><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.networks.workflows.</tt><tt class="descname">CreateNetworkInfo</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateNetworkInfo"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Step</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfo.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">CreateNetworkInfoAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfo.</tt><tt class="descname">contributes</tt><em class="property"> = ('net_name', 'admin_state')</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.networks.workflows.</tt><tt class="descname">CreateNetworkInfoAction</tt><big>(</big><em>request</em>, <em>context</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateNetworkInfoAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Action</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {'net_name': &lt;django.forms.fields.CharField object at 0x3634d90&gt;, 'admin_state': &lt;django.forms.fields.BooleanField object at 0x3634510&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">help_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x3634110&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x3634750&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x3634c50&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateNetworkInfoAction.</tt><tt class="descname">slug</tt><em class="property"> = u'createnetworkinfoaction'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.networks.workflows.</tt><tt class="descname">CreateSubnetDetail</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateSubnetDetail"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Step</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetail.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">CreateSubnetDetailAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetail.</tt><tt class="descname">contributes</tt><em class="property"> = ('enable_dhcp', 'allocation_pools', 'dns_nameservers', 'host_routes')</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.networks.workflows.</tt><tt class="descname">CreateSubnetDetailAction</tt><big>(</big><em>request</em>, <em>context</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateSubnetDetailAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Action</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {'enable_dhcp': &lt;django.forms.fields.BooleanField object at 0x7880cd0&gt;, 'allocation_pools': &lt;django.forms.fields.CharField object at 0x78803d0&gt;, 'dns_nameservers': &lt;django.forms.fields.CharField object at 0x7880e10&gt;, 'host_routes': &lt;django.forms.fields.CharField object at 0x78804d0&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">clean</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateSubnetDetailAction.clean"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">help_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x78805d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x7880610&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x78809d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetDetailAction.</tt><tt class="descname">slug</tt><em class="property"> = u'createsubnetdetailaction'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.networks.workflows.</tt><tt class="descname">CreateSubnetInfo</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateSubnetInfo"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Step</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfo.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">CreateSubnetInfoAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfo.</tt><tt class="descname">contributes</tt><em class="property"> = ('with_subnet', 'subnet_name', 'cidr', 'ip_version', 'gateway_ip', 'no_gateway')</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.networks.workflows.</tt><tt class="descname">CreateSubnetInfoAction</tt><big>(</big><em>request</em>, <em>context</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateSubnetInfoAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Action</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {'with_subnet': &lt;django.forms.fields.BooleanField object at 0x3634190&gt;, 'subnet_name': &lt;django.forms.fields.CharField object at 0x3634810&gt;, 'cidr': &lt;horizon.utils.fields.IPField object at 0x3634610&gt;, 'ip_version': &lt;django.forms.fields.ChoiceField object at 0x3634ed0&gt;, 'gateway_ip': &lt;horizon.utils.fields.IPField object at 0x36343d0&gt;, 'no_gateway': &lt;django.forms.fields.BooleanField object at 0x7880c10&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">clean</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/networks/workflows.html#CreateSubnetInfoAction.clean"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">help_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x7880410&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x7880210&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x7880ed0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateSubnetInfoAction.</tt><tt class="descname">slug</tt><em class="property"> = u'createsubnetinfoaction'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.project.networks.views.html"
+                                  title="previous chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.project.networks.views</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.project.networks.urls.html"
+                                  title="next chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.project.networks.urls</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.networks.workflows.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.project.networks.urls.html" title="The openstack_dashboard.dashboards.project.networks.urls Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.project.networks.views.html" title="The openstack_dashboard.dashboards.project.networks.views Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

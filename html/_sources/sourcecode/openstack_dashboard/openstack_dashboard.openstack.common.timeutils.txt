@@ -1,0 +1,8 @@
+================================================================
+The :mod:`openstack_dashboard.openstack.common.timeutils` Module
+================================================================
+.. automodule:: openstack_dashboard.openstack.common.timeutils
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

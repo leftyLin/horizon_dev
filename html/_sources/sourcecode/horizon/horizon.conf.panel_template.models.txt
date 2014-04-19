@@ -1,0 +1,8 @@
+====================================================
+The :mod:`horizon.conf.panel_template.models` Module
+====================================================
+.. automodule:: horizon.conf.panel_template.models
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

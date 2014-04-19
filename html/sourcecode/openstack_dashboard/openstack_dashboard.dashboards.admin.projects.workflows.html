@@ -1,0 +1,590 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.dashboards.admin.projects.workflows Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.dashboards.admin.projects.urls Module" href="openstack_dashboard.dashboards.admin.projects.urls.html" />
+    <link rel="prev" title="The openstack_dashboard.dashboards.admin.projects.views Module" href="openstack_dashboard.dashboards.admin.projects.views.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-dashboards-admin-projects-workflows-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.projects.workflows</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-dashboards-admin-projects-workflows-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">CreateProject</tt><big>(</big><em>request=None</em>, <em>context_seed=None</em>, <em>entry_point=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#CreateProject"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Workflow</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">default_steps</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.admin.projects.workflows.CreateProjectInfo'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectMembers'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectQuota'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">failure_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07410&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">finalize_button_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07310&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">format_status_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#CreateProject.format_status_message"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">handle</tt><big>(</big><em>request</em>, <em>data</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#CreateProject.handle"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07290&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">slug</tt><em class="property"> = 'create_project'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">success_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07390&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProject.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:admin:projects:index'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">CreateProjectInfo</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#CreateProjectInfo"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Step</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfo.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">CreateProjectInfoAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfo.</tt><tt class="descname">contributes</tt><em class="property"> = ('domain_id', 'domain_name', 'project_id', 'name', 'description', 'enabled')</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">CreateProjectInfoAction</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#CreateProjectInfoAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Action</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {'domain_id': &lt;django.forms.fields.CharField object at 0x89ff450&gt;, 'domain_name': &lt;django.forms.fields.CharField object at 0x89ff590&gt;, 'name': &lt;django.forms.fields.CharField object at 0x89ff650&gt;, 'description': &lt;django.forms.fields.CharField object at 0x89ff7d0&gt;, 'enabled': &lt;django.forms.fields.BooleanField object at 0x89ff890&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">help_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ff950&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ff910&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffad0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateProjectInfoAction.</tt><tt class="descname">slug</tt><em class="property"> = u'createprojectinfoaction'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProject</tt><big>(</big><em>request=None</em>, <em>context_seed=None</em>, <em>entry_point=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProject"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Workflow</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">default_steps</tt><em class="property"> = (&lt;class 'openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectInfo'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectMembers'&gt;, &lt;class 'openstack_dashboard.dashboards.admin.projects.workflows.UpdateProjectQuota'&gt;)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">failure_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07990&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">finalize_button_name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a078d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">format_status_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProject.format_status_message"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">handle</tt><big>(</big><em>request</em>, <em>data</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProject.handle"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07890&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">slug</tt><em class="property"> = 'update_project'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">success_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07910&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProject.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:admin:projects:index'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectGroups</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectGroups"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.UpdateMembersStep</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroups.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">UpdateProjectGroupsAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroups.</tt><tt class="descname">available_list_title</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07110&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateProjectGroups.</tt><tt class="descname">contribute</tt><big>(</big><em>data</em>, <em>context</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectGroups.contribute"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroups.</tt><tt class="descname">members_list_title</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07150&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroups.</tt><tt class="descname">no_available_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07190&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroups.</tt><tt class="descname">no_members_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a071d0&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectGroupsAction</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectGroupsAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.MembershipAction</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">help_text</tt><em class="property"> = ''</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffe90&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a070d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectGroupsAction.</tt><tt class="descname">slug</tt><em class="property"> = 'update_group_members'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectInfo</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectInfo"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Step</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfo.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">UpdateProjectInfoAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfo.</tt><tt class="descname">contributes</tt><em class="property"> = ('domain_id', 'domain_name', 'name', 'description', 'enabled')</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfo.</tt><tt class="descname">depends_on</tt><em class="property"> = ('project_id',)</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectInfoAction</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectInfoAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.projects.workflows.CreateProjectInfoAction</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {'domain_id': &lt;django.forms.fields.CharField object at 0x89ff450&gt;, 'domain_name': &lt;django.forms.fields.CharField object at 0x89ff590&gt;, 'name': &lt;django.forms.fields.CharField object at 0x89ff650&gt;, 'description': &lt;django.forms.fields.CharField object at 0x89ff7d0&gt;, 'enabled': &lt;django.forms.fields.BooleanField object at 0x8a07510&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">help_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07690&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07650&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x8a07810&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectInfoAction.</tt><tt class="descname">slug</tt><em class="property"> = 'update_info'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectMembers</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectMembers"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.UpdateMembersStep</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembers.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">UpdateProjectMembersAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembers.</tt><tt class="descname">available_list_title</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffd10&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateProjectMembers.</tt><tt class="descname">contribute</tt><big>(</big><em>data</em>, <em>context</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectMembers.contribute"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembers.</tt><tt class="descname">members_list_title</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffd50&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembers.</tt><tt class="descname">no_available_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffd90&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembers.</tt><tt class="descname">no_members_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffdd0&gt;</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectMembersAction</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectMembersAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.MembershipAction</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">help_text</tt><em class="property"> = ''</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffb50&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ffcd0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectMembersAction.</tt><tt class="descname">slug</tt><em class="property"> = 'update_members'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectQuota</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectQuota"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Step</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuota.</tt><tt class="descname">action_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">UpdateProjectQuotaAction</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuota.</tt><tt class="descname">contributes</tt><em class="property"> = ('metadata_items', 'cores', 'instances', 'injected_files', 'injected_file_content_bytes', 'ram', 'floating_ips', 'fixed_ips', 'security_groups', 'security_group_rules', 'volumes', 'snapshots', 'gigabytes', 'network', 'subnet', 'port', 'router', 'floatingip', 'security_group', 'security_group_rule')</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuota.</tt><tt class="descname">depends_on</tt><em class="property"> = ('project_id',)</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.admin.projects.workflows.</tt><tt class="descname">UpdateProjectQuotaAction</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/admin/projects/workflows.html#UpdateProjectQuotaAction"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.workflows.base.Action</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">base_fields</tt><em class="property"> = {'metadata_items': &lt;django.forms.fields.IntegerField object at 0x89fb850&gt;, 'cores': &lt;django.forms.fields.IntegerField object at 0x89fba50&gt;, 'instances': &lt;django.forms.fields.IntegerField object at 0x89fbb90&gt;, 'injected_files': &lt;django.forms.fields.IntegerField object at 0x89fbcd0&gt;, 'injected_file_content_bytes': &lt;django.forms.fields.IntegerField object at 0x89fbdd0&gt;, 'volumes': &lt;django.forms.fields.IntegerField object at 0x89fbed0&gt;, 'snapshots': &lt;django.forms.fields.IntegerField object at 0x89fd050&gt;, 'gigabytes': &lt;django.forms.fields.IntegerField object at 0x89fd190&gt;, 'ram': &lt;django.forms.fields.IntegerField object at 0x89fd2d0&gt;, 'floating_ips': &lt;django.forms.fields.IntegerField object at 0x89fd410&gt;, 'fixed_ips': &lt;django.forms.fields.IntegerField object at 0x89fd550&gt;, 'security_groups': &lt;django.forms.fields.IntegerField object at 0x89fd690&gt;, 'security_group_rules': &lt;django.forms.fields.IntegerField object at 0x89fd7d0&gt;, 'security_group': &lt;django.forms.fields.IntegerField object at 0x89fd910&gt;, 'security_group_rule': &lt;django.forms.fields.IntegerField object at 0x89fda50&gt;, 'floatingip': &lt;django.forms.fields.IntegerField object at 0x89fdb90&gt;, 'network': &lt;django.forms.fields.IntegerField object at 0x89fdcd0&gt;, 'port': &lt;django.forms.fields.IntegerField object at 0x89fde10&gt;, 'router': &lt;django.forms.fields.IntegerField object at 0x89fdf50&gt;, 'subnet': &lt;django.forms.fields.IntegerField object at 0x89ff0d0&gt;}</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">help_text</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ff210&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">help_text_template</tt><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">ifcb_label</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89fb790&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">media</tt></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">name</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ff1d0&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">permissions</tt><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">progress_message</tt><em class="property"> = &lt;django.utils.functional.__proxy__ object at 0x89ff350&gt;</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateProjectQuotaAction.</tt><tt class="descname">slug</tt><em class="property"> = 'update_quotas'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.admin.projects.views.html"
+                                  title="previous chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.projects.views</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.admin.projects.urls.html"
+                                  title="next chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.admin.projects.urls</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.dashboards.admin.projects.workflows.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.admin.projects.urls.html" title="The openstack_dashboard.dashboards.admin.projects.urls Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.admin.projects.views.html" title="The openstack_dashboard.dashboards.admin.projects.views Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,832 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.test.test_data.nova_data &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.test.test_data.nova_data</h1><div class="highlight"><pre>
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">aggregates</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">availability_zones</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">certs</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">flavor_access</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">flavors</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">floating_ips</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">hosts</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">hypervisors</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">keypairs</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">quotas</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">security_group_rules</span> <span class="k">as</span> <span class="n">rules</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">security_groups</span> <span class="k">as</span> <span class="n">sec_groups</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">servers</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">services</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">usage</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">volume_snapshots</span> <span class="k">as</span> <span class="n">vol_snaps</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">volume_types</span>
+<span class="kn">from</span> <span class="nn">novaclient.v1_1</span> <span class="kn">import</span> <span class="n">volumes</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">base</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">nova</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.usage</span> <span class="kn">import</span> <span class="n">quotas</span> <span class="k">as</span> <span class="n">usage_quotas</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test.test_data</span> <span class="kn">import</span> <span class="n">utils</span>
+
+
+<span class="n">SERVER_DATA</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">{</span>
+<span class="s">    &quot;server&quot;: {</span>
+<span class="s">        &quot;OS-EXT-SRV-ATTR:instance_name&quot;: &quot;instance-00000005&quot;,</span>
+<span class="s">        &quot;OS-EXT-SRV-ATTR:host&quot;: &quot;instance-host&quot;,</span>
+<span class="s">        &quot;OS-EXT-STS:task_state&quot;: null,</span>
+<span class="s">        &quot;addresses&quot;: {</span>
+<span class="s">            &quot;private&quot;: [</span>
+<span class="s">                {</span>
+<span class="s">                    &quot;version&quot;: 4,</span>
+<span class="s">                    &quot;addr&quot;: &quot;10.0.0.1&quot;</span>
+<span class="s">                }</span>
+<span class="s">            ]</span>
+<span class="s">        },</span>
+<span class="s">        &quot;links&quot;: [</span>
+<span class="s">            {</span>
+<span class="s">                &quot;href&quot;: &quot;</span><span class="si">%(host)s</span><span class="s">/v1.1/</span><span class="si">%(tenant_id)s</span><span class="s">/servers/</span><span class="si">%(server_id)s</span><span class="s">&quot;,</span>
+<span class="s">                &quot;rel&quot;: &quot;self&quot;</span>
+<span class="s">            },</span>
+<span class="s">            {</span>
+<span class="s">                &quot;href&quot;: &quot;</span><span class="si">%(host)s</span><span class="s">/</span><span class="si">%(tenant_id)s</span><span class="s">/servers/</span><span class="si">%(server_id)s</span><span class="s">&quot;,</span>
+<span class="s">                &quot;rel&quot;: &quot;bookmark&quot;</span>
+<span class="s">            }</span>
+<span class="s">        ],</span>
+<span class="s">        &quot;image&quot;: {</span>
+<span class="s">            &quot;id&quot;: &quot;</span><span class="si">%(image_id)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;links&quot;: [</span>
+<span class="s">                {</span>
+<span class="s">                    &quot;href&quot;: &quot;</span><span class="si">%(host)s</span><span class="s">/</span><span class="si">%(tenant_id)s</span><span class="s">/images/</span><span class="si">%(image_id)s</span><span class="s">&quot;,</span>
+<span class="s">                    &quot;rel&quot;: &quot;bookmark&quot;</span>
+<span class="s">                }</span>
+<span class="s">            ]</span>
+<span class="s">        },</span>
+<span class="s">        &quot;OS-EXT-STS:vm_state&quot;: &quot;active&quot;,</span>
+<span class="s">        &quot;flavor&quot;: {</span>
+<span class="s">            &quot;id&quot;: &quot;</span><span class="si">%(flavor_id)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;links&quot;: [</span>
+<span class="s">                {</span>
+<span class="s">                    &quot;href&quot;: &quot;</span><span class="si">%(host)s</span><span class="s">/</span><span class="si">%(tenant_id)s</span><span class="s">/flavors/</span><span class="si">%(flavor_id)s</span><span class="s">&quot;,</span>
+<span class="s">                    &quot;rel&quot;: &quot;bookmark&quot;</span>
+<span class="s">                }</span>
+<span class="s">            ]</span>
+<span class="s">        },</span>
+<span class="s">        &quot;id&quot;: &quot;</span><span class="si">%(server_id)s</span><span class="s">&quot;,</span>
+<span class="s">        &quot;user_id&quot;: &quot;</span><span class="si">%(user_id)s</span><span class="s">&quot;,</span>
+<span class="s">        &quot;OS-DCF:diskConfig&quot;: &quot;MANUAL&quot;,</span>
+<span class="s">        &quot;accessIPv4&quot;: &quot;&quot;,</span>
+<span class="s">        &quot;accessIPv6&quot;: &quot;&quot;,</span>
+<span class="s">        &quot;progress&quot;: null,</span>
+<span class="s">        &quot;OS-EXT-STS:power_state&quot;: 1,</span>
+<span class="s">        &quot;config_drive&quot;: &quot;&quot;,</span>
+<span class="s">        &quot;status&quot;: &quot;</span><span class="si">%(status)s</span><span class="s">&quot;,</span>
+<span class="s">        &quot;updated&quot;: &quot;2012-02-28T19:51:27Z&quot;,</span>
+<span class="s">        &quot;hostId&quot;: &quot;c461ea283faa0ab5d777073c93b126c68139e4e45934d4fc37e403c2&quot;,</span>
+<span class="s">        &quot;key_name&quot;: &quot;</span><span class="si">%(key_name)s</span><span class="s">&quot;,</span>
+<span class="s">        &quot;name&quot;: &quot;</span><span class="si">%(name)s</span><span class="s">&quot;,</span>
+<span class="s">        &quot;created&quot;: &quot;2012-02-28T19:51:17Z&quot;,</span>
+<span class="s">        &quot;tenant_id&quot;: &quot;</span><span class="si">%(tenant_id)s</span><span class="s">&quot;,</span>
+<span class="s">        &quot;metadata&quot;: {&quot;someMetaLabel&quot;: &quot;someMetaData&quot;,</span>
+<span class="s">                     &quot;some&lt;b&gt;html&lt;/b&gt;label&quot;: &quot;&lt;!--&quot;,</span>
+<span class="s">                     &quot;empty&quot;: &quot;&quot;}</span>
+<span class="s">    }</span>
+<span class="s">}</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+
+<span class="n">USAGE_DATA</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">{</span>
+<span class="s">    &quot;total_memory_mb_usage&quot;: 64246.89777777778,</span>
+<span class="s">    &quot;total_vcpus_usage&quot;: 125.48222222222223,</span>
+<span class="s">    &quot;total_hours&quot;: 125.48222222222223,</span>
+<span class="s">    &quot;total_local_gb_usage&quot;: 0,</span>
+<span class="s">    &quot;tenant_id&quot;: &quot;</span><span class="si">%(tenant_id)s</span><span class="s">&quot;,</span>
+<span class="s">    &quot;stop&quot;: &quot;2012-01-31 23:59:59&quot;,</span>
+<span class="s">    &quot;start&quot;: &quot;2012-01-01 00:00:00&quot;,</span>
+<span class="s">    &quot;server_usages&quot;: [</span>
+<span class="s">        {</span>
+<span class="s">            &quot;memory_mb&quot;: </span><span class="si">%(flavor_ram)s</span><span class="s">,</span>
+<span class="s">            &quot;uptime&quot;: 442321,</span>
+<span class="s">            &quot;started_at&quot;: &quot;2012-01-26 20:38:21&quot;,</span>
+<span class="s">            &quot;ended_at&quot;: null,</span>
+<span class="s">            &quot;name&quot;: &quot;</span><span class="si">%(instance_name)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;tenant_id&quot;: &quot;</span><span class="si">%(tenant_id)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;state&quot;: &quot;active&quot;,</span>
+<span class="s">            &quot;hours&quot;: 122.87361111111112,</span>
+<span class="s">            &quot;vcpus&quot;: </span><span class="si">%(flavor_vcpus)s</span><span class="s">,</span>
+<span class="s">            &quot;flavor&quot;: &quot;</span><span class="si">%(flavor_name)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;local_gb&quot;: </span><span class="si">%(flavor_disk)s</span><span class="s"></span>
+<span class="s">        },</span>
+<span class="s">        {</span>
+<span class="s">            &quot;memory_mb&quot;: </span><span class="si">%(flavor_ram)s</span><span class="s">,</span>
+<span class="s">            &quot;uptime&quot;: 9367,</span>
+<span class="s">            &quot;started_at&quot;: &quot;2012-01-31 20:54:15&quot;,</span>
+<span class="s">            &quot;ended_at&quot;: null,</span>
+<span class="s">            &quot;name&quot;: &quot;</span><span class="si">%(instance_name)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;tenant_id&quot;: &quot;</span><span class="si">%(tenant_id)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;state&quot;: &quot;active&quot;,</span>
+<span class="s">            &quot;hours&quot;: 2.608611111111111,</span>
+<span class="s">            &quot;vcpus&quot;: </span><span class="si">%(flavor_vcpus)s</span><span class="s">,</span>
+<span class="s">            &quot;flavor&quot;: &quot;</span><span class="si">%(flavor_name)s</span><span class="s">&quot;,</span>
+<span class="s">            &quot;local_gb&quot;: </span><span class="si">%(flavor_disk)s</span><span class="s"></span>
+<span class="s">        }</span>
+<span class="s">    ]</span>
+<span class="s">}</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="data"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.test_data.nova_data.html#openstack_dashboard.test.test_data.nova_data.data">[docs]</a><span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="n">TEST</span><span class="p">):</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">servers</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">flavors</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">flavor_access</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">keypairs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_groups</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_groups_uuid</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_group_rules</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_group_rules_uuid</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volumes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">quotas</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">quota_usages</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">disabled_quotas</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">floating_ips</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">floating_ips_uuid</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">usages</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">certs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volume_snapshots</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volume_types</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">availability_zones</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hypervisors</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">services</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">aggregates</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+
+    <span class="c"># Data return by novaclient.</span>
+    <span class="c"># It is used if API layer does data conversion.</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_floating_ips</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_floating_ips_uuid</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+
+    <span class="c"># Volumes</span>
+    <span class="n">volume</span> <span class="o">=</span> <span class="n">volumes</span><span class="o">.</span><span class="n">Volume</span><span class="p">(</span><span class="n">volumes</span><span class="o">.</span><span class="n">VolumeManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                            <span class="nb">dict</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">&quot;41023e92-8008-4c8b-8059-7f2293ff3775&quot;</span><span class="p">,</span>
+                                 <span class="n">name</span><span class="o">=</span><span class="s">&#39;test_volume&#39;</span><span class="p">,</span>
+                                 <span class="n">status</span><span class="o">=</span><span class="s">&#39;available&#39;</span><span class="p">,</span>
+                                 <span class="n">size</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+                                 <span class="n">display_name</span><span class="o">=</span><span class="s">&#39;Volume name&#39;</span><span class="p">,</span>
+                                 <span class="n">created_at</span><span class="o">=</span><span class="s">&#39;2012-04-01 10:30:00&#39;</span><span class="p">,</span>
+                                 <span class="n">volume_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                 <span class="n">attachments</span><span class="o">=</span><span class="p">[]))</span>
+    <span class="n">nameless_volume</span> <span class="o">=</span> <span class="n">volumes</span><span class="o">.</span><span class="n">Volume</span><span class="p">(</span><span class="n">volumes</span><span class="o">.</span><span class="n">VolumeManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                         <span class="nb">dict</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">&quot;3b189ac8-9166-ac7f-90c9-16c8bf9e01ac&quot;</span><span class="p">,</span>
+                              <span class="n">name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                              <span class="n">status</span><span class="o">=</span><span class="s">&#39;in-use&#39;</span><span class="p">,</span>
+                              <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                              <span class="n">display_name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                              <span class="n">display_description</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                              <span class="n">device</span><span class="o">=</span><span class="s">&quot;/dev/hda&quot;</span><span class="p">,</span>
+                              <span class="n">created_at</span><span class="o">=</span><span class="s">&#39;2010-11-21 18:34:25&#39;</span><span class="p">,</span>
+                              <span class="n">volume_type</span><span class="o">=</span><span class="s">&#39;vol_type_1&#39;</span><span class="p">,</span>
+                              <span class="n">attachments</span><span class="o">=</span><span class="p">[{</span><span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span> <span class="s">&quot;server_id&quot;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                                            <span class="s">&quot;device&quot;</span><span class="p">:</span> <span class="s">&quot;/dev/hda&quot;</span><span class="p">}]))</span>
+    <span class="n">attached_volume</span> <span class="o">=</span> <span class="n">volumes</span><span class="o">.</span><span class="n">Volume</span><span class="p">(</span><span class="n">volumes</span><span class="o">.</span><span class="n">VolumeManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                         <span class="nb">dict</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">&quot;8cba67c1-2741-6c79-5ab6-9c2bf8c96ab0&quot;</span><span class="p">,</span>
+                              <span class="n">name</span><span class="o">=</span><span class="s">&#39;my_volume&#39;</span><span class="p">,</span>
+                              <span class="n">status</span><span class="o">=</span><span class="s">&#39;in-use&#39;</span><span class="p">,</span>
+                              <span class="n">size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                              <span class="n">display_name</span><span class="o">=</span><span class="s">&#39;My Volume&#39;</span><span class="p">,</span>
+                              <span class="n">display_description</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                              <span class="n">device</span><span class="o">=</span><span class="s">&quot;/dev/hdk&quot;</span><span class="p">,</span>
+                              <span class="n">created_at</span><span class="o">=</span><span class="s">&#39;2011-05-01 11:54:33&#39;</span><span class="p">,</span>
+                              <span class="n">volume_type</span><span class="o">=</span><span class="s">&#39;vol_type_2&#39;</span><span class="p">,</span>
+                              <span class="n">attachments</span><span class="o">=</span><span class="p">[{</span><span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="s">&quot;server_id&quot;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                                            <span class="s">&quot;device&quot;</span><span class="p">:</span> <span class="s">&quot;/dev/hdk&quot;</span><span class="p">}]))</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volumes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volumes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nameless_volume</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volumes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">attached_volume</span><span class="p">)</span>
+
+    <span class="n">vol_type1</span> <span class="o">=</span> <span class="n">volume_types</span><span class="o">.</span><span class="n">VolumeType</span><span class="p">(</span><span class="n">volume_types</span><span class="o">.</span><span class="n">VolumeTypeManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                        <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vol_type_1&#39;</span><span class="p">})</span>
+    <span class="n">vol_type2</span> <span class="o">=</span> <span class="n">volume_types</span><span class="o">.</span><span class="n">VolumeType</span><span class="p">(</span><span class="n">volume_types</span><span class="o">.</span><span class="n">VolumeTypeManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                        <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                                         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vol_type_2&#39;</span><span class="p">})</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volume_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vol_type1</span><span class="p">,</span> <span class="n">vol_type2</span><span class="p">)</span>
+
+    <span class="c"># Flavors</span>
+    <span class="n">flavor_1</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                              <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&quot;</span><span class="p">,</span>
+                               <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;m1.tiny&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                               <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                               <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+                               <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                               <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                               <span class="s">&#39;os-flavor-access:is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                               <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+    <span class="n">flavor_2</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                              <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb&quot;</span><span class="p">,</span>
+                               <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;m1.massive&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+                               <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+                               <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+                               <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                               <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;Trusted&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">:</span> <span class="s">&#39;bar&#39;</span><span class="p">},</span>
+                               <span class="s">&#39;os-flavor-access:is_public&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                               <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="mi">2048</span><span class="p">})</span>
+    <span class="n">flavor_3</span> <span class="o">=</span> <span class="n">flavors</span><span class="o">.</span><span class="n">Flavor</span><span class="p">(</span><span class="n">flavors</span><span class="o">.</span><span class="n">FlavorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                              <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&quot;dddddddd-dddd-dddd-dddd-dddddddddddd&quot;</span><span class="p">,</span>
+                               <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;m1.secret&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;vcpus&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+                               <span class="s">&#39;disk&#39;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+                               <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+                               <span class="s">&#39;swap&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                               <span class="s">&#39;extra_specs&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                               <span class="s">&#39;os-flavor-access:is_public&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                               <span class="s">&#39;OS-FLV-EXT-DATA:ephemeral&#39;</span><span class="p">:</span> <span class="mi">2048</span><span class="p">})</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">flavors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">flavor_1</span><span class="p">,</span> <span class="n">flavor_2</span><span class="p">,</span> <span class="n">flavor_3</span><span class="p">)</span>
+
+    <span class="n">flavor_access_manager</span> <span class="o">=</span> <span class="n">flavor_access</span><span class="o">.</span><span class="n">FlavorAccessManager</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">flavor_access_1</span> <span class="o">=</span> <span class="n">flavor_access</span><span class="o">.</span><span class="n">FlavorAccess</span><span class="p">(</span><span class="n">flavor_access_manager</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
+             <span class="s">&quot;flavor_id&quot;</span><span class="p">:</span> <span class="s">&quot;dddddddd-dddd-dddd-dddd-dddddddddddd&quot;</span><span class="p">})</span>
+    <span class="n">flavor_access_2</span> <span class="o">=</span> <span class="n">flavor_access</span><span class="o">.</span><span class="n">FlavorAccess</span><span class="p">(</span><span class="n">flavor_access_manager</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>
+             <span class="s">&quot;flavor_id&quot;</span><span class="p">:</span> <span class="s">&quot;dddddddd-dddd-dddd-dddd-dddddddddddd&quot;</span><span class="p">})</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">flavor_access</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">flavor_access_1</span><span class="p">,</span> <span class="n">flavor_access_2</span><span class="p">)</span>
+
+    <span class="c"># Key pairs</span>
+    <span class="n">keypair</span> <span class="o">=</span> <span class="n">keypairs</span><span class="o">.</span><span class="n">Keypair</span><span class="p">(</span><span class="n">keypairs</span><span class="o">.</span><span class="n">KeypairManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                               <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;keyName&#39;</span><span class="p">))</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">keypairs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">keypair</span><span class="p">)</span>
+
+    <span class="c"># Security Groups and Rules</span>
+    <span class="k">def</span> <span class="nf">generate_security_groups</span><span class="p">(</span><span class="n">is_uuid</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="n">is_uuid</span><span class="p">):</span>
+            <span class="k">global</span> <span class="n">current_int_id</span>
+            <span class="k">if</span> <span class="n">is_uuid</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">get_id</span><span class="o">.</span><span class="n">current_int_id</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">return</span> <span class="n">get_id</span><span class="o">.</span><span class="n">current_int_id</span>
+
+        <span class="n">get_id</span><span class="o">.</span><span class="n">current_int_id</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">sg_manager</span> <span class="o">=</span> <span class="n">sec_groups</span><span class="o">.</span><span class="n">SecurityGroupManager</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">rule_manager</span> <span class="o">=</span> <span class="n">rules</span><span class="o">.</span><span class="n">SecurityGroupRuleManager</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+        <span class="n">sec_group_1</span> <span class="o">=</span> <span class="n">sec_groups</span><span class="o">.</span><span class="n">SecurityGroup</span><span class="p">(</span><span class="n">sg_manager</span><span class="p">,</span>
+                                               <span class="p">{</span><span class="s">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                                <span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="n">get_id</span><span class="p">(</span><span class="n">is_uuid</span><span class="p">),</span>
+                                                <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">u&quot;default&quot;</span><span class="p">,</span>
+                                                <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">u&quot;default&quot;</span><span class="p">})</span>
+        <span class="n">sec_group_2</span> <span class="o">=</span> <span class="n">sec_groups</span><span class="o">.</span><span class="n">SecurityGroup</span><span class="p">(</span><span class="n">sg_manager</span><span class="p">,</span>
+                                               <span class="p">{</span><span class="s">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                                <span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="n">get_id</span><span class="p">(</span><span class="n">is_uuid</span><span class="p">),</span>
+                                                <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">u&quot;other_group&quot;</span><span class="p">,</span>
+                                                <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">u&quot;NotDefault.&quot;</span><span class="p">})</span>
+        <span class="n">sec_group_3</span> <span class="o">=</span> <span class="n">sec_groups</span><span class="o">.</span><span class="n">SecurityGroup</span><span class="p">(</span><span class="n">sg_manager</span><span class="p">,</span>
+                                               <span class="p">{</span><span class="s">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                                <span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="n">get_id</span><span class="p">(</span><span class="n">is_uuid</span><span class="p">),</span>
+                                                <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">u&quot;another_group&quot;</span><span class="p">,</span>
+                                                <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">u&quot;NotDefault.&quot;</span><span class="p">})</span>
+
+        <span class="n">rule</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">get_id</span><span class="p">(</span><span class="n">is_uuid</span><span class="p">),</span>
+                <span class="s">&#39;group&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s">&#39;ip_protocol&#39;</span><span class="p">:</span> <span class="s">u&quot;tcp&quot;</span><span class="p">,</span>
+                <span class="s">&#39;from_port&#39;</span><span class="p">:</span> <span class="s">u&quot;80&quot;</span><span class="p">,</span>
+                <span class="s">&#39;to_port&#39;</span><span class="p">:</span> <span class="s">u&quot;80&quot;</span><span class="p">,</span>
+                <span class="s">&#39;parent_group_id&#39;</span><span class="p">:</span> <span class="n">sec_group_1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&#39;ip_range&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;cidr&#39;</span><span class="p">:</span> <span class="s">u&quot;0.0.0.0/32&quot;</span><span class="p">}}</span>
+
+        <span class="n">icmp_rule</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">get_id</span><span class="p">(</span><span class="n">is_uuid</span><span class="p">),</span>
+                     <span class="s">&#39;group&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                     <span class="s">&#39;ip_protocol&#39;</span><span class="p">:</span> <span class="s">u&quot;icmp&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;from_port&#39;</span><span class="p">:</span> <span class="s">u&quot;9&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;to_port&#39;</span><span class="p">:</span> <span class="s">u&quot;5&quot;</span><span class="p">,</span>
+                     <span class="s">&#39;parent_group_id&#39;</span><span class="p">:</span> <span class="n">sec_group_1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                     <span class="s">&#39;ip_range&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;cidr&#39;</span><span class="p">:</span> <span class="s">u&quot;0.0.0.0/32&quot;</span><span class="p">}}</span>
+
+        <span class="n">group_rule</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                      <span class="s">&#39;group&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                      <span class="s">&#39;ip_protocol&#39;</span><span class="p">:</span> <span class="s">u&quot;tcp&quot;</span><span class="p">,</span>
+                      <span class="s">&#39;from_port&#39;</span><span class="p">:</span> <span class="s">u&quot;80&quot;</span><span class="p">,</span>
+                      <span class="s">&#39;to_port&#39;</span><span class="p">:</span> <span class="s">u&quot;80&quot;</span><span class="p">,</span>
+                      <span class="s">&#39;parent_group_id&#39;</span><span class="p">:</span> <span class="n">sec_group_1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                      <span class="s">&#39;source_group_id&#39;</span><span class="p">:</span> <span class="n">sec_group_1</span><span class="o">.</span><span class="n">id</span><span class="p">}</span>
+
+        <span class="n">rule_obj</span> <span class="o">=</span> <span class="n">rules</span><span class="o">.</span><span class="n">SecurityGroupRule</span><span class="p">(</span><span class="n">rule_manager</span><span class="p">,</span> <span class="n">rule</span><span class="p">)</span>
+        <span class="n">rule_obj2</span> <span class="o">=</span> <span class="n">rules</span><span class="o">.</span><span class="n">SecurityGroupRule</span><span class="p">(</span><span class="n">rule_manager</span><span class="p">,</span> <span class="n">icmp_rule</span><span class="p">)</span>
+        <span class="n">rule_obj3</span> <span class="o">=</span> <span class="n">rules</span><span class="o">.</span><span class="n">SecurityGroupRule</span><span class="p">(</span><span class="n">rule_manager</span><span class="p">,</span> <span class="n">group_rule</span><span class="p">)</span>
+
+        <span class="n">sec_group_1</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">rule_obj</span><span class="p">]</span>
+        <span class="n">sec_group_2</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">rule_obj</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">rule_obj</span><span class="p">,</span> <span class="n">rule_obj2</span><span class="p">,</span> <span class="n">rule_obj3</span><span class="p">],</span>
+                <span class="s">&quot;groups&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">sec_group_1</span><span class="p">,</span> <span class="n">sec_group_2</span><span class="p">,</span> <span class="n">sec_group_3</span><span class="p">]}</span>
+
+    <span class="n">sg_data</span> <span class="o">=</span> <span class="n">generate_security_groups</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_group_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">sg_data</span><span class="p">[</span><span class="s">&quot;rules&quot;</span><span class="p">])</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_groups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">sg_data</span><span class="p">[</span><span class="s">&quot;groups&quot;</span><span class="p">])</span>
+
+    <span class="n">sg_uuid_data</span> <span class="o">=</span> <span class="n">generate_security_groups</span><span class="p">(</span><span class="n">is_uuid</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_group_rules_uuid</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">sg_uuid_data</span><span class="p">[</span><span class="s">&quot;rules&quot;</span><span class="p">])</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">security_groups_uuid</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">sg_uuid_data</span><span class="p">[</span><span class="s">&quot;groups&quot;</span><span class="p">])</span>
+
+    <span class="c"># Quota Sets</span>
+    <span class="n">quota_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">metadata_items</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="n">injected_file_content_bytes</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="n">volumes</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="n">gigabytes</span><span class="o">=</span><span class="s">&#39;1000&#39;</span><span class="p">,</span>
+                      <span class="n">ram</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                      <span class="n">floating_ips</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="n">fixed_ips</span><span class="o">=</span><span class="s">&#39;10&#39;</span><span class="p">,</span>
+                      <span class="n">instances</span><span class="o">=</span><span class="s">&#39;10&#39;</span><span class="p">,</span>
+                      <span class="n">injected_files</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="n">cores</span><span class="o">=</span><span class="s">&#39;10&#39;</span><span class="p">,</span>
+                      <span class="n">security_groups</span><span class="o">=</span><span class="s">&#39;10&#39;</span><span class="p">,</span>
+                      <span class="n">security_group_rules</span><span class="o">=</span><span class="s">&#39;20&#39;</span><span class="p">)</span>
+    <span class="n">quota</span> <span class="o">=</span> <span class="n">quotas</span><span class="o">.</span><span class="n">QuotaSet</span><span class="p">(</span><span class="n">quotas</span><span class="o">.</span><span class="n">QuotaSetManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">quota_data</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">quotas</span><span class="o">.</span><span class="n">nova</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">QuotaSet</span><span class="p">(</span><span class="n">quota</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">quotas</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">QuotaSet</span><span class="p">(</span><span class="n">quota</span><span class="p">))</span>
+
+    <span class="c"># nova quotas disabled when neutron is enabled</span>
+    <span class="n">disabled_quotas_nova</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;floating_ips&#39;</span><span class="p">,</span> <span class="s">&#39;fixed_ips&#39;</span><span class="p">,</span>
+                            <span class="s">&#39;security_groups&#39;</span><span class="p">,</span> <span class="s">&#39;security_group_rules&#39;</span><span class="p">]</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">disabled_quotas</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">disabled_quotas_nova</span><span class="p">)</span>
+
+    <span class="c"># Quota Usages</span>
+    <span class="n">quota_usage_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;gigabytes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;used&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                      <span class="s">&#39;quota&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+                        <span class="s">&#39;instances&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;used&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                      <span class="s">&#39;quota&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+                        <span class="s">&#39;ram&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;used&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                <span class="s">&#39;quota&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">},</span>
+                        <span class="s">&#39;cores&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;used&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                  <span class="s">&#39;quota&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">},</span>
+                        <span class="s">&#39;floating_ips&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;used&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                         <span class="s">&#39;quota&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+                        <span class="s">&#39;volumes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;used&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                    <span class="s">&#39;quota&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}}</span>
+    <span class="n">quota_usage</span> <span class="o">=</span> <span class="n">usage_quotas</span><span class="o">.</span><span class="n">QuotaUsage</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">quota_usage_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">quota_usage</span><span class="o">.</span><span class="n">add_quota</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Quota</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">[</span><span class="s">&#39;quota&#39;</span><span class="p">]))</span>
+        <span class="n">quota_usage</span><span class="o">.</span><span class="n">tally</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">[</span><span class="s">&#39;used&#39;</span><span class="p">])</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">quota_usages</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">quota_usage</span><span class="p">)</span>
+
+    <span class="c"># Limits</span>
+    <span class="n">limits</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;absolute&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;maxImageMeta&quot;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+                           <span class="s">&quot;maxPersonality&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                           <span class="s">&quot;maxPersonalitySize&quot;</span><span class="p">:</span> <span class="mi">10240</span><span class="p">,</span>
+                           <span class="s">&quot;maxSecurityGroupRules&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                           <span class="s">&quot;maxSecurityGroups&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                           <span class="s">&quot;maxServerMeta&quot;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+                           <span class="s">&quot;maxTotalCores&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                           <span class="s">&quot;maxTotalFloatingIps&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                           <span class="s">&quot;maxTotalInstances&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                           <span class="s">&quot;maxTotalKeypairs&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+                           <span class="s">&quot;maxTotalRAMSize&quot;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+                           <span class="s">&quot;totalCoresUsed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                           <span class="s">&quot;totalInstancesUsed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                           <span class="s">&quot;totalKeyPairsUsed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                           <span class="s">&quot;totalRAMUsed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                           <span class="s">&quot;totalSecurityGroupsUsed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">limits</span> <span class="o">=</span> <span class="n">limits</span>
+
+    <span class="c"># Servers</span>
+    <span class="n">tenant3</span> <span class="o">=</span> <span class="n">TEST</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;http://nova.example.com:8774&quot;</span><span class="p">,</span>
+            <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;server_1&quot;</span><span class="p">,</span>
+            <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;ACTIVE&quot;</span><span class="p">,</span>
+            <span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">tenants</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s">&quot;server_id&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>
+            <span class="s">&quot;flavor_id&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s">&quot;image_id&quot;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s">&quot;key_name&quot;</span><span class="p">:</span> <span class="n">keypair</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+    <span class="n">server_1</span> <span class="o">=</span> <span class="n">servers</span><span class="o">.</span><span class="n">Server</span><span class="p">(</span><span class="n">servers</span><span class="o">.</span><span class="n">ServerManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                              <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">SERVER_DATA</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)[</span><span class="s">&#39;server&#39;</span><span class="p">])</span>
+    <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;server_2&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;BUILD&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;server_id&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">})</span>
+    <span class="n">server_2</span> <span class="o">=</span> <span class="n">servers</span><span class="o">.</span><span class="n">Server</span><span class="p">(</span><span class="n">servers</span><span class="o">.</span><span class="n">ServerManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                              <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">SERVER_DATA</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)[</span><span class="s">&#39;server&#39;</span><span class="p">])</span>
+    <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">u&#39;</span><span class="se">\u4e91\u89c4\u5219</span><span class="s">&#39;</span><span class="p">,</span>
+                 <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;ACTIVE&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">tenant3</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&quot;server_id&quot;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">})</span>
+    <span class="n">server_3</span> <span class="o">=</span> <span class="n">servers</span><span class="o">.</span><span class="n">Server</span><span class="p">(</span><span class="n">servers</span><span class="o">.</span><span class="n">ServerManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                              <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">SERVER_DATA</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)[</span><span class="s">&#39;server&#39;</span><span class="p">])</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">servers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">server_1</span><span class="p">,</span> <span class="n">server_2</span><span class="p">,</span> <span class="n">server_3</span><span class="p">)</span>
+
+    <span class="c"># VNC Console Data</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="p">{</span><span class="s">u&#39;console&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">u&#39;url&#39;</span><span class="p">:</span> <span class="s">u&#39;http://example.com:6080/vnc_auto.html&#39;</span><span class="p">,</span>
+                            <span class="s">u&#39;type&#39;</span><span class="p">:</span> <span class="s">u&#39;novnc&#39;</span><span class="p">}}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">servers</span><span class="o">.</span><span class="n">vnc_console_data</span> <span class="o">=</span> <span class="n">console</span>
+    <span class="c"># SPICE Console Data</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="p">{</span><span class="s">u&#39;console&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">u&#39;url&#39;</span><span class="p">:</span> <span class="s">u&#39;http://example.com:6080/spice_auto.html&#39;</span><span class="p">,</span>
+                            <span class="s">u&#39;type&#39;</span><span class="p">:</span> <span class="s">u&#39;spice&#39;</span><span class="p">}}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">servers</span><span class="o">.</span><span class="n">spice_console_data</span> <span class="o">=</span> <span class="n">console</span>
+    <span class="c"># RDP Console Data</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="p">{</span><span class="s">u&#39;console&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">u&#39;url&#39;</span><span class="p">:</span> <span class="s">u&#39;http://example.com:6080/rdp_auto.html&#39;</span><span class="p">,</span>
+                            <span class="s">u&#39;type&#39;</span><span class="p">:</span> <span class="s">u&#39;rdp&#39;</span><span class="p">}}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">servers</span><span class="o">.</span><span class="n">rdp_console_data</span> <span class="o">=</span> <span class="n">console</span>
+
+    <span class="c"># Floating IPs</span>
+    <span class="k">def</span> <span class="nf">generate_fip</span><span class="p">(</span><span class="n">conf</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">floating_ips</span><span class="o">.</span><span class="n">FloatingIP</span><span class="p">(</span><span class="n">floating_ips</span><span class="o">.</span><span class="n">FloatingIPManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                                       <span class="n">conf</span><span class="p">)</span>
+
+    <span class="n">fip_1</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="s">&#39;fixed_ip&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.4&#39;</span><span class="p">,</span>
+             <span class="s">&#39;instance_id&#39;</span><span class="p">:</span> <span class="n">server_1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+             <span class="s">&#39;ip&#39;</span><span class="p">:</span> <span class="s">&#39;58.58.58.58&#39;</span><span class="p">,</span>
+             <span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="s">&#39;pool1&#39;</span><span class="p">}</span>
+    <span class="n">fip_2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+             <span class="s">&#39;fixed_ip&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+             <span class="s">&#39;instance_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+             <span class="s">&#39;ip&#39;</span><span class="p">:</span> <span class="s">&#39;58.58.58.58&#39;</span><span class="p">,</span>
+             <span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="s">&#39;pool2&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_floating_ips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_1</span><span class="p">),</span> <span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_2</span><span class="p">))</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">floating_ips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nova</span><span class="o">.</span><span class="n">FloatingIp</span><span class="p">(</span><span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_1</span><span class="p">)),</span>
+                          <span class="n">nova</span><span class="o">.</span><span class="n">FloatingIp</span><span class="p">(</span><span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_2</span><span class="p">)))</span>
+
+    <span class="c"># Floating IP with UUID id (for Floating IP with Neutron Proxy)</span>
+    <span class="n">fip_3</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+             <span class="s">&#39;fixed_ip&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.4&#39;</span><span class="p">,</span>
+             <span class="s">&#39;instance_id&#39;</span><span class="p">:</span> <span class="n">server_1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+             <span class="s">&#39;ip&#39;</span><span class="p">:</span> <span class="s">&#39;58.58.58.58&#39;</span><span class="p">,</span>
+             <span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="s">&#39;pool1&#39;</span><span class="p">}</span>
+    <span class="n">fip_4</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+             <span class="s">&#39;fixed_ip&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+             <span class="s">&#39;instance_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+             <span class="s">&#39;ip&#39;</span><span class="p">:</span> <span class="s">&#39;58.58.58.58&#39;</span><span class="p">,</span>
+             <span class="s">&#39;pool&#39;</span><span class="p">:</span> <span class="s">&#39;pool2&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_floating_ips_uuid</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_3</span><span class="p">),</span> <span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_4</span><span class="p">))</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">floating_ips_uuid</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nova</span><span class="o">.</span><span class="n">FloatingIp</span><span class="p">(</span><span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_3</span><span class="p">)),</span>
+                               <span class="n">nova</span><span class="o">.</span><span class="n">FloatingIp</span><span class="p">(</span><span class="n">generate_fip</span><span class="p">(</span><span class="n">fip_4</span><span class="p">)))</span>
+
+    <span class="c"># Usage</span>
+    <span class="n">usage_vals</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                  <span class="s">&quot;instance_name&quot;</span><span class="p">:</span> <span class="n">server_1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                  <span class="s">&quot;flavor_name&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                  <span class="s">&quot;flavor_vcpus&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                  <span class="s">&quot;flavor_disk&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                  <span class="s">&quot;flavor_ram&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">ram</span><span class="p">}</span>
+    <span class="n">usage_obj</span> <span class="o">=</span> <span class="n">usage</span><span class="o">.</span><span class="n">Usage</span><span class="p">(</span><span class="n">usage</span><span class="o">.</span><span class="n">UsageManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                            <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">USAGE_DATA</span> <span class="o">%</span> <span class="n">usage_vals</span><span class="p">))</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">usages</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">usage_obj</span><span class="p">)</span>
+
+    <span class="n">usage_2_vals</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">tenant3</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="s">&quot;instance_name&quot;</span><span class="p">:</span> <span class="n">server_3</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&quot;flavor_name&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s">&quot;flavor_vcpus&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">vcpus</span><span class="p">,</span>
+                    <span class="s">&quot;flavor_disk&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">disk</span><span class="p">,</span>
+                    <span class="s">&quot;flavor_ram&quot;</span><span class="p">:</span> <span class="n">flavor_1</span><span class="o">.</span><span class="n">ram</span><span class="p">}</span>
+    <span class="n">usage_obj_2</span> <span class="o">=</span> <span class="n">usage</span><span class="o">.</span><span class="n">Usage</span><span class="p">(</span><span class="n">usage</span><span class="o">.</span><span class="n">UsageManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                               <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">USAGE_DATA</span> <span class="o">%</span> <span class="n">usage_2_vals</span><span class="p">))</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">usages</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">usage_obj_2</span><span class="p">)</span>
+
+    <span class="n">volume_snapshot</span> <span class="o">=</span> <span class="n">vol_snaps</span><span class="o">.</span><span class="n">Snapshot</span><span class="p">(</span><span class="n">vol_snaps</span><span class="o">.</span><span class="n">SnapshotManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                        <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;40f3fabf-3613-4f5e-90e5-6c9a08333fc3&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;display_name&#39;</span><span class="p">:</span> <span class="s">&#39;test snapshot&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;display_description&#39;</span><span class="p">:</span> <span class="s">&#39;vol snap!&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;size&#39;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+                         <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;available&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;volume_id&#39;</span><span class="p">:</span> <span class="s">&#39;41023e92-8008-4c8b-8059-7f2293ff3775&#39;</span><span class="p">})</span>
+    <span class="n">volume_snapshot2</span> <span class="o">=</span> <span class="n">vol_snaps</span><span class="o">.</span><span class="n">Snapshot</span><span class="p">(</span><span class="n">vol_snaps</span><span class="o">.</span><span class="n">SnapshotManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+                        <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;a374cbb8-3f99-4c3f-a2ef-3edbec842e31&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;display_name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;display_description&#39;</span><span class="p">:</span> <span class="s">&#39;vol snap 2!&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;size&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+                         <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;available&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;volume_id&#39;</span><span class="p">:</span> <span class="s">&#39;3b189ac8-9166-ac7f-90c9-16c8bf9e01ac&#39;</span><span class="p">})</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volume_snapshots</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">volume_snapshot</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">volume_snapshots</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">volume_snapshot2</span><span class="p">)</span>
+
+    <span class="n">cert_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;private_key&#39;</span><span class="p">:</span> <span class="s">&#39;private&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="s">&#39;certificate_data&#39;</span><span class="p">}</span>
+    <span class="n">certificate</span> <span class="o">=</span> <span class="n">certs</span><span class="o">.</span><span class="n">Certificate</span><span class="p">(</span><span class="n">certs</span><span class="o">.</span><span class="n">CertificateManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="n">cert_data</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">certs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">certificate</span><span class="p">)</span>
+
+    <span class="c"># Availability Zones</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">availability_zones</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+        <span class="n">availability_zones</span><span class="o">.</span><span class="n">AvailabilityZone</span><span class="p">(</span>
+            <span class="n">availability_zones</span><span class="o">.</span><span class="n">AvailabilityZoneManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+            <span class="p">{</span>
+                <span class="s">&#39;zoneName&#39;</span><span class="p">:</span> <span class="s">&#39;nova&#39;</span><span class="p">,</span>
+                <span class="s">&#39;zoneState&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;available&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
+                <span class="s">&#39;hosts&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&quot;host001&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s">&quot;nova-network&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s">&quot;active&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                            <span class="s">&quot;available&quot;</span><span class="p">:</span> <span class="bp">True</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c"># hypervisors</span>
+    <span class="n">hypervisor_1</span> <span class="o">=</span> <span class="n">hypervisors</span><span class="o">.</span><span class="n">Hypervisor</span><span class="p">(</span><span class="n">hypervisors</span><span class="o">.</span><span class="n">HypervisorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;devstack001&quot;</span><span class="p">,</span> <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+            <span class="s">&quot;vcpus_used&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_type&quot;</span><span class="p">:</span> <span class="s">&quot;QEMU&quot;</span><span class="p">,</span>
+            <span class="s">&quot;local_gb_used&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_hostname&quot;</span><span class="p">:</span> <span class="s">&quot;devstack001&quot;</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb_used&quot;</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb&quot;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span>
+            <span class="s">&quot;current_workload&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&quot;vcpus&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;cpu_info&quot;</span><span class="p">:</span> <span class="s">&#39;{&quot;vendor&quot;: &quot;Intel&quot;, &quot;model&quot;: &quot;core2duo&quot;,&#39;</span>
+                        <span class="s">&#39;&quot;arch&quot;: &quot;x86_64&quot;, &quot;features&quot;: [&quot;lahf_lm&quot;&#39;</span>
+                        <span class="s">&#39;, &quot;rdtscp&quot;], &quot;topology&quot;: {&quot;cores&quot;: 1, &quot;t&#39;</span>
+                        <span class="s">&#39;hreads&quot;: 1, &quot;sockets&quot;: 1}}&#39;</span><span class="p">,</span>
+            <span class="s">&quot;running_vms&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;free_disk_gb&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_version&quot;</span><span class="p">:</span> <span class="mi">1002000</span><span class="p">,</span>
+            <span class="s">&quot;disk_available_least&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s">&quot;local_gb&quot;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>
+            <span class="s">&quot;free_ram_mb&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">hypervisor_2</span> <span class="o">=</span> <span class="n">hypervisors</span><span class="o">.</span><span class="n">Hypervisor</span><span class="p">(</span><span class="n">hypervisors</span><span class="o">.</span><span class="n">HypervisorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;devstack002&quot;</span><span class="p">,</span> <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s">&quot;vcpus_used&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_type&quot;</span><span class="p">:</span> <span class="s">&quot;QEMU&quot;</span><span class="p">,</span>
+            <span class="s">&quot;local_gb_used&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_hostname&quot;</span><span class="p">:</span> <span class="s">&quot;devstack002&quot;</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb_used&quot;</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb&quot;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span>
+            <span class="s">&quot;current_workload&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&quot;vcpus&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;cpu_info&quot;</span><span class="p">:</span> <span class="s">&#39;{&quot;vendor&quot;: &quot;Intel&quot;, &quot;model&quot;: &quot;core2duo&quot;,&#39;</span>
+                        <span class="s">&#39;&quot;arch&quot;: &quot;x86_64&quot;, &quot;features&quot;: [&quot;lahf_lm&quot;&#39;</span>
+                        <span class="s">&#39;, &quot;rdtscp&quot;], &quot;topology&quot;: {&quot;cores&quot;: 1, &quot;t&#39;</span>
+                        <span class="s">&#39;hreads&quot;: 1, &quot;sockets&quot;: 1}}&#39;</span><span class="p">,</span>
+            <span class="s">&quot;running_vms&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;free_disk_gb&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_version&quot;</span><span class="p">:</span> <span class="mi">1002000</span><span class="p">,</span>
+            <span class="s">&quot;disk_available_least&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s">&quot;local_gb&quot;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>
+            <span class="s">&quot;free_ram_mb&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">hypervisor_3</span> <span class="o">=</span> <span class="n">hypervisors</span><span class="o">.</span><span class="n">Hypervisor</span><span class="p">(</span><span class="n">hypervisors</span><span class="o">.</span><span class="n">HypervisorManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;instance-host&quot;</span><span class="p">,</span> <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+            <span class="s">&quot;vcpus_used&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_type&quot;</span><span class="p">:</span> <span class="s">&quot;QEMU&quot;</span><span class="p">,</span>
+            <span class="s">&quot;local_gb_used&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_hostname&quot;</span><span class="p">:</span> <span class="s">&quot;devstack003&quot;</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb_used&quot;</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb&quot;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span>
+            <span class="s">&quot;current_workload&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&quot;vcpus&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;cpu_info&quot;</span><span class="p">:</span> <span class="s">&#39;{&quot;vendor&quot;: &quot;Intel&quot;, &quot;model&quot;: &quot;core2duo&quot;,&#39;</span>
+                        <span class="s">&#39;&quot;arch&quot;: &quot;x86_64&quot;, &quot;features&quot;: [&quot;lahf_lm&quot;&#39;</span>
+                        <span class="s">&#39;, &quot;rdtscp&quot;], &quot;topology&quot;: {&quot;cores&quot;: 1, &quot;t&#39;</span>
+                        <span class="s">&#39;hreads&quot;: 1, &quot;sockets&quot;: 1}}&#39;</span><span class="p">,</span>
+            <span class="s">&quot;running_vms&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;free_disk_gb&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="s">&quot;hypervisor_version&quot;</span><span class="p">:</span> <span class="mi">1002000</span><span class="p">,</span>
+            <span class="s">&quot;disk_available_least&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s">&quot;local_gb&quot;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span>
+            <span class="s">&quot;free_ram_mb&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hypervisors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hypervisor_1</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hypervisors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hypervisor_2</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hypervisors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hypervisor_3</span><span class="p">)</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hypervisors</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&quot;hypervisor_statistics&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;count&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s">&quot;vcpus_used&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s">&quot;local_gb_used&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb&quot;</span><span class="p">:</span> <span class="mi">483310</span><span class="p">,</span>
+            <span class="s">&quot;current_workload&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&quot;vcpus&quot;</span><span class="p">:</span> <span class="mi">160</span><span class="p">,</span>
+            <span class="s">&quot;running_vms&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s">&quot;free_disk_gb&quot;</span><span class="p">:</span> <span class="mi">12548</span><span class="p">,</span>
+            <span class="s">&quot;disk_available_least&quot;</span><span class="p">:</span> <span class="mi">12556</span><span class="p">,</span>
+            <span class="s">&quot;local_gb&quot;</span><span class="p">:</span> <span class="mi">12563</span><span class="p">,</span>
+            <span class="s">&quot;free_ram_mb&quot;</span><span class="p">:</span> <span class="mi">428014</span><span class="p">,</span>
+            <span class="s">&quot;memory_mb_used&quot;</span><span class="p">:</span> <span class="mi">55296</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c"># Services</span>
+    <span class="n">service_1</span> <span class="o">=</span> <span class="n">services</span><span class="o">.</span><span class="n">Service</span><span class="p">(</span><span class="n">services</span><span class="o">.</span><span class="n">ServiceManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;enabled&quot;</span><span class="p">,</span>
+            <span class="s">&quot;binary&quot;</span><span class="p">:</span> <span class="s">&quot;nova-conductor&quot;</span><span class="p">,</span>
+            <span class="s">&quot;zone&quot;</span><span class="p">:</span> <span class="s">&quot;internal&quot;</span><span class="p">,</span>
+            <span class="s">&quot;state&quot;</span><span class="p">:</span> <span class="s">&quot;up&quot;</span><span class="p">,</span>
+            <span class="s">&quot;updated_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-08T05:21:00.000000&quot;</span><span class="p">,</span>
+            <span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;devstack001&quot;</span><span class="p">,</span>
+            <span class="s">&quot;disabled_reason&quot;</span><span class="p">:</span> <span class="bp">None</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">service_2</span> <span class="o">=</span> <span class="n">services</span><span class="o">.</span><span class="n">Service</span><span class="p">(</span><span class="n">services</span><span class="o">.</span><span class="n">ServiceManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="s">&quot;enabled&quot;</span><span class="p">,</span>
+            <span class="s">&quot;binary&quot;</span><span class="p">:</span> <span class="s">&quot;nova-compute&quot;</span><span class="p">,</span>
+            <span class="s">&quot;zone&quot;</span><span class="p">:</span> <span class="s">&quot;nova&quot;</span><span class="p">,</span>
+            <span class="s">&quot;state&quot;</span><span class="p">:</span> <span class="s">&quot;up&quot;</span><span class="p">,</span>
+            <span class="s">&quot;updated_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-08T05:20:51.000000&quot;</span><span class="p">,</span>
+            <span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;devstack001&quot;</span><span class="p">,</span>
+            <span class="s">&quot;disabled_reason&quot;</span><span class="p">:</span> <span class="bp">None</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">services</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">service_1</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">services</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">service_2</span><span class="p">)</span>
+
+    <span class="c"># Aggregates</span>
+    <span class="n">aggregate_1</span> <span class="o">=</span> <span class="n">aggregates</span><span class="o">.</span><span class="n">Aggregate</span><span class="p">(</span><span class="n">aggregates</span><span class="o">.</span><span class="n">AggregateManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="s">&quot;availability_zone&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span><span class="p">,</span>
+            <span class="s">&quot;deleted&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&quot;created_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-04T13:34:38.000000&quot;</span><span class="p">,</span>
+            <span class="s">&quot;updated_at&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&quot;hosts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;foo&quot;</span><span class="p">,</span> <span class="s">&quot;bar&quot;</span><span class="p">],</span>
+            <span class="s">&quot;deleted_at&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;foo&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span><span class="p">,</span>
+                <span class="s">&quot;bar&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">aggregate_2</span> <span class="o">=</span> <span class="n">aggregates</span><span class="o">.</span><span class="n">Aggregate</span><span class="p">(</span><span class="n">aggregates</span><span class="o">.</span><span class="n">AggregateManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;bar&quot;</span><span class="p">,</span>
+            <span class="s">&quot;availability_zone&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span><span class="p">,</span>
+            <span class="s">&quot;deleted&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&quot;created_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-04T13:34:38.000000&quot;</span><span class="p">,</span>
+            <span class="s">&quot;updated_at&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&quot;hosts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;foo&quot;</span><span class="p">,</span> <span class="s">&quot;bar&quot;</span><span class="p">],</span>
+            <span class="s">&quot;deleted_at&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;foo&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span><span class="p">,</span>
+                <span class="s">&quot;bar&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">aggregates</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">aggregate_1</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">aggregates</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">aggregate_2</span><span class="p">)</span>
+
+    <span class="n">host1</span> <span class="o">=</span> <span class="n">hosts</span><span class="o">.</span><span class="n">Host</span><span class="p">(</span><span class="n">hosts</span><span class="o">.</span><span class="n">HostManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;host_name&quot;</span><span class="p">:</span> <span class="s">&quot;devstack001&quot;</span><span class="p">,</span>
+            <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="s">&quot;compute&quot;</span><span class="p">,</span>
+            <span class="s">&quot;zone&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">host2</span> <span class="o">=</span> <span class="n">hosts</span><span class="o">.</span><span class="n">Host</span><span class="p">(</span><span class="n">hosts</span><span class="o">.</span><span class="n">HostManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;host_name&quot;</span><span class="p">:</span> <span class="s">&quot;devstack002&quot;</span><span class="p">,</span>
+            <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="s">&quot;nova-conductor&quot;</span><span class="p">,</span>
+            <span class="s">&quot;zone&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">host3</span> <span class="o">=</span> <span class="n">hosts</span><span class="o">.</span><span class="n">Host</span><span class="p">(</span><span class="n">hosts</span><span class="o">.</span><span class="n">HostManager</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span>
+        <span class="p">{</span>
+            <span class="s">&quot;host_name&quot;</span><span class="p">:</span> <span class="s">&quot;devstack003&quot;</span><span class="p">,</span>
+            <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="s">&quot;compute&quot;</span><span class="p">,</span>
+            <span class="s">&quot;zone&quot;</span><span class="p">:</span> <span class="s">&quot;testing&quot;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host1</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host2</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host3</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,415 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.dashboards.project.containers.views Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.dashboards.project.containers.urls Module" href="openstack_dashboard.dashboards.project.containers.urls.html" />
+    <link rel="prev" title="The openstack_dashboard.dashboards.project.containers.browsers Module" href="openstack_dashboard.dashboards.project.containers.browsers.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-dashboards-project-containers-views-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.dashboards.project.containers.views</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-dashboards-project-containers-views-module" title="Permalink to this headline">¶</a></h1>
+<p>Views for managing Swift containers.</p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">ContainerDetailView</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerDetailView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.views.ModalFormMixin</span></tt>, <a class="reference external" href="django/ref/class-based-views/base/#django.views.generic.base.TemplateView" title="(in Django v1.8)"><tt class="xref py py-class docutils literal"><span class="pre">django.views.generic.base.TemplateView</span></tt></a></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerDetailView.</tt><tt class="descname">get_context_data</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerDetailView.get_context_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerDetailView.</tt><tt class="descname">get_object</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerDetailView.get_object"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ContainerDetailView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/container_detail.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">ContainerView</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.browsers.views.ResourceBrowserView</span></tt></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">browser_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">ContainerBrowser</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">get_containers_data</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView.get_containers_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">get_context_data</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView.get_context_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">get_objects_data</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView.get_objects_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Returns a list of objects within the current folder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">get_subfolders_data</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView.get_subfolders_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Returns a list of subfolders within the current folder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">is_placeholder</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView.is_placeholder"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">is_subdir</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView.is_subdir"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">objects</tt><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ContainerView.objects"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Decorator that converts a method with a single self argument into a
+property cached on the instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ContainerView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/index.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">CopyView</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CopyView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ref/forms.html#horizon.forms.views.ModalFormView" title="horizon.forms.views.ModalFormView"><tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.views.ModalFormView</span></tt></a></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CopyView.</tt><tt class="descname">form_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">CopyObject</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CopyView.</tt><tt class="descname">get_context_data</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CopyView.get_context_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CopyView.</tt><tt class="descname">get_form_kwargs</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CopyView.get_form_kwargs"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CopyView.</tt><tt class="descname">get_initial</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CopyView.get_initial"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CopyView.</tt><tt class="descname">get_success_url</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CopyView.get_success_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CopyView.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:project:containers:index'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CopyView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/copy.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">CreatePseudoFolderView</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CreatePseudoFolderView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ref/forms.html#horizon.forms.views.ModalFormView" title="horizon.forms.views.ModalFormView"><tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.views.ModalFormView</span></tt></a></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreatePseudoFolderView.</tt><tt class="descname">form_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">CreatePseudoFolder</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreatePseudoFolderView.</tt><tt class="descname">get_context_data</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CreatePseudoFolderView.get_context_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreatePseudoFolderView.</tt><tt class="descname">get_initial</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CreatePseudoFolderView.get_initial"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreatePseudoFolderView.</tt><tt class="descname">get_success_url</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CreatePseudoFolderView.get_success_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreatePseudoFolderView.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:project:containers:index'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreatePseudoFolderView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/create_pseudo_folder.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">CreateView</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CreateView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ref/forms.html#horizon.forms.views.ModalFormView" title="horizon.forms.views.ModalFormView"><tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.views.ModalFormView</span></tt></a></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateView.</tt><tt class="descname">form_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">CreateContainer</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateView.</tt><tt class="descname">get_initial</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CreateView.get_initial"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">CreateView.</tt><tt class="descname">get_success_url</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#CreateView.get_success_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateView.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:project:containers:index'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">CreateView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/create.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">ObjectDetailView</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ObjectDetailView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.views.ModalFormMixin</span></tt>, <a class="reference external" href="django/ref/class-based-views/base/#django.views.generic.base.TemplateView" title="(in Django v1.8)"><tt class="xref py py-class docutils literal"><span class="pre">django.views.generic.base.TemplateView</span></tt></a></p>
+<dl class="method">
+<dt>
+<tt class="descclassname">ObjectDetailView.</tt><tt class="descname">get_context_data</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ObjectDetailView.get_context_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ObjectDetailView.</tt><tt class="descname">get_object</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#ObjectDetailView.get_object"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ObjectDetailView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/object_detail.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">UpdateObjectView</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UpdateObjectView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ref/forms.html#horizon.forms.views.ModalFormView" title="horizon.forms.views.ModalFormView"><tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.views.ModalFormView</span></tt></a></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateObjectView.</tt><tt class="descname">form_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">UpdateObject</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateObjectView.</tt><tt class="descname">get_context_data</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UpdateObjectView.get_context_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateObjectView.</tt><tt class="descname">get_initial</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UpdateObjectView.get_initial"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UpdateObjectView.</tt><tt class="descname">get_success_url</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UpdateObjectView.get_success_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateObjectView.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:project:containers:index'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UpdateObjectView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/update.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">UploadView</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UploadView"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ref/forms.html#horizon.forms.views.ModalFormView" title="horizon.forms.views.ModalFormView"><tt class="xref py py-class docutils literal"><span class="pre">horizon.forms.views.ModalFormView</span></tt></a></p>
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UploadView.</tt><tt class="descname">form_class</tt></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">UploadObject</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UploadView.</tt><tt class="descname">get_context_data</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UploadView.get_context_data"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UploadView.</tt><tt class="descname">get_initial</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UploadView.get_initial"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">UploadView.</tt><tt class="descname">get_success_url</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#UploadView.get_success_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UploadView.</tt><tt class="descname">success_url</tt><em class="property"> = 'horizon:project:containers:index'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">UploadView.</tt><tt class="descname">template_name</tt><em class="property"> = 'project/containers/upload.html'</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">for_url</tt><big>(</big><em>container_name</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#for_url"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Build a URL friendly container name.</p>
+<p>Add Swift delimiter if necessary.
+The name can contain &#8216;%&#8217; (bug 1231904).</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.dashboards.project.containers.views.</tt><tt class="descname">object_download</tt><big>(</big><em>request</em>, <em>container_name</em>, <em>object_path</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/dashboards/project/containers/views.html#object_download"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.project.containers.browsers.html"
+                                  title="previous chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.project.containers.browsers</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.dashboards.project.containers.urls.html"
+                                  title="next chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.dashboards.project.containers.urls</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.dashboards.project.containers.views.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.project.containers.urls.html" title="The openstack_dashboard.dashboards.project.containers.urls Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.dashboards.project.containers.browsers.html" title="The openstack_dashboard.dashboards.project.containers.browsers Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

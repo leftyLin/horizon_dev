@@ -1,0 +1,8 @@
+=======================================================
+The :mod:`openstack_dashboard.test.tests.policy` Module
+=======================================================
+.. automodule:: openstack_dashboard.test.tests.policy
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,614 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.openstack.common.rpc.common &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="openstack_dashboard.openstack.common.rpc" href="../rpc.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.openstack.common.rpc.common</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2010 United States Government as represented by the</span>
+<span class="c"># Administrator of the National Aeronautics and Space Administration.</span>
+<span class="c"># All Rights Reserved.</span>
+<span class="c"># Copyright 2011 Red Hat, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="kn">from</span> <span class="nn">oslo.config</span> <span class="kn">import</span> <span class="n">cfg</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.gettextutils</span> <span class="kn">import</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">importutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">jsonutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">local</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">logging</span>
+
+
+<span class="n">CONF</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">CONF</span>
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="sd">&#39;&#39;&#39;RPC Envelope Version.</span>
+
+<span class="sd">This version number applies to the top level structure of messages sent out.</span>
+<span class="sd">It does *not* apply to the message payload, which must be versioned</span>
+<span class="sd">independently.  For example, when using rpc APIs, a version number is applied</span>
+<span class="sd">for changes to the API being exposed over rpc.  This version number is handled</span>
+<span class="sd">in the rpc proxy and dispatcher modules.</span>
+
+<span class="sd">This version number applies to the message envelope that is used in the</span>
+<span class="sd">serialization done inside the rpc layer.  See serialize_msg() and</span>
+<span class="sd">deserialize_msg().</span>
+
+<span class="sd">The current message format (version 2.0) is very simple.  It is:</span>
+
+<span class="sd">    {</span>
+<span class="sd">        &#39;oslo.version&#39;: &lt;RPC Envelope Version as a String&gt;,</span>
+<span class="sd">        &#39;oslo.message&#39;: &lt;Application Message Payload, JSON encoded&gt;</span>
+<span class="sd">    }</span>
+
+<span class="sd">Message format version &#39;1.0&#39; is just considered to be the messages we sent</span>
+<span class="sd">without a message envelope.</span>
+
+<span class="sd">So, the current message envelope just includes the envelope version.  It may</span>
+<span class="sd">eventually contain additional information, such as a signature for the message</span>
+<span class="sd">payload.</span>
+
+<span class="sd">We will JSON encode the application message payload.  The message envelope,</span>
+<span class="sd">which includes the JSON encoded application message body, will be passed down</span>
+<span class="sd">to the messaging libraries as a dict.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="n">_RPC_ENVELOPE_VERSION</span> <span class="o">=</span> <span class="s">&#39;2.0&#39;</span>
+
+<span class="n">_VERSION_KEY</span> <span class="o">=</span> <span class="s">&#39;oslo.version&#39;</span>
+<span class="n">_MESSAGE_KEY</span> <span class="o">=</span> <span class="s">&#39;oslo.message&#39;</span>
+
+
+<div class="viewcode-block" id="RPCException"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.RPCException">[docs]</a><span class="k">class</span> <span class="nc">RPCException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;An unknown RPC related exception occurred.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">message</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">%</span> <span class="n">kwargs</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="c"># kwargs doesn&#39;t match a variable in the message</span>
+                <span class="c"># log the issue and the kwargs</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Exception in string format operation&#39;</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                    <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="c"># at least get the core message out if something happened</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">RPCException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="RemoteError"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.RemoteError">[docs]</a><span class="k">class</span> <span class="nc">RemoteError</span><span class="p">(</span><span class="n">RPCException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Signifies that a remote class has raised an exception.</span>
+
+<span class="sd">    Contains a string representation of the type of the original exception,</span>
+<span class="sd">    the value of the original exception, and the traceback.  These are</span>
+<span class="sd">    sent to the parent as a joined string so printing the exception</span>
+<span class="sd">    contains all of the relevant info.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Remote error: </span><span class="si">%(exc_type)s</span><span class="s"> </span><span class="si">%(value)s</span><span class="se">\n</span><span class="si">%(traceback)s</span><span class="s">.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">traceback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exc_type</span> <span class="o">=</span> <span class="n">exc_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">traceback</span> <span class="o">=</span> <span class="n">traceback</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RemoteError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">exc_type</span><span class="o">=</span><span class="n">exc_type</span><span class="p">,</span>
+                                          <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                                          <span class="n">traceback</span><span class="o">=</span><span class="n">traceback</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Timeout"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.Timeout">[docs]</a><span class="k">class</span> <span class="nc">Timeout</span><span class="p">(</span><span class="n">RPCException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Signifies that a timeout has occurred.</span>
+
+<span class="sd">    This exception is raised if the rpc_response_timeout is reached while</span>
+<span class="sd">    waiting for a response from the remote side.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Timeout while waiting on RPC response - &#39;</span>
+                <span class="s">&#39;topic: &quot;</span><span class="si">%(topic)s</span><span class="s">&quot;, RPC method: &quot;</span><span class="si">%(method)s</span><span class="s">&quot; &#39;</span>
+                <span class="s">&#39;info: &quot;</span><span class="si">%(info)s</span><span class="s">&quot;&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param info: Extra info to convey to the user</span>
+<span class="sd">        :param topic: The topic that the rpc call was sent to</span>
+<span class="sd">        :param rpc_method_name: The name of the rpc method being</span>
+<span class="sd">                                called</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">topic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Timeout</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="bp">None</span><span class="p">,</span>
+            <span class="n">info</span><span class="o">=</span><span class="n">info</span> <span class="ow">or</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;&lt;unknown&gt;&#39;</span><span class="p">),</span>
+            <span class="n">topic</span><span class="o">=</span><span class="n">topic</span> <span class="ow">or</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;&lt;unknown&gt;&#39;</span><span class="p">),</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span> <span class="ow">or</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;&lt;unknown&gt;&#39;</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="DuplicateMessageError"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.DuplicateMessageError">[docs]</a><span class="k">class</span> <span class="nc">DuplicateMessageError</span><span class="p">(</span><span class="n">RPCException</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Found duplicate message(</span><span class="si">%(msg_id)s</span><span class="s">). Skipping it.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="InvalidRPCConnectionReuse"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.InvalidRPCConnectionReuse">[docs]</a><span class="k">class</span> <span class="nc">InvalidRPCConnectionReuse</span><span class="p">(</span><span class="n">RPCException</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Invalid reuse of an RPC connection.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="UnsupportedRpcVersion"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.UnsupportedRpcVersion">[docs]</a><span class="k">class</span> <span class="nc">UnsupportedRpcVersion</span><span class="p">(</span><span class="n">RPCException</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Specified RPC version, </span><span class="si">%(version)s</span><span class="s">, not supported by &quot;</span>
+                <span class="s">&quot;this endpoint.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="UnsupportedRpcEnvelopeVersion"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.UnsupportedRpcEnvelopeVersion">[docs]</a><span class="k">class</span> <span class="nc">UnsupportedRpcEnvelopeVersion</span><span class="p">(</span><span class="n">RPCException</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Specified RPC envelope version, </span><span class="si">%(version)s</span><span class="s">, &quot;</span>
+                <span class="s">&quot;not supported by this endpoint.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="RpcVersionCapError"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.RpcVersionCapError">[docs]</a><span class="k">class</span> <span class="nc">RpcVersionCapError</span><span class="p">(</span><span class="n">RPCException</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Specified RPC version cap, </span><span class="si">%(version_cap)s</span><span class="s">, is too low&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Connection"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.Connection">[docs]</a><span class="k">class</span> <span class="nc">Connection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A connection, returned by rpc.create_connection().</span>
+
+<span class="sd">    This class represents a connection to the message bus used for rpc.</span>
+<span class="sd">    An instance of this class should never be created by users of the rpc API.</span>
+<span class="sd">    Use rpc.create_connection() instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Connection.close"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.Connection.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the connection.</span>
+
+<span class="sd">        This method must be called when the connection will no longer be used.</span>
+<span class="sd">        It will ensure that any resources associated with the connection, such</span>
+<span class="sd">        as a network connection, and cleaned up.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Connection.create_consumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.Connection.create_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">create_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">fanout</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a consumer on this connection.</span>
+
+<span class="sd">        A consumer is associated with a message queue on the backend message</span>
+<span class="sd">        bus.  The consumer will read messages from the queue, unpack them, and</span>
+<span class="sd">        dispatch them to the proxy object.  The contents of the message pulled</span>
+<span class="sd">        off of the queue will determine which method gets called on the proxy</span>
+<span class="sd">        object.</span>
+
+<span class="sd">        :param topic: This is a name associated with what to consume from.</span>
+<span class="sd">                      Multiple instances of a service may consume from the same</span>
+<span class="sd">                      topic. For example, all instances of nova-compute consume</span>
+<span class="sd">                      from a queue called &quot;compute&quot;.  In that case, the</span>
+<span class="sd">                      messages will get distributed amongst the consumers in a</span>
+<span class="sd">                      round-robin fashion if fanout=False.  If fanout=True,</span>
+<span class="sd">                      every consumer associated with this topic will get a</span>
+<span class="sd">                      copy of every message.</span>
+<span class="sd">        :param proxy: The object that will handle all incoming messages.</span>
+<span class="sd">        :param fanout: Whether or not this is a fanout topic.  See the</span>
+<span class="sd">                       documentation for the topic parameter for some</span>
+<span class="sd">                       additional comments on this.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Connection.create_worker"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.Connection.create_worker">[docs]</a>    <span class="k">def</span> <span class="nf">create_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">pool_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a worker on this connection.</span>
+
+<span class="sd">        A worker is like a regular consumer of messages directed to a</span>
+<span class="sd">        topic, except that it is part of a set of such consumers (the</span>
+<span class="sd">        &quot;pool&quot;) which may run in parallel. Every pool of workers will</span>
+<span class="sd">        receive a given message, but only one worker in the pool will</span>
+<span class="sd">        be asked to process it. Load is distributed across the members</span>
+<span class="sd">        of the pool in round-robin fashion.</span>
+
+<span class="sd">        :param topic: This is a name associated with what to consume from.</span>
+<span class="sd">                      Multiple instances of a service may consume from the same</span>
+<span class="sd">                      topic.</span>
+<span class="sd">        :param proxy: The object that will handle all incoming messages.</span>
+<span class="sd">        :param pool_name: String containing the name of the pool of workers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Connection.join_consumer_pool"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.Connection.join_consumer_pool">[docs]</a>    <span class="k">def</span> <span class="nf">join_consumer_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">pool_name</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">exchange_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register as a member of a group of consumers for a given topic from</span>
+<span class="sd">        the specified exchange.</span>
+
+<span class="sd">        Exactly one member of a given pool will receive each message.</span>
+
+<span class="sd">        A message will be delivered to multiple pools, if more than</span>
+<span class="sd">        one is created.</span>
+
+<span class="sd">        :param callback: Callable to be invoked for each message.</span>
+<span class="sd">        :type callback: callable accepting one argument</span>
+<span class="sd">        :param pool_name: The name of the consumer pool.</span>
+<span class="sd">        :type pool_name: str</span>
+<span class="sd">        :param topic: The routing topic for desired messages.</span>
+<span class="sd">        :type topic: str</span>
+<span class="sd">        :param exchange_name: The name of the message exchange where</span>
+<span class="sd">                              the client should attach. Defaults to</span>
+<span class="sd">                              the configured exchange.</span>
+<span class="sd">        :type exchange_name: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Connection.consume_in_thread"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.Connection.consume_in_thread">[docs]</a>    <span class="k">def</span> <span class="nf">consume_in_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Spawn a thread to handle incoming messages.</span>
+
+<span class="sd">        Spawn a thread that will be responsible for handling all incoming</span>
+<span class="sd">        messages for consumers that were set up on this connection.</span>
+
+<span class="sd">        Message dispatching inside of this is expected to be implemented in a</span>
+<span class="sd">        non-blocking manner.  An example implementation would be having this</span>
+<span class="sd">        thread pull messages in for all of the consumers, but utilize a thread</span>
+<span class="sd">        pool for dispatching the messages to the proxy objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+</div></div>
+<span class="k">def</span> <span class="nf">_safe_log</span><span class="p">(</span><span class="n">log_func</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">msg_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sanitizes the msg_data field before logging.&quot;&quot;&quot;</span>
+    <span class="n">SANITIZE</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;set_admin_password&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="s">&#39;new_pass&#39;</span><span class="p">)],</span>
+                <span class="s">&#39;run_instance&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="s">&#39;admin_password&#39;</span><span class="p">)],</span>
+                <span class="s">&#39;route_message&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="s">&#39;method_info&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;method_kwargs&#39;</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">),</span>
+                                  <span class="p">(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="s">&#39;method_info&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;method_kwargs&#39;</span><span class="p">,</span> <span class="s">&#39;admin_password&#39;</span><span class="p">)]}</span>
+
+    <span class="n">has_method</span> <span class="o">=</span> <span class="s">&#39;method&#39;</span> <span class="ow">in</span> <span class="n">msg_data</span> <span class="ow">and</span> <span class="n">msg_data</span><span class="p">[</span><span class="s">&#39;method&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">SANITIZE</span>
+    <span class="n">has_context_token</span> <span class="o">=</span> <span class="s">&#39;_context_auth_token&#39;</span> <span class="ow">in</span> <span class="n">msg_data</span>
+    <span class="n">has_token</span> <span class="o">=</span> <span class="s">&#39;auth_token&#39;</span> <span class="ow">in</span> <span class="n">msg_data</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">has_method</span><span class="p">,</span> <span class="n">has_context_token</span><span class="p">,</span> <span class="n">has_token</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="n">log_func</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">msg_data</span><span class="p">)</span>
+
+    <span class="n">msg_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">msg_data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">has_method</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">SANITIZE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">msg_data</span><span class="p">[</span><span class="s">&#39;method&#39;</span><span class="p">],</span> <span class="p">[]):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">msg_data</span>
+                <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">arg</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">elem</span><span class="p">]</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">arg</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="s">&#39;&lt;SANITIZED&gt;&#39;</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Failed to sanitize </span><span class="si">%(item)s</span><span class="s">. Key error </span><span class="si">%(err)s</span><span class="s">&#39;</span><span class="p">),</span>
+                         <span class="p">{</span><span class="s">&#39;item&#39;</span><span class="p">:</span> <span class="n">arg</span><span class="p">,</span>
+                          <span class="s">&#39;err&#39;</span><span class="p">:</span> <span class="n">e</span><span class="p">})</span>
+
+    <span class="k">if</span> <span class="n">has_context_token</span><span class="p">:</span>
+        <span class="n">msg_data</span><span class="p">[</span><span class="s">&#39;_context_auth_token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&lt;SANITIZED&gt;&#39;</span>
+
+    <span class="k">if</span> <span class="n">has_token</span><span class="p">:</span>
+        <span class="n">msg_data</span><span class="p">[</span><span class="s">&#39;auth_token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&lt;SANITIZED&gt;&#39;</span>
+
+    <span class="k">return</span> <span class="n">log_func</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">msg_data</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="serialize_remote_exception"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.serialize_remote_exception">[docs]</a><span class="k">def</span> <span class="nf">serialize_remote_exception</span><span class="p">(</span><span class="n">failure_info</span><span class="p">,</span> <span class="n">log_failure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Prepares exception data to be sent over rpc.</span>
+
+<span class="sd">    Failure_info should be a sys.exc_info() tuple.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tb</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exception</span><span class="p">(</span><span class="o">*</span><span class="n">failure_info</span><span class="p">)</span>
+    <span class="n">failure</span> <span class="o">=</span> <span class="n">failure_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">log_failure</span><span class="p">:</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Returning exception </span><span class="si">%s</span><span class="s"> to caller&quot;</span><span class="p">),</span>
+                  <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">failure</span><span class="p">))</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
+
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">failure</span><span class="p">,</span> <span class="s">&#39;kwargs&#39;</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">failure</span><span class="o">.</span><span class="n">kwargs</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">failure</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">),</span>
+        <span class="s">&#39;module&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">failure</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span><span class="p">),</span>
+        <span class="s">&#39;message&#39;</span><span class="p">:</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">failure</span><span class="p">),</span>
+        <span class="s">&#39;tb&#39;</span><span class="p">:</span> <span class="n">tb</span><span class="p">,</span>
+        <span class="s">&#39;args&#39;</span><span class="p">:</span> <span class="n">failure</span><span class="o">.</span><span class="n">args</span><span class="p">,</span>
+        <span class="s">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span>
+    <span class="p">}</span>
+
+    <span class="n">json_data</span> <span class="o">=</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">json_data</span>
+
+</div>
+<div class="viewcode-block" id="deserialize_remote_exception"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.deserialize_remote_exception">[docs]</a><span class="k">def</span> <span class="nf">deserialize_remote_exception</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">failure</span> <span class="o">=</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="n">trace</span> <span class="o">=</span> <span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tb&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;class&#39;</span><span class="p">)</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;module&#39;</span><span class="p">)</span>
+
+    <span class="c"># NOTE(ameade): We DO NOT want to allow just any module to be imported, in</span>
+    <span class="c"># order to prevent arbitrary code execution.</span>
+    <span class="k">if</span> <span class="n">module</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">conf</span><span class="o">.</span><span class="n">allowed_rpc_exception_modules</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">RemoteError</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">),</span> <span class="n">trace</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="n">klass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Can only deserialize Exceptions&quot;</span><span class="p">)</span>
+
+        <span class="n">failure</span> <span class="o">=</span> <span class="n">klass</span><span class="p">(</span><span class="o">*</span><span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;args&#39;</span><span class="p">,</span> <span class="p">[]),</span> <span class="o">**</span><span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kwargs&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RemoteError</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">failure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">),</span> <span class="n">trace</span><span class="p">)</span>
+
+    <span class="n">ex_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">failure</span><span class="p">)</span>
+    <span class="n">str_override</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="n">message</span>
+    <span class="n">new_ex_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">ex_type</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot;_Remote&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">ex_type</span><span class="p">,),</span>
+                       <span class="p">{</span><span class="s">&#39;__str__&#39;</span><span class="p">:</span> <span class="n">str_override</span><span class="p">,</span> <span class="s">&#39;__unicode__&#39;</span><span class="p">:</span> <span class="n">str_override</span><span class="p">})</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># NOTE(ameade): Dynamically create a new exception type and swap it in</span>
+        <span class="c"># as the new type for the exception. This only works on user defined</span>
+        <span class="c"># Exceptions and not core python exceptions. This is important because</span>
+        <span class="c"># we cannot necessarily change an exception message so we must override</span>
+        <span class="c"># the __str__ method.</span>
+        <span class="n">failure</span><span class="o">.</span><span class="n">__class__</span> <span class="o">=</span> <span class="n">new_ex_type</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c"># NOTE(ameade): If a core exception then just add the traceback to the</span>
+        <span class="c"># first exception argument.</span>
+        <span class="n">failure</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">message</span><span class="p">,)</span> <span class="o">+</span> <span class="n">failure</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">failure</span>
+
+</div>
+<div class="viewcode-block" id="CommonRpcContext"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.CommonRpcContext">[docs]</a><span class="k">class</span> <span class="nc">CommonRpcContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CommonRpcContext.to_dict"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.CommonRpcContext.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="CommonRpcContext.from_dict"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.CommonRpcContext.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">values</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CommonRpcContext.deepcopy"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.CommonRpcContext.deepcopy">[docs]</a>    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="CommonRpcContext.update_store"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.CommonRpcContext.update_store">[docs]</a>    <span class="k">def</span> <span class="nf">update_store</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">local</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="CommonRpcContext.elevated"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.CommonRpcContext.elevated">[docs]</a>    <span class="k">def</span> <span class="nf">elevated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read_deleted</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a version of this context with admin flag set.&quot;&quot;&quot;</span>
+        <span class="c"># TODO(russellb) This method is a bit of a nova-ism.  It makes</span>
+        <span class="c"># some assumptions about the data in the request context sent</span>
+        <span class="c"># across rpc, while the rest of this class does not.  We could get</span>
+        <span class="c"># rid of this if we changed the nova code that uses this to</span>
+        <span class="c"># convert the RpcContext back to its native RequestContext doing</span>
+        <span class="c"># something like nova.context.RequestContext.from_dict(ctxt.to_dict())</span>
+
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="s">&#39;is_admin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">context</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;roles&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="k">if</span> <span class="s">&#39;admin&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="s">&#39;roles&#39;</span><span class="p">]:</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="s">&#39;roles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">read_deleted</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="s">&#39;read_deleted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_deleted</span>
+
+        <span class="k">return</span> <span class="n">context</span>
+
+</div></div>
+<div class="viewcode-block" id="ClientException"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.ClientException">[docs]</a><span class="k">class</span> <span class="nc">ClientException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This encapsulates some actual exception that is expected to be</span>
+<span class="sd">    hit by an RPC proxy object. Merely instantiating it records the</span>
+<span class="sd">    current exception information, which will be passed back to the</span>
+<span class="sd">    RPC client without exceptional logging.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exc_info</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="catch_client_exception"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.catch_client_exception">[docs]</a><span class="k">def</span> <span class="nf">catch_client_exception</span><span class="p">(</span><span class="n">exceptions</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="n">exceptions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ClientException</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="client_exceptions"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.client_exceptions">[docs]</a><span class="k">def</span> <span class="nf">client_exceptions</span><span class="p">(</span><span class="o">*</span><span class="n">exceptions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decorator for manager methods that raise expected exceptions.</span>
+<span class="sd">    Marking a Manager method with this decorator allows the declaration</span>
+<span class="sd">    of expected exceptions that the RPC layer should not consider fatal,</span>
+<span class="sd">    and not log as if they were generated in a real error scenario. Note</span>
+<span class="sd">    that this will cause listed exceptions to be wrapped in a</span>
+<span class="sd">    ClientException, which is used internally by the RPC layer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">outer</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">catch_client_exception</span><span class="p">(</span><span class="n">exceptions</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">inner</span>
+    <span class="k">return</span> <span class="n">outer</span>
+
+</div>
+<div class="viewcode-block" id="version_is_compatible"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.version_is_compatible">[docs]</a><span class="k">def</span> <span class="nf">version_is_compatible</span><span class="p">(</span><span class="n">imp_version</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine whether versions are compatible.</span>
+
+<span class="sd">    :param imp_version: The version implemented</span>
+<span class="sd">    :param version: The version requested by an incoming message.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">version_parts</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">imp_version_parts</span> <span class="o">=</span> <span class="n">imp_version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">version_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">imp_version_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c"># Major</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">version_parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">imp_version_parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>  <span class="c"># Minor</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="serialize_msg"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.serialize_msg">[docs]</a><span class="k">def</span> <span class="nf">serialize_msg</span><span class="p">(</span><span class="n">raw_msg</span><span class="p">):</span>
+    <span class="c"># NOTE(russellb) See the docstring for _RPC_ENVELOPE_VERSION for more</span>
+    <span class="c"># information about this format.</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="n">_VERSION_KEY</span><span class="p">:</span> <span class="n">_RPC_ENVELOPE_VERSION</span><span class="p">,</span>
+           <span class="n">_MESSAGE_KEY</span><span class="p">:</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">raw_msg</span><span class="p">)}</span>
+
+    <span class="k">return</span> <span class="n">msg</span>
+
+</div>
+<div class="viewcode-block" id="deserialize_msg"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.common.html#openstack_dashboard.openstack.common.rpc.common.deserialize_msg">[docs]</a><span class="k">def</span> <span class="nf">deserialize_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="c"># NOTE(russellb): Hang on to your hats, this road is about to</span>
+    <span class="c"># get a little bumpy.</span>
+    <span class="c">#</span>
+    <span class="c"># Robustness Principle:</span>
+    <span class="c">#    &quot;Be strict in what you send, liberal in what you accept.&quot;</span>
+    <span class="c">#</span>
+    <span class="c"># At this point we have to do a bit of guessing about what it</span>
+    <span class="c"># is we just received.  Here is the set of possibilities:</span>
+    <span class="c">#</span>
+    <span class="c"># 1) We received a dict.  This could be 2 things:</span>
+    <span class="c">#</span>
+    <span class="c">#   a) Inspect it to see if it looks like a standard message envelope.</span>
+    <span class="c">#      If so, great!</span>
+    <span class="c">#</span>
+    <span class="c">#   b) If it doesn&#39;t look like a standard message envelope, it could either</span>
+    <span class="c">#      be a notification, or a message from before we added a message</span>
+    <span class="c">#      envelope (referred to as version 1.0).</span>
+    <span class="c">#      Just return the message as-is.</span>
+    <span class="c">#</span>
+    <span class="c"># 2) It&#39;s any other non-dict type.  Just return it and hope for the best.</span>
+    <span class="c">#    This case covers return values from rpc.call() from before message</span>
+    <span class="c">#    envelopes were used.  (messages to call a method were always a dict)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c"># See #2 above.</span>
+        <span class="k">return</span> <span class="n">msg</span>
+
+    <span class="n">base_envelope_keys</span> <span class="o">=</span> <span class="p">(</span><span class="n">_VERSION_KEY</span><span class="p">,</span> <span class="n">_MESSAGE_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">key</span><span class="p">:</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">,</span> <span class="n">base_envelope_keys</span><span class="p">)):</span>
+        <span class="c">#  See #1.b above.</span>
+        <span class="k">return</span> <span class="n">msg</span>
+
+    <span class="c"># At this point we think we have the message envelope</span>
+    <span class="c"># format we were expecting. (#1.a above)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">version_is_compatible</span><span class="p">(</span><span class="n">_RPC_ENVELOPE_VERSION</span><span class="p">,</span> <span class="n">msg</span><span class="p">[</span><span class="n">_VERSION_KEY</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="n">UnsupportedRpcEnvelopeVersion</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">msg</span><span class="p">[</span><span class="n">_VERSION_KEY</span><span class="p">])</span>
+
+    <span class="n">raw_msg</span> <span class="o">=</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="n">_MESSAGE_KEY</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">raw_msg</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../rpc.html" accesskey="U">openstack_dashboard.openstack.common.rpc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+=============================================================
+The :mod:`openstack_dashboard.dashboards.admin.groups` Module
+=============================================================
+.. automodule:: openstack_dashboard.dashboards.admin.groups
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

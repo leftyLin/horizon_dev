@@ -1,0 +1,446 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.openstack.common.rpc.matchmaker &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="openstack_dashboard.openstack.common.rpc" href="../rpc.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.openstack.common.rpc.matchmaker</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c">#    Copyright 2011 Cloudscaling Group, Inc</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The MatchMaker classes should except a Topic or Fanout exchange key and</span>
+<span class="sd">return keys for direct exchanges, per (approximate) AMQP parlance.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">contextlib</span>
+
+<span class="kn">import</span> <span class="nn">eventlet</span>
+<span class="kn">from</span> <span class="nn">oslo.config</span> <span class="kn">import</span> <span class="n">cfg</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.gettextutils</span> <span class="kn">import</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">logging</span>
+
+
+<span class="n">matchmaker_opts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;matchmaker_heartbeat_freq&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Heartbeat frequency&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;matchmaker_heartbeat_ttl&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Heartbeat time-to-live.&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">CONF</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">CONF</span>
+<span class="n">CONF</span><span class="o">.</span><span class="n">register_opts</span><span class="p">(</span><span class="n">matchmaker_opts</span><span class="p">)</span>
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">contextmanager</span> <span class="o">=</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+
+
+<div class="viewcode-block" id="MatchMakerException"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerException">[docs]</a><span class="k">class</span> <span class="nc">MatchMakerException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Signified a match could not be found.&quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Match not found by MatchMaker.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Exchange"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.Exchange">[docs]</a><span class="k">class</span> <span class="nc">Exchange</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implements lookups.</span>
+<span class="sd">    Subclass this to support hashtables, dns, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="Exchange.run"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.Exchange.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="Binding"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.Binding">[docs]</a><span class="k">class</span> <span class="nc">Binding</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A binding on which to perform a lookup.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="Binding.test"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.Binding.test">[docs]</a>    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="MatchMakerBase"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase">[docs]</a><span class="k">class</span> <span class="nc">MatchMakerBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Match Maker Base Class.</span>
+<span class="sd">    Build off HeartbeatMatchMakerBase if building a</span>
+<span class="sd">    heartbeat-capable MatchMaker.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Array of tuples. Index [2] toggles negation, [3] is last-if-true</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_heartbeat_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;Matchmaker does not implement &#39;</span>
+                                  <span class="s">&#39;registration or heartbeat.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MatchMakerBase.register"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a host on a backend.</span>
+<span class="sd">        Heartbeats, if applicable, may keepalive registration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.ack_alive"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.ack_alive">[docs]</a>    <span class="k">def</span> <span class="nf">ack_alive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Acknowledge that a key.host is alive.</span>
+<span class="sd">        Used internally for updating heartbeats,</span>
+<span class="sd">        but may also be used publicly to acknowledge</span>
+<span class="sd">        a system is alive (i.e. rpc message successfully</span>
+<span class="sd">        sent to host)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.is_alive"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.is_alive">[docs]</a>    <span class="k">def</span> <span class="nf">is_alive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a host is alive.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.expire"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.expire">[docs]</a>    <span class="k">def</span> <span class="nf">expire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Explicitly expire a host&#39;s registration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.send_heartbeats"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.send_heartbeats">[docs]</a>    <span class="k">def</span> <span class="nf">send_heartbeats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send all heartbeats.</span>
+<span class="sd">        Use start_heartbeat to spawn a heartbeat greenthread,</span>
+<span class="sd">        which loops this method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.unregister"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.unregister">[docs]</a>    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Unregister a topic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.start_heartbeat"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.start_heartbeat">[docs]</a>    <span class="k">def</span> <span class="nf">start_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Spawn heartbeat greenthread.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.stop_heartbeat"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.stop_heartbeat">[docs]</a>    <span class="k">def</span> <span class="nf">stop_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Destroys the heartbeat greenthread.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.add_binding"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.add_binding">[docs]</a>    <span class="k">def</span> <span class="nf">add_binding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binding</span><span class="p">,</span> <span class="n">rule</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">binding</span><span class="p">,</span> <span class="n">rule</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">last</span><span class="p">))</span>
+
+    <span class="c">#NOTE(ewindisch): kept the following method in case we implement the</span>
+    <span class="c">#                 underlying support.</span>
+    <span class="c">#def add_negate_binding(self, binding, rule, last=True):</span>
+    <span class="c">#    self.bindings.append((binding, rule, True, last))</span>
+</div>
+<div class="viewcode-block" id="MatchMakerBase.queues"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerBase.queues">[docs]</a>    <span class="k">def</span> <span class="nf">queues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">workers</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># bit is for negate bindings - if we choose to implement it.</span>
+        <span class="c"># last stops processing rules if this matches.</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">binding</span><span class="p">,</span> <span class="n">exchange</span><span class="p">,</span> <span class="n">bit</span><span class="p">,</span> <span class="n">last</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bindings</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">binding</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="n">workers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">exchange</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+                <span class="c"># Support last.</span>
+                <span class="k">if</span> <span class="n">last</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">workers</span>
+        <span class="k">return</span> <span class="n">workers</span>
+
+</div></div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase">[docs]</a><span class="k">class</span> <span class="nc">HeartbeatMatchMakerBase</span><span class="p">(</span><span class="n">MatchMakerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base for a heart-beat capable MatchMaker.</span>
+<span class="sd">    Provides common methods for registering,</span>
+<span class="sd">    unregistering, and maintaining heartbeats.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heart</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host_topic</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">HeartbeatMatchMakerBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.send_heartbeats"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.send_heartbeats">[docs]</a>    <span class="k">def</span> <span class="nf">send_heartbeats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send all heartbeats.</span>
+<span class="sd">        Use start_heartbeat to spawn a heartbeat greenthread,</span>
+<span class="sd">        which loops this method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">host_topic</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ack_alive</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.ack_alive"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.ack_alive">[docs]</a>    <span class="k">def</span> <span class="nf">ack_alive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Acknowledge that a host.topic is alive.</span>
+<span class="sd">        Used internally for updating heartbeats,</span>
+<span class="sd">        but may also be used publicly to acknowledge</span>
+<span class="sd">        a system is alive (i.e. rpc message successfully</span>
+<span class="sd">        sent to host)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;Must implement ack_alive&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.backend_register"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.backend_register">[docs]</a>    <span class="k">def</span> <span class="nf">backend_register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Implements registration logic.</span>
+<span class="sd">        Called by register(self,key,host)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;Must implement backend_register&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.backend_unregister"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.backend_unregister">[docs]</a>    <span class="k">def</span> <span class="nf">backend_unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">key_host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Implements de-registration logic.</span>
+<span class="sd">        Called by unregister(self,key,host)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;Must implement backend_unregister&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.register"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a host on a backend.</span>
+<span class="sd">        Heartbeats, if applicable, may keepalive registration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host_topic</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">)]</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="n">key_host</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_register</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key_host</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ack_alive</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.unregister"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.unregister">[docs]</a>    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Unregister a topic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">host_topic</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">host_topic</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hosts</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend_unregister</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">host</span><span class="p">)))</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Matchmaker unregistered: </span><span class="si">%(key)s</span><span class="s">, </span><span class="si">%(host)s</span><span class="s">&quot;</span><span class="p">),</span>
+                 <span class="p">{</span><span class="s">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s">&#39;host&#39;</span><span class="p">:</span> <span class="n">host</span><span class="p">})</span>
+</div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.start_heartbeat"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.start_heartbeat">[docs]</a>    <span class="k">def</span> <span class="nf">start_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Implementation of MatchMakerBase.start_heartbeat</span>
+<span class="sd">        Launches greenthread looping send_heartbeats(),</span>
+<span class="sd">        yielding for CONF.matchmaker_heartbeat_freq seconds</span>
+<span class="sd">        between iterations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hosts</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MatchMakerException</span><span class="p">(</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">&quot;Register before starting heartbeat.&quot;</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">do_heartbeat</span><span class="p">():</span>
+            <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">send_heartbeats</span><span class="p">()</span>
+                <span class="n">eventlet</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">CONF</span><span class="o">.</span><span class="n">matchmaker_heartbeat_freq</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heart</span> <span class="o">=</span> <span class="n">eventlet</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">do_heartbeat</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="HeartbeatMatchMakerBase.stop_heartbeat"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.HeartbeatMatchMakerBase.stop_heartbeat">[docs]</a>    <span class="k">def</span> <span class="nf">stop_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Destroys the heartbeat greenthread.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heart</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heart</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="DirectBinding"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.DirectBinding">[docs]</a><span class="k">class</span> <span class="nc">DirectBinding</span><span class="p">(</span><span class="n">Binding</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Specifies a host in the key via a &#39;.&#39; character</span>
+<span class="sd">    Although dots are used in the key, the behavior here is</span>
+<span class="sd">    that it maps directly to a host, thus direct.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DirectBinding.test"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.DirectBinding.test">[docs]</a>    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="TopicBinding"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.TopicBinding">[docs]</a><span class="k">class</span> <span class="nc">TopicBinding</span><span class="p">(</span><span class="n">Binding</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Where a &#39;bare&#39; key without dots.</span>
+<span class="sd">    AMQP generally considers topic exchanges to be those *with* dots,</span>
+<span class="sd">    but we deviate here in terminology as the behavior here matches</span>
+<span class="sd">    that of a topic exchange (whereas where there are dots, behavior</span>
+<span class="sd">    matches that of a direct exchange.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TopicBinding.test"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.TopicBinding.test">[docs]</a>    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="FanoutBinding"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.FanoutBinding">[docs]</a><span class="k">class</span> <span class="nc">FanoutBinding</span><span class="p">(</span><span class="n">Binding</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Match on fanout keys, where key starts with &#39;fanout.&#39; string.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FanoutBinding.test"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.FanoutBinding.test">[docs]</a>    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;fanout~&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="StubExchange"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.StubExchange">[docs]</a><span class="k">class</span> <span class="nc">StubExchange</span><span class="p">(</span><span class="n">Exchange</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exchange that does nothing.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="StubExchange.run"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.StubExchange.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)]</span>
+
+</div></div>
+<div class="viewcode-block" id="LocalhostExchange"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.LocalhostExchange">[docs]</a><span class="k">class</span> <span class="nc">LocalhostExchange</span><span class="p">(</span><span class="n">Exchange</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exchange where all direct topics are local.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;localhost&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Exchange</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LocalhostExchange.run"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.LocalhostExchange.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">)]</span>
+
+</div></div>
+<div class="viewcode-block" id="DirectExchange"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.DirectExchange">[docs]</a><span class="k">class</span> <span class="nc">DirectExchange</span><span class="p">(</span><span class="n">Exchange</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exchange where all topic keys are split, sending to second half.</span>
+<span class="sd">    i.e. &quot;compute.host&quot; sends a message to &quot;compute.host&quot; running on &quot;host&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Exchange</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DirectExchange.run"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.DirectExchange.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">e</span><span class="p">)]</span>
+
+</div></div>
+<div class="viewcode-block" id="MatchMakerLocalhost"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerLocalhost">[docs]</a><span class="k">class</span> <span class="nc">MatchMakerLocalhost</span><span class="p">(</span><span class="n">MatchMakerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Match Maker where all bare topics resolve to localhost.</span>
+<span class="sd">    Useful for testing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;localhost&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatchMakerLocalhost</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_binding</span><span class="p">(</span><span class="n">FanoutBinding</span><span class="p">(),</span> <span class="n">LocalhostExchange</span><span class="p">(</span><span class="n">host</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_binding</span><span class="p">(</span><span class="n">DirectBinding</span><span class="p">(),</span> <span class="n">DirectExchange</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_binding</span><span class="p">(</span><span class="n">TopicBinding</span><span class="p">(),</span> <span class="n">LocalhostExchange</span><span class="p">(</span><span class="n">host</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="MatchMakerStub"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.matchmaker.html#openstack_dashboard.openstack.common.rpc.matchmaker.MatchMakerStub">[docs]</a><span class="k">class</span> <span class="nc">MatchMakerStub</span><span class="p">(</span><span class="n">MatchMakerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Match Maker where topics are untouched.</span>
+<span class="sd">    Useful for testing, or for AMQP/brokered queues.</span>
+<span class="sd">    Will not work where knowledge of hosts is known (i.e. zeromq)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatchMakerStub</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_binding</span><span class="p">(</span><span class="n">FanoutBinding</span><span class="p">(),</span> <span class="n">StubExchange</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_binding</span><span class="p">(</span><span class="n">DirectBinding</span><span class="p">(),</span> <span class="n">StubExchange</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_binding</span><span class="p">(</span><span class="n">TopicBinding</span><span class="p">(),</span> <span class="n">StubExchange</span><span class="p">())</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../rpc.html" accesskey="U">openstack_dashboard.openstack.common.rpc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

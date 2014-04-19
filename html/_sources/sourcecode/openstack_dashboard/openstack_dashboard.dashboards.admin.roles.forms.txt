@@ -1,0 +1,8 @@
+==================================================================
+The :mod:`openstack_dashboard.dashboards.admin.roles.forms` Module
+==================================================================
+.. automodule:: openstack_dashboard.dashboards.admin.roles.forms
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

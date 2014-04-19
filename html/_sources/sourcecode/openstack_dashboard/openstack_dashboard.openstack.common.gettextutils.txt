@@ -1,0 +1,8 @@
+===================================================================
+The :mod:`openstack_dashboard.openstack.common.gettextutils` Module
+===================================================================
+.. automodule:: openstack_dashboard.openstack.common.gettextutils
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

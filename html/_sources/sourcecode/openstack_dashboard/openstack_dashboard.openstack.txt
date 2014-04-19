@@ -1,0 +1,8 @@
+===============================================
+The :mod:`openstack_dashboard.openstack` Module
+===============================================
+.. automodule:: openstack_dashboard.openstack
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,8 @@
+===============================================================
+The :mod:`openstack_dashboard.openstack.common.notifier` Module
+===============================================================
+.. automodule:: openstack_dashboard.openstack.common.notifier
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,8 @@
+===============================================================
+The :mod:`openstack_dashboard.openstack.common.excutils` Module
+===============================================================
+.. automodule:: openstack_dashboard.openstack.common.excutils
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

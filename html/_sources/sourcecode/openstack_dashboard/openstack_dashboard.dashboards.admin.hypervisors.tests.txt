@@ -1,0 +1,8 @@
+========================================================================
+The :mod:`openstack_dashboard.dashboards.admin.hypervisors.tests` Module
+========================================================================
+.. automodule:: openstack_dashboard.dashboards.admin.hypervisors.tests
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

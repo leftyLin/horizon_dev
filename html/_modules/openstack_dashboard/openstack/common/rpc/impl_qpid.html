@@ -1,0 +1,801 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.openstack.common.rpc.impl_qpid &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="openstack_dashboard.openstack.common.rpc" href="../rpc.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.openstack.common.rpc.impl_qpid</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c">#    Copyright 2011 OpenStack Foundation</span>
+<span class="c">#    Copyright 2011 - 2012, Red Hat, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">import</span> <span class="nn">eventlet</span>
+<span class="kn">import</span> <span class="nn">greenlet</span>
+<span class="kn">from</span> <span class="nn">oslo.config</span> <span class="kn">import</span> <span class="n">cfg</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.gettextutils</span> <span class="kn">import</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">importutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">jsonutils</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.rpc</span> <span class="kn">import</span> <span class="n">amqp</span> <span class="k">as</span> <span class="n">rpc_amqp</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.openstack.common.rpc</span> <span class="kn">import</span> <span class="n">common</span> <span class="k">as</span> <span class="n">rpc_common</span>
+
+<span class="n">qpid_codec</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">try_import</span><span class="p">(</span><span class="s">&quot;qpid.codec010&quot;</span><span class="p">)</span>
+<span class="n">qpid_messaging</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">try_import</span><span class="p">(</span><span class="s">&quot;qpid.messaging&quot;</span><span class="p">)</span>
+<span class="n">qpid_exceptions</span> <span class="o">=</span> <span class="n">importutils</span><span class="o">.</span><span class="n">try_import</span><span class="p">(</span><span class="s">&quot;qpid.messaging.exceptions&quot;</span><span class="p">)</span>
+
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="n">qpid_opts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;qpid_hostname&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="s">&#39;localhost&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Qpid broker hostname&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;qpid_port&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">5672</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Qpid broker port&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">ListOpt</span><span class="p">(</span><span class="s">&#39;qpid_hosts&#39;</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;$qpid_hostname:$qpid_port&#39;</span><span class="p">],</span>
+                <span class="n">help</span><span class="o">=</span><span class="s">&#39;Qpid HA cluster host:port pairs&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;qpid_username&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Username for qpid connection&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;qpid_password&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Password for qpid connection&#39;</span><span class="p">,</span>
+               <span class="n">secret</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;qpid_sasl_mechanisms&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Space separated list of SASL mechanisms to use for auth&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">IntOpt</span><span class="p">(</span><span class="s">&#39;qpid_heartbeat&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&#39;Seconds between connection keepalive heartbeats&#39;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">StrOpt</span><span class="p">(</span><span class="s">&#39;qpid_protocol&#39;</span><span class="p">,</span>
+               <span class="n">default</span><span class="o">=</span><span class="s">&#39;tcp&#39;</span><span class="p">,</span>
+               <span class="n">help</span><span class="o">=</span><span class="s">&quot;Transport to use, either &#39;tcp&#39; or &#39;ssl&#39;&quot;</span><span class="p">),</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">BoolOpt</span><span class="p">(</span><span class="s">&#39;qpid_tcp_nodelay&#39;</span><span class="p">,</span>
+                <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">help</span><span class="o">=</span><span class="s">&#39;Disable Nagle algorithm&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">cfg</span><span class="o">.</span><span class="n">CONF</span><span class="o">.</span><span class="n">register_opts</span><span class="p">(</span><span class="n">qpid_opts</span><span class="p">)</span>
+
+<span class="n">JSON_CONTENT_TYPE</span> <span class="o">=</span> <span class="s">&#39;application/json; charset=utf8&#39;</span>
+
+
+<div class="viewcode-block" id="ConsumerBase"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.ConsumerBase">[docs]</a><span class="k">class</span> <span class="nc">ConsumerBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Consumer base class.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">node_opts</span><span class="p">,</span>
+                 <span class="n">link_name</span><span class="p">,</span> <span class="n">link_opts</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Declare a queue on an amqp session.</span>
+
+<span class="sd">        &#39;session&#39; is the amqp session to use</span>
+<span class="sd">        &#39;callback&#39; is the callback to call when messages are received</span>
+<span class="sd">        &#39;node_name&#39; is the first part of the Qpid address string, before &#39;;&#39;</span>
+<span class="sd">        &#39;node_opts&#39; will be applied to the &quot;x-declare&quot; section of &quot;node&quot;</span>
+<span class="sd">                    in the address string.</span>
+<span class="sd">        &#39;link_name&#39; goes into the &quot;name&quot; field of the &quot;link&quot; in the address</span>
+<span class="sd">                    string</span>
+<span class="sd">        &#39;link_opts&#39; will be applied to the &quot;x-declare&quot; section of &quot;link&quot;</span>
+<span class="sd">                    in the address string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receiver</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">addr_opts</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;create&quot;</span><span class="p">:</span> <span class="s">&quot;always&quot;</span><span class="p">,</span>
+            <span class="s">&quot;node&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;topic&quot;</span><span class="p">,</span>
+                <span class="s">&quot;x-declare&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&quot;durable&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&quot;auto-delete&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="s">&quot;link&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="n">link_name</span><span class="p">,</span>
+                <span class="s">&quot;durable&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">&quot;x-declare&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&quot;durable&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                    <span class="s">&quot;auto-delete&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&quot;exclusive&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">addr_opts</span><span class="p">[</span><span class="s">&quot;node&quot;</span><span class="p">][</span><span class="s">&quot;x-declare&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">node_opts</span><span class="p">)</span>
+        <span class="n">addr_opts</span><span class="p">[</span><span class="s">&quot;link&quot;</span><span class="p">][</span><span class="s">&quot;x-declare&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">link_opts</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> ; </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">addr_opts</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reconnect</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ConsumerBase.reconnect"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.ConsumerBase.reconnect">[docs]</a>    <span class="k">def</span> <span class="nf">reconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Re-declare the receiver after a qpid reconnect.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receiver</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">receiver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="mi">1</span>
+</div>
+    <span class="k">def</span> <span class="nf">_unpack_json_msg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load the JSON data in msg if msg.content_type indicates that it</span>
+<span class="sd">           is necessary.  Put the loaded data back into msg.content and</span>
+<span class="sd">           update msg.content_type appropriately.</span>
+
+<span class="sd">        A Qpid Message containing a dict will have a content_type of</span>
+<span class="sd">        &#39;amqp/map&#39;, whereas one containing a string that needs to be converted</span>
+<span class="sd">        back from JSON will have a content_type of JSON_CONTENT_TYPE.</span>
+
+<span class="sd">        :param msg: a Qpid Message object</span>
+<span class="sd">        :returns: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="n">JSON_CONTENT_TYPE</span><span class="p">:</span>
+            <span class="n">msg</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">msg</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s">&#39;amqp/map&#39;</span>
+
+<div class="viewcode-block" id="ConsumerBase.consume"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.ConsumerBase.consume">[docs]</a>    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fetch the message and pass it to the callback object.&quot;&quot;&quot;</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receiver</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unpack_json_msg</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">deserialize_msg</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Failed to process message... skipping it.&quot;</span><span class="p">))</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">acknowledge</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ConsumerBase.get_receiver"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.ConsumerBase.get_receiver">[docs]</a>    <span class="k">def</span> <span class="nf">get_receiver</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">receiver</span>
+
+</div></div>
+<div class="viewcode-block" id="DirectConsumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.DirectConsumer">[docs]</a><span class="k">class</span> <span class="nc">DirectConsumer</span><span class="p">(</span><span class="n">ConsumerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Queue/consumer class for &#39;direct&#39;.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">msg_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init a &#39;direct&#39; queue.</span>
+
+<span class="sd">        &#39;session&#39; is the amqp session to use</span>
+<span class="sd">        &#39;msg_id&#39; is the msg_id to listen on</span>
+<span class="sd">        &#39;callback&#39; is the callback to call when messages are received</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DirectConsumer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span>
+                                             <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg_id</span><span class="p">,</span> <span class="n">msg_id</span><span class="p">),</span>
+                                             <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;direct&quot;</span><span class="p">},</span>
+                                             <span class="n">msg_id</span><span class="p">,</span>
+                                             <span class="p">{</span><span class="s">&quot;exclusive&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="TopicConsumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.TopicConsumer">[docs]</a><span class="k">class</span> <span class="nc">TopicConsumer</span><span class="p">(</span><span class="n">ConsumerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Consumer class for &#39;topic&#39;.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">exchange_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init a &#39;topic&#39; queue.</span>
+
+<span class="sd">        :param session: the amqp session to use</span>
+<span class="sd">        :param topic: is the topic to listen on</span>
+<span class="sd">        :paramtype topic: str</span>
+<span class="sd">        :param callback: the callback to call when messages are received</span>
+<span class="sd">        :param name: optional queue name, defaults to topic</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">exchange_name</span> <span class="o">=</span> <span class="n">exchange_name</span> <span class="ow">or</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_control_exchange</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TopicConsumer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span>
+                                            <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exchange_name</span><span class="p">,</span> <span class="n">topic</span><span class="p">),</span>
+                                            <span class="p">{},</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">topic</span><span class="p">,</span> <span class="p">{})</span>
+
+</div>
+<div class="viewcode-block" id="FanoutConsumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.FanoutConsumer">[docs]</a><span class="k">class</span> <span class="nc">FanoutConsumer</span><span class="p">(</span><span class="n">ConsumerBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Consumer class for &#39;fanout&#39;.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init a &#39;fanout&#39; queue.</span>
+
+<span class="sd">        &#39;session&#39; is the amqp session to use</span>
+<span class="sd">        &#39;topic&#39; is the topic to listen on</span>
+<span class="sd">        &#39;callback&#39; is the callback to call when messages are received</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">FanoutConsumer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">session</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span>
+            <span class="s">&quot;</span><span class="si">%s</span><span class="s">_fanout&quot;</span> <span class="o">%</span> <span class="n">topic</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&quot;durable&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;fanout&quot;</span><span class="p">},</span>
+            <span class="s">&quot;</span><span class="si">%s</span><span class="s">_fanout_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">),</span>
+            <span class="p">{</span><span class="s">&quot;exclusive&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="Publisher"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Publisher">[docs]</a><span class="k">class</span> <span class="nc">Publisher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base Publisher class.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">node_opts</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init the Publisher class with the exchange_name, routing_key,</span>
+<span class="sd">        and other options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sender</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+
+        <span class="n">addr_opts</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;create&quot;</span><span class="p">:</span> <span class="s">&quot;always&quot;</span><span class="p">,</span>
+            <span class="s">&quot;node&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;topic&quot;</span><span class="p">,</span>
+                <span class="s">&quot;x-declare&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&quot;durable&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                    <span class="c"># auto-delete isn&#39;t implemented for exchanges in qpid,</span>
+                    <span class="c"># but put in here anyway</span>
+                    <span class="s">&quot;auto-delete&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">node_opts</span><span class="p">:</span>
+            <span class="n">addr_opts</span><span class="p">[</span><span class="s">&quot;node&quot;</span><span class="p">][</span><span class="s">&quot;x-declare&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">node_opts</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> ; </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">addr_opts</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reconnect</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Publisher.reconnect"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Publisher.reconnect">[docs]</a>    <span class="k">def</span> <span class="nf">reconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Re-establish the Sender after a reconnection.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sender</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">sender</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_pack_json_msg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Qpid cannot serialize dicts containing strings longer than 65535</span>
+<span class="sd">           characters.  This function dumps the message content to a JSON</span>
+<span class="sd">           string, which Qpid is able to handle.</span>
+
+<span class="sd">        :param msg: May be either a Qpid Message object or a bare dict.</span>
+<span class="sd">        :returns: A Qpid Message with its content field JSON encoded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">msg</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">jsonutils</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c"># Need to have a Qpid message so we can set the content_type.</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">qpid_messaging</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">jsonutils</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="n">JSON_CONTENT_TYPE</span>
+        <span class="k">return</span> <span class="n">msg</span>
+
+<div class="viewcode-block" id="Publisher.send"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Publisher.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a message.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Check if Qpid can encode the message</span>
+            <span class="n">check_msg</span> <span class="o">=</span> <span class="n">msg</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">check_msg</span><span class="p">,</span> <span class="s">&#39;content_type&#39;</span><span class="p">):</span>
+                <span class="n">check_msg</span> <span class="o">=</span> <span class="n">qpid_messaging</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">content_type</span> <span class="o">=</span> <span class="n">check_msg</span><span class="o">.</span><span class="n">content_type</span>
+            <span class="n">enc</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">qpid_messaging</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">get_codec</span><span class="p">(</span><span class="n">content_type</span><span class="p">)</span>
+            <span class="n">enc</span><span class="p">(</span><span class="n">check_msg</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">qpid_codec</span><span class="o">.</span><span class="n">CodecException</span><span class="p">:</span>
+            <span class="c"># This means the message couldn&#39;t be serialized as a dict.</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pack_json_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="DirectPublisher"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.DirectPublisher">[docs]</a><span class="k">class</span> <span class="nc">DirectPublisher</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Publisher class for &#39;direct&#39;.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">msg_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init a &#39;direct&#39; publisher.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DirectPublisher</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">msg_id</span><span class="p">,</span>
+                                              <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;Direct&quot;</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="TopicPublisher"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.TopicPublisher">[docs]</a><span class="k">class</span> <span class="nc">TopicPublisher</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Publisher class for &#39;topic&#39;.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;init a &#39;topic&#39; publisher.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">exchange_name</span> <span class="o">=</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_control_exchange</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TopicPublisher</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">,</span>
+                                             <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exchange_name</span><span class="p">,</span> <span class="n">topic</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="FanoutPublisher"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.FanoutPublisher">[docs]</a><span class="k">class</span> <span class="nc">FanoutPublisher</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Publisher class for &#39;fanout&#39;.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;init a &#39;fanout&#39; publisher.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FanoutPublisher</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">session</span><span class="p">,</span>
+            <span class="s">&quot;</span><span class="si">%s</span><span class="s">_fanout&quot;</span> <span class="o">%</span> <span class="n">topic</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;fanout&quot;</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="NotifyPublisher"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.NotifyPublisher">[docs]</a><span class="k">class</span> <span class="nc">NotifyPublisher</span><span class="p">(</span><span class="n">Publisher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Publisher class for notifications.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;init a &#39;topic&#39; publisher.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">exchange_name</span> <span class="o">=</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_control_exchange</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NotifyPublisher</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">session</span><span class="p">,</span>
+                                              <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exchange_name</span><span class="p">,</span> <span class="n">topic</span><span class="p">),</span>
+                                              <span class="p">{</span><span class="s">&quot;durable&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="Connection"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection">[docs]</a><span class="k">class</span> <span class="nc">Connection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Connection object.&quot;&quot;&quot;</span>
+
+    <span class="n">pool</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">server_params</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">qpid_messaging</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s">&quot;Failed to import qpid.messaging&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf</span> <span class="o">=</span> <span class="n">conf</span>
+
+        <span class="k">if</span> <span class="n">server_params</span> <span class="ow">and</span> <span class="s">&#39;hostname&#39;</span> <span class="ow">in</span> <span class="n">server_params</span><span class="p">:</span>
+            <span class="c"># NOTE(russellb) This enables support for cast_to_server.</span>
+            <span class="n">server_params</span><span class="p">[</span><span class="s">&#39;qpid_hosts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">server_params</span><span class="p">[</span><span class="s">&#39;hostname&#39;</span><span class="p">],</span>
+                           <span class="n">server_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;port&#39;</span><span class="p">,</span> <span class="mi">5672</span><span class="p">))</span>
+            <span class="p">]</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;qpid_hosts&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">qpid_hosts</span><span class="p">,</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">qpid_username</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">qpid_password</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">server_params</span> <span class="ow">or</span> <span class="p">{})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">brokers</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;qpid_hosts&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection_create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brokers</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reconnect</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Connection.connection_create"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.connection_create">[docs]</a>    <span class="k">def</span> <span class="nf">connection_create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">broker</span><span class="p">):</span>
+        <span class="c"># Create the connection - this does not open the connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">qpid_messaging</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">broker</span><span class="p">)</span>
+
+        <span class="c"># Check if flags are set and if so set them for the connection</span>
+        <span class="c"># before we call open</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">sasl_mechanisms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">qpid_sasl_mechanisms</span>
+        <span class="c"># Reconnection is done by self.reconnect()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">reconnect</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">heartbeat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">qpid_heartbeat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">transport</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">qpid_protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">tcp_nodelay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">qpid_tcp_nodelay</span>
+</div>
+    <span class="k">def</span> <span class="nf">_register_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consumer</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">consumer</span><span class="o">.</span><span class="n">get_receiver</span><span class="p">())]</span> <span class="o">=</span> <span class="n">consumer</span>
+
+    <span class="k">def</span> <span class="nf">_lookup_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receiver</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">receiver</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="Connection.reconnect"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.reconnect">[docs]</a>    <span class="k">def</span> <span class="nf">reconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handles reconnecting and re-establishing sessions and queues.&quot;&quot;&quot;</span>
+        <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="c"># Close the session if necessary</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">opened</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">qpid_exceptions</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="n">broker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">brokers</span><span class="p">[</span><span class="n">attempt</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brokers</span><span class="p">)]</span>
+            <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">connection_create</span><span class="p">(</span><span class="n">broker</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">qpid_exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">msg_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">e</span><span class="o">=</span><span class="n">e</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Unable to connect to AMQP server: </span><span class="si">%(e)s</span><span class="s">. &quot;</span>
+                        <span class="s">&quot;Sleeping </span><span class="si">%(delay)s</span><span class="s"> seconds&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">msg_dict</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+                <span class="n">delay</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Connected to AMQP server on </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">),</span> <span class="n">broker</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">session</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">:</span>
+            <span class="n">consumers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">consumer</span> <span class="ow">in</span> <span class="n">consumers</span><span class="o">.</span><span class="n">itervalues</span><span class="p">():</span>
+                <span class="n">consumer</span><span class="o">.</span><span class="n">reconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_register_consumer</span><span class="p">(</span><span class="n">consumer</span><span class="p">)</span>
+
+            <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Re-established AMQP queues&quot;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Connection.ensure"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.ensure">[docs]</a>    <span class="k">def</span> <span class="nf">ensure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_callback</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">qpid_exceptions</span><span class="o">.</span><span class="n">Empty</span><span class="p">,</span>
+                    <span class="n">qpid_exceptions</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">error_callback</span><span class="p">:</span>
+                    <span class="n">error_callback</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reconnect</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Connection.close"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close/release this connection.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_consumer_thread</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_on_proxy_callbacks</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c"># NOTE(dripton) Logging exceptions that happen during cleanup just</span>
+            <span class="c"># causes confusion; there&#39;s really nothing useful we can do with</span>
+            <span class="c"># them.</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Connection.reset"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset a connection so it can be used again.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_consumer_thread</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_on_proxy_callbacks</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">session</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span> <span class="o">=</span> <span class="p">{}</span>
+</div>
+<div class="viewcode-block" id="Connection.declare_consumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.declare_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">declare_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consumer_cls</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a Consumer using the class that was passed in and</span>
+<span class="sd">        add it to our list of consumers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">_connect_error</span><span class="p">(</span><span class="n">exc</span><span class="p">):</span>
+            <span class="n">log_info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;topic&#39;</span><span class="p">:</span> <span class="n">topic</span><span class="p">,</span> <span class="s">&#39;err_str&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)}</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Failed to declare consumer for topic &#39;</span><span class="si">%(topic)s</span><span class="s">&#39;: &quot;</span>
+                      <span class="s">&quot;</span><span class="si">%(err_str)s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">log_info</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_declare_consumer</span><span class="p">():</span>
+            <span class="n">consumer</span> <span class="o">=</span> <span class="n">consumer_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_register_consumer</span><span class="p">(</span><span class="n">consumer</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">consumer</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span><span class="n">_connect_error</span><span class="p">,</span> <span class="n">_declare_consumer</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.iterconsume"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.iterconsume">[docs]</a>    <span class="k">def</span> <span class="nf">iterconsume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return an iterator that will consume from all queues/consumers.&quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_error_callback</span><span class="p">(</span><span class="n">exc</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">qpid_exceptions</span><span class="o">.</span><span class="n">Empty</span><span class="p">):</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Timed out waiting for RPC response: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+                          <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="n">rpc_common</span><span class="o">.</span><span class="n">Timeout</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Failed to consume message from queue: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+                              <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">_consume</span><span class="p">():</span>
+            <span class="n">nxt_receiver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">next_receiver</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lookup_consumer</span><span class="p">(</span><span class="n">nxt_receiver</span><span class="p">)</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Error processing message.  Skipping it.&quot;</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">limit</span> <span class="ow">and</span> <span class="n">iteration</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">StopIteration</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span><span class="n">_error_callback</span><span class="p">,</span> <span class="n">_consume</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.cancel_consumer_thread"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.cancel_consumer_thread">[docs]</a>    <span class="k">def</span> <span class="nf">cancel_consumer_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cancel a consumer thread.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">greenlet</span><span class="o">.</span><span class="n">GreenletExit</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Connection.wait_on_proxy_callbacks"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.wait_on_proxy_callbacks">[docs]</a>    <span class="k">def</span> <span class="nf">wait_on_proxy_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wait for all proxy callback threads to exit.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">proxy_cb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proxy_callbacks</span><span class="p">:</span>
+            <span class="n">proxy_cb</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Connection.publisher_send"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.publisher_send">[docs]</a>    <span class="k">def</span> <span class="nf">publisher_send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send to a publisher based on the publisher class.&quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_connect_error</span><span class="p">(</span><span class="n">exc</span><span class="p">):</span>
+            <span class="n">log_info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;topic&#39;</span><span class="p">:</span> <span class="n">topic</span><span class="p">,</span> <span class="s">&#39;err_str&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)}</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Failed to publish message to topic &quot;</span>
+                          <span class="s">&quot;&#39;</span><span class="si">%(topic)s</span><span class="s">&#39;: </span><span class="si">%(err_str)s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">log_info</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_publisher_send</span><span class="p">():</span>
+            <span class="n">publisher</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">)</span>
+            <span class="n">publisher</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span><span class="n">_connect_error</span><span class="p">,</span> <span class="n">_publisher_send</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.declare_direct_consumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.declare_direct_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">declare_direct_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a &#39;direct&#39; queue.</span>
+<span class="sd">        In nova&#39;s use, this is generally a msg_id queue used for</span>
+<span class="sd">        responses for call/multicall</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_consumer</span><span class="p">(</span><span class="n">DirectConsumer</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.declare_topic_consumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.declare_topic_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">declare_topic_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">queue_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">exchange_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a &#39;topic&#39; consumer.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_consumer</span><span class="p">(</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">TopicConsumer</span><span class="p">,</span>
+                                                <span class="n">name</span><span class="o">=</span><span class="n">queue_name</span><span class="p">,</span>
+                                                <span class="n">exchange_name</span><span class="o">=</span><span class="n">exchange_name</span><span class="p">,</span>
+                                                <span class="p">),</span>
+                              <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.declare_fanout_consumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.declare_fanout_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">declare_fanout_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a &#39;fanout&#39; consumer.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_consumer</span><span class="p">(</span><span class="n">FanoutConsumer</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.direct_send"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.direct_send">[docs]</a>    <span class="k">def</span> <span class="nf">direct_send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg_id</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a &#39;direct&#39; message.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publisher_send</span><span class="p">(</span><span class="n">DirectPublisher</span><span class="p">,</span> <span class="n">msg_id</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.topic_send"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.topic_send">[docs]</a>    <span class="k">def</span> <span class="nf">topic_send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a &#39;topic&#39; message.&quot;&quot;&quot;</span>
+        <span class="c">#</span>
+        <span class="c"># We want to create a message with attributes, e.g. a TTL. We</span>
+        <span class="c"># don&#39;t really need to keep &#39;msg&#39; in its JSON format any longer</span>
+        <span class="c"># so let&#39;s create an actual qpid message here and get some</span>
+        <span class="c"># value-add on the go.</span>
+        <span class="c">#</span>
+        <span class="c"># WARNING: Request timeout happens to be in the same units as</span>
+        <span class="c"># qpid&#39;s TTL (seconds). If this changes in the future, then this</span>
+        <span class="c"># will need to be altered accordingly.</span>
+        <span class="c">#</span>
+        <span class="n">qpid_message</span> <span class="o">=</span> <span class="n">qpid_messaging</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publisher_send</span><span class="p">(</span><span class="n">TopicPublisher</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">qpid_message</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.fanout_send"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.fanout_send">[docs]</a>    <span class="k">def</span> <span class="nf">fanout_send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a &#39;fanout&#39; message.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publisher_send</span><span class="p">(</span><span class="n">FanoutPublisher</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.notify_send"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.notify_send">[docs]</a>    <span class="k">def</span> <span class="nf">notify_send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a notify message on a topic.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publisher_send</span><span class="p">(</span><span class="n">NotifyPublisher</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Connection.consume"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.consume">[docs]</a>    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Consume from all queues/consumers.&quot;&quot;&quot;</span>
+        <span class="n">it</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterconsume</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Connection.consume_in_thread"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.consume_in_thread">[docs]</a>    <span class="k">def</span> <span class="nf">consume_in_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Consumer from all queues/consumers in a greenthread.&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">_consumer_thread</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">greenlet</span><span class="o">.</span><span class="n">GreenletExit</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span> <span class="o">=</span> <span class="n">eventlet</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">_consumer_thread</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumer_thread</span>
+</div>
+<div class="viewcode-block" id="Connection.create_consumer"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.create_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">create_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">fanout</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a consumer that calls a method in a proxy object.&quot;&quot;&quot;</span>
+        <span class="n">proxy_cb</span> <span class="o">=</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">ProxyCallback</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span>
+            <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proxy_cb</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fanout</span><span class="p">:</span>
+            <span class="n">consumer</span> <span class="o">=</span> <span class="n">FanoutConsumer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy_cb</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">consumer</span> <span class="o">=</span> <span class="n">TopicConsumer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy_cb</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_consumer</span><span class="p">(</span><span class="n">consumer</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">consumer</span>
+</div>
+<div class="viewcode-block" id="Connection.create_worker"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.create_worker">[docs]</a>    <span class="k">def</span> <span class="nf">create_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">pool_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a worker that calls a method in a proxy object.&quot;&quot;&quot;</span>
+        <span class="n">proxy_cb</span> <span class="o">=</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">ProxyCallback</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span>
+            <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proxy_cb</span><span class="p">)</span>
+
+        <span class="n">consumer</span> <span class="o">=</span> <span class="n">TopicConsumer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">proxy_cb</span><span class="p">,</span>
+                                 <span class="n">name</span><span class="o">=</span><span class="n">pool_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_consumer</span><span class="p">(</span><span class="n">consumer</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">consumer</span>
+</div>
+<div class="viewcode-block" id="Connection.join_consumer_pool"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.Connection.join_consumer_pool">[docs]</a>    <span class="k">def</span> <span class="nf">join_consumer_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">pool_name</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span>
+                           <span class="n">exchange_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register as a member of a group of consumers for a given topic from</span>
+<span class="sd">        the specified exchange.</span>
+
+<span class="sd">        Exactly one member of a given pool will receive each message.</span>
+
+<span class="sd">        A message will be delivered to multiple pools, if more than</span>
+<span class="sd">        one is created.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">callback_wrapper</span> <span class="o">=</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">CallbackWrapper</span><span class="p">(</span>
+            <span class="n">conf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+            <span class="n">connection_pool</span><span class="o">=</span><span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span>
+                                                         <span class="n">Connection</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback_wrapper</span><span class="p">)</span>
+
+        <span class="n">consumer</span> <span class="o">=</span> <span class="n">TopicConsumer</span><span class="p">(</span><span class="n">conf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span>
+                                 <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                                 <span class="n">topic</span><span class="o">=</span><span class="n">topic</span><span class="p">,</span>
+                                 <span class="n">callback</span><span class="o">=</span><span class="n">callback_wrapper</span><span class="p">,</span>
+                                 <span class="n">name</span><span class="o">=</span><span class="n">pool_name</span><span class="p">,</span>
+                                 <span class="n">exchange_name</span><span class="o">=</span><span class="n">exchange_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_consumer</span><span class="p">(</span><span class="n">consumer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">consumer</span>
+
+</div></div>
+<div class="viewcode-block" id="create_connection"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.create_connection">[docs]</a><span class="k">def</span> <span class="nf">create_connection</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a connection.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span>
+        <span class="n">conf</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span>
+        <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="multicall"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.multicall">[docs]</a><span class="k">def</span> <span class="nf">multicall</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a call that returns multiple times.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">multicall</span><span class="p">(</span>
+        <span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span>
+        <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="call"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.call">[docs]</a><span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sends a message on a topic and wait for a response.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+        <span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span>
+        <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="cast"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.cast">[docs]</a><span class="k">def</span> <span class="nf">cast</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sends a message on a topic without waiting for a response.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
+        <span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span>
+        <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="fanout_cast"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.fanout_cast">[docs]</a><span class="k">def</span> <span class="nf">fanout_cast</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sends a message on a fanout exchange without waiting for a response.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">fanout_cast</span><span class="p">(</span>
+        <span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span>
+        <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="cast_to_server"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.cast_to_server">[docs]</a><span class="k">def</span> <span class="nf">cast_to_server</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sends a message on a topic to a specific server.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">cast_to_server</span><span class="p">(</span>
+        <span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span>
+        <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="fanout_cast_to_server"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.fanout_cast_to_server">[docs]</a><span class="k">def</span> <span class="nf">fanout_cast_to_server</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sends a message on a fanout exchange to a specific server.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">fanout_cast_to_server</span><span class="p">(</span>
+        <span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">server_params</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span>
+        <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="notify"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.notify">[docs]</a><span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">envelope</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sends a notification event on a topic.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span>
+                           <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">get_connection_pool</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">Connection</span><span class="p">),</span>
+                           <span class="n">envelope</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="cleanup"><a class="viewcode-back" href="../../../../../sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.rpc.impl_qpid.html#openstack_dashboard.openstack.common.rpc.impl_qpid.cleanup">[docs]</a><span class="k">def</span> <span class="nf">cleanup</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">rpc_amqp</span><span class="o">.</span><span class="n">cleanup</span><span class="p">(</span><span class="n">Connection</span><span class="o">.</span><span class="n">pool</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../rpc.html" accesskey="U">openstack_dashboard.openstack.common.rpc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

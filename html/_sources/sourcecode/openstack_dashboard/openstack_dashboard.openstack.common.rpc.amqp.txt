@@ -1,0 +1,8 @@
+===============================================================
+The :mod:`openstack_dashboard.openstack.common.rpc.amqp` Module
+===============================================================
+.. automodule:: openstack_dashboard.openstack.common.rpc.amqp
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

@@ -1,0 +1,449 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The openstack_dashboard.openstack.common.policy Module &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../index.html" />
+    <link rel="up" title="Source Code Index" href="../autoindex.html" />
+    <link rel="next" title="The openstack_dashboard.openstack.common.loopingcall Module" href="openstack_dashboard.openstack.common.loopingcall.html" />
+    <link rel="prev" title="The openstack_dashboard.openstack.common.threadgroup Module" href="openstack_dashboard.openstack.common.threadgroup.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-openstack-dashboard-openstack-common-policy-module">
+<h1>The <tt class="xref py py-mod docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy</span></tt> Module<a class="headerlink" href="#the-openstack-dashboard-openstack-common-policy-module" title="Permalink to this headline">¶</a></h1>
+<p>Common Policy Engine Implementation</p>
+<p>Policies can be expressed in one of two forms: A list of lists, or a
+string written in the new policy language.</p>
+<p>In the list-of-lists representation, each check inside the innermost
+list is combined as with an &#8220;and&#8221; conjunction&#8211;for that check to pass,
+all the specified checks must pass.  These innermost lists are then
+combined as with an &#8220;or&#8221; conjunction.  This is the original way of
+expressing policies, but there now exists a new way: the policy
+language.</p>
+<p>In the policy language, each check is specified the same way as in the
+list-of-lists representation: a simple &#8220;a:b&#8221; pair that is matched to
+the correct code to perform that check.  However, conjunction
+operators are available, allowing for more expressiveness in crafting
+policies.</p>
+<p>As an example, take the following rule, expressed in the list-of-lists
+representation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[[</span><span class="s">&quot;role:admin&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s">&quot;project_id:</span><span class="si">%(project_id)s</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;role:projectadmin&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>In the policy language, this becomes:</p>
+<div class="highlight-python"><pre>role:admin or (project_id:%(project_id)s and role:projectadmin)</pre>
+</div>
+<p>The policy language also has the &#8220;not&#8221; operator, allowing a richer
+policy rule:</p>
+<div class="highlight-python"><pre>project_id:%(project_id)s and not role:dunce</pre>
+</div>
+<p>Finally, two special policy checks should be mentioned; the policy
+check &#8220;&#64;&#8221; will always accept an access, and the policy check &#8221;!&#8221; will
+always reject an access.  (Note that if a rule is either the empty
+list (&#8220;[]&#8221;) or the empty string, this is equivalent to the &#8220;&#64;&#8221; policy
+check.)  Of these, the &#8221;!&#8221; policy check is probably the most useful,
+as it allows particular rules to be explicitly disabled.</p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">AndCheck</tt><big>(</big><em>rules</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#AndCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.BaseCheck</span></tt></p>
+<p>Implements the &#8220;and&#8221; logical operator.</p>
+<p>A policy check that requires that a list of other checks all return True.</p>
+<dl class="method">
+<dt>
+<tt class="descclassname">AndCheck.</tt><tt class="descname">add_check</tt><big>(</big><em>rule</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#AndCheck.add_check"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Adds rule to be tested.</p>
+<p>Allows addition of another rule to the list of rules that will
+be tested.  Returns the AndCheck object for convenience.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">BaseCheck</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#BaseCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Abstract base class for Check classes.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">Check</tt><big>(</big><em>kind</em>, <em>match</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Check"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.BaseCheck</span></tt></p>
+<p>A base class to allow for user-defined policy checks.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">Enforcer</tt><big>(</big><em>policy_file=None</em>, <em>rules=None</em>, <em>default_rule=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Enforcer"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Responsible for loading and enforcing rules.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>policy_file</strong> &#8211; Custom policy file to use, if none is
+specified, <cite>CONF.policy_file</cite> will be
+used.</li>
+<li><strong>rules</strong> &#8211; Default dictionary / Rules to use. It will be
+considered just in the first instantiation. If
+<cite>load_rules(True)</cite>, <cite>clear()</cite> or <cite>set_rules(True)</cite>
+is called this will be overwritten.</li>
+<li><strong>default_rule</strong> &#8211; Default rule to use, CONF.default_rule will
+be used if none is specified.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt>
+<tt class="descclassname">Enforcer.</tt><tt class="descname">clear</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Enforcer.clear"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Clears Enforcer rules, policy&#8217;s cache and policy&#8217;s path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">Enforcer.</tt><tt class="descname">enforce</tt><big>(</big><em>rule</em>, <em>target</em>, <em>creds</em>, <em>do_raise=False</em>, <em>exc=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Enforcer.enforce"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Checks authorization of a rule against the target and credentials.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rule</strong> &#8211; A string or BaseCheck instance specifying the rule
+to evaluate.</li>
+<li><strong>target</strong> &#8211; As much information about the object being operated
+on as possible, as a dictionary.</li>
+<li><strong>creds</strong> &#8211; As much information about the user performing the
+action as possible, as a dictionary.</li>
+<li><strong>do_raise</strong> &#8211; Whether to raise an exception or not if check
+fails.</li>
+<li><strong>exc</strong> &#8211; Class of the exception to raise if the check fails.
+Any remaining arguments passed to check() (both
+positional and keyword arguments) will be passed to
+the exception class. If not specified, PolicyNotAuthorized
+will be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Returns False if the policy does not allow the action and
+exc is not provided; otherwise, returns a value that
+evaluates to True.  Note: for rules using the &#8220;case&#8221;
+expression, this True value will be the specified string
+from the expression.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">Enforcer.</tt><tt class="descname">load_rules</tt><big>(</big><em>force_reload=False</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Enforcer.load_rules"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Loads policy_path&#8217;s rules.</p>
+<p>Policy file is cached and will be reloaded if modified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>force_reload</strong> &#8211; Whether to overwrite current rules.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">Enforcer.</tt><tt class="descname">set_rules</tt><big>(</big><em>rules</em>, <em>overwrite=True</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Enforcer.set_rules"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Create a new Rules object based on the provided dict of rules.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rules</strong> &#8211; New rules to use. It should be an instance of dict.</li>
+<li><strong>overwrite</strong> &#8211; Whether to overwrite current rules or update them
+with the new rules.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">FalseCheck</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#FalseCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.BaseCheck</span></tt></p>
+<p>A policy check that always returns False (disallow).</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">GenericCheck</tt><big>(</big><em>kind</em>, <em>match</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#GenericCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.Check</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">HttpCheck</tt><big>(</big><em>kind</em>, <em>match</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#HttpCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.Check</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">NotCheck</tt><big>(</big><em>rule</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#NotCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.BaseCheck</span></tt></p>
+<p>Implements the &#8220;not&#8221; logical operator.</p>
+<p>A policy check that inverts the result of another policy check.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">OrCheck</tt><big>(</big><em>rules</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#OrCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.BaseCheck</span></tt></p>
+<p>Implements the &#8220;or&#8221; operator.</p>
+<p>A policy check that requires that at least one of a list of other
+checks returns True.</p>
+<dl class="method">
+<dt>
+<tt class="descclassname">OrCheck.</tt><tt class="descname">add_check</tt><big>(</big><em>rule</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#OrCheck.add_check"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Adds rule to be tested.</p>
+<p>Allows addition of another rule to the list of rules that will
+be tested.  Returns the OrCheck object for convenience.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">ParseState</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#ParseState"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Implement the core of parsing the policy language.</p>
+<p>Uses a greedy reduction algorithm to reduce a sequence of tokens into
+a single terminal, the value of which will be the root of the Check tree.</p>
+<p>Note: error reporting is rather lacking.  The best we can get with
+this parser formulation is an overall &#8220;parse failed&#8221; error.
+Fortunately, the policy language is simple enough that this
+shouldn&#8217;t be that big a problem.</p>
+<dl class="method">
+<dt>
+<tt class="descclassname">ParseState.</tt><tt class="descname">reduce</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#ParseState.reduce"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Perform a greedy reduction of the token stream.</p>
+<p>If a reducer method matches, it will be executed, then the
+reduce() method will be called recursively to search for any more
+possible reductions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ParseState.</tt><tt class="descname">reducers</tt><em class="property"> = [(['check', 'or', 'check'], '_make_or_expr'), (['or_expr', 'or', 'check'], '_extend_or_expr'), (['not', 'check'], '_make_not_expr'), (['check', 'and', 'check'], '_make_and_expr'), (['and_expr', 'and', 'check'], '_extend_and_expr'), (['(', 'or_expr', ')'], '_wrap_check'), (['(', 'and_expr', ')'], '_wrap_check'), (['(', 'check', ')'], '_wrap_check')]</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">ParseState.</tt><tt class="descname">result</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#ParseState.result"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Obtain the final result of the parse.</p>
+<p>Raises ValueError if the parse failed to reduce to a single result.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">ParseState.</tt><tt class="descname">shift</tt><big>(</big><em>tok</em>, <em>value</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#ParseState.shift"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Adds one more token to the state.  Calls reduce().</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">ParseStateMeta</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#ParseStateMeta"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">type</span></tt></p>
+<p>Metaclass for the ParseState class.</p>
+<p>Facilitates identifying reduction methods.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">PolicyNotAuthorized</tt><big>(</big><em>rule</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#PolicyNotAuthorized"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">RoleCheck</tt><big>(</big><em>kind</em>, <em>match</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#RoleCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.Check</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">RuleCheck</tt><big>(</big><em>kind</em>, <em>match</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#RuleCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.Check</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">Rules</tt><big>(</big><em>rules=None</em>, <em>default_rule=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Rules"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a></p>
+<p>A store for rules. Handles the default_rule setting directly.</p>
+<dl class="classmethod">
+<dt>
+<em class="property">classmethod </em><tt class="descclassname">Rules.</tt><tt class="descname">load_json</tt><big>(</big><em>data</em>, <em>default_rule=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#Rules.load_json"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Allow loading of JSON rule data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">TrueCheck</tt><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#TrueCheck"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">openstack_dashboard.openstack.common.policy.BaseCheck</span></tt></p>
+<p>A policy check that always returns True (allow).</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">parse_rule</tt><big>(</big><em>rule</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#parse_rule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Parses a policy rule into a tree of Check objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">reducer</tt><big>(</big><em>*tokens</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#reducer"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Decorator for reduction methods.</p>
+<p>Arguments are a sequence of tokens, in order, which should trigger running
+this reduction method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">openstack_dashboard.openstack.common.policy.</tt><tt class="descname">register</tt><big>(</big><em>name</em>, <em>func=None</em><big>)</big><a class="reference internal" href="../../_modules/openstack_dashboard/openstack/common/policy.html#register"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Register a function or Check class as a policy check.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Gives the name of the check type, e.g., &#8216;rule&#8217;,
+&#8216;role&#8217;, etc.  If name is None, a default check type
+will be registered.</li>
+<li><strong>func</strong> &#8211; If given, provides the function or class to register.
+If not given, returns a function taking one argument
+to specify the function or class to register,
+allowing use as a decorator.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="openstack_dashboard.openstack.common.threadgroup.html"
+                                  title="previous chapter">The <tt class="docutils literal docutils literal"><span class="pre">openstack_dashboard.openstack.common.threadgroup</span></tt> Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="openstack_dashboard.openstack.common.loopingcall.html"
+                                  title="next chapter">The <tt class="docutils literal docutils literal docutils literal"><span class="pre">openstack_dashboard.openstack.common.loopingcall</span></tt> Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../_sources/sourcecode/openstack_dashboard/openstack_dashboard.openstack.common.policy.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.openstack.common.loopingcall.html" title="The openstack_dashboard.openstack.common.loopingcall Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openstack_dashboard.openstack.common.threadgroup.html" title="The openstack_dashboard.openstack.common.threadgroup Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../autoindex.html" accesskey="U">Source Code Index</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

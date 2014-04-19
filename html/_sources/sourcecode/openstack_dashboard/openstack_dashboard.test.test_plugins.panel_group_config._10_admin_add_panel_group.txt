@@ -1,0 +1,8 @@
+====================================================================================================
+The :mod:`openstack_dashboard.test.test_plugins.panel_group_config._10_admin_add_panel_group` Module
+====================================================================================================
+.. automodule:: openstack_dashboard.test.test_plugins.panel_group_config._10_admin_add_panel_group
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

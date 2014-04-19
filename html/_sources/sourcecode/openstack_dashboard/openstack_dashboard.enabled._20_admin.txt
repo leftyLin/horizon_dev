@@ -1,0 +1,8 @@
+=======================================================
+The :mod:`openstack_dashboard.enabled._20_admin` Module
+=======================================================
+.. automodule:: openstack_dashboard.enabled._20_admin
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

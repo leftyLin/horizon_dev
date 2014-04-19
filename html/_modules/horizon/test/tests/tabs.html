@@ -1,0 +1,404 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>horizon.test.tests.tabs &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="horizon" href="../../../horizon.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for horizon.test.tests.tabs</h1><div class="highlight"><pre>
+<span class="c"># vim: tabstop=4 shiftwidth=4 softtabstop=4</span>
+
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">http</span>
+
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">exceptions</span>
+<span class="kn">from</span> <span class="nn">horizon</span> <span class="kn">import</span> <span class="n">tabs</span> <span class="k">as</span> <span class="n">horizon_tabs</span>
+<span class="kn">from</span> <span class="nn">horizon.test</span> <span class="kn">import</span> <span class="n">helpers</span> <span class="k">as</span> <span class="n">test</span>
+
+<span class="kn">from</span> <span class="nn">horizon.test.tests.tables</span> <span class="kn">import</span> <span class="n">MyTable</span>  <span class="c"># noqa</span>
+<span class="kn">from</span> <span class="nn">horizon.test.tests.tables</span> <span class="kn">import</span> <span class="n">TEST_DATA</span>  <span class="c"># noqa</span>
+
+
+<div class="viewcode-block" id="BaseTestTab"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.BaseTestTab">[docs]</a><span class="k">class</span> <span class="nc">BaseTestTab</span><span class="p">(</span><span class="n">horizon_tabs</span><span class="o">.</span><span class="n">Tab</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTestTab.get_context_data"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.BaseTestTab.get_context_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s">&quot;tab&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="p">}</span>
+
+</div></div>
+<div class="viewcode-block" id="TabOne"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabOne">[docs]</a><span class="k">class</span> <span class="nc">TabOne</span><span class="p">(</span><span class="n">BaseTestTab</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;tab_one&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Tab One&quot;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;_tab.html&quot;</span>
+
+</div>
+<div class="viewcode-block" id="TabDelayed"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabDelayed">[docs]</a><span class="k">class</span> <span class="nc">TabDelayed</span><span class="p">(</span><span class="n">BaseTestTab</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;tab_delayed&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Delayed Tab&quot;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;_tab.html&quot;</span>
+    <span class="n">preload</span> <span class="o">=</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="TabDisabled"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabDisabled">[docs]</a><span class="k">class</span> <span class="nc">TabDisabled</span><span class="p">(</span><span class="n">BaseTestTab</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;tab_disabled&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Disabled Tab&quot;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;_tab.html&quot;</span>
+
+<div class="viewcode-block" id="TabDisabled.enabled"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabDisabled.enabled">[docs]</a>    <span class="k">def</span> <span class="nf">enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="TabDisallowed"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabDisallowed">[docs]</a><span class="k">class</span> <span class="nc">TabDisallowed</span><span class="p">(</span><span class="n">BaseTestTab</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;tab_disallowed&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Disallowed Tab&quot;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;_tab.html&quot;</span>
+
+<div class="viewcode-block" id="TabDisallowed.allowed"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabDisallowed.allowed">[docs]</a>    <span class="k">def</span> <span class="nf">allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="Group"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.Group">[docs]</a><span class="k">class</span> <span class="nc">Group</span><span class="p">(</span><span class="n">horizon_tabs</span><span class="o">.</span><span class="n">TabGroup</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;tab_group&quot;</span>
+    <span class="n">tabs</span> <span class="o">=</span> <span class="p">(</span><span class="n">TabOne</span><span class="p">,</span> <span class="n">TabDelayed</span><span class="p">,</span> <span class="n">TabDisabled</span><span class="p">,</span> <span class="n">TabDisallowed</span><span class="p">)</span>
+    <span class="n">sticky</span> <span class="o">=</span> <span class="bp">True</span>
+
+<div class="viewcode-block" id="Group.tabs_not_available"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.Group.tabs_not_available">[docs]</a>    <span class="k">def</span> <span class="nf">tabs_not_available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assert_tabs_not_available</span> <span class="o">=</span> <span class="bp">True</span>
+
+</div></div>
+<div class="viewcode-block" id="TabWithTable"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabWithTable">[docs]</a><span class="k">class</span> <span class="nc">TabWithTable</span><span class="p">(</span><span class="n">horizon_tabs</span><span class="o">.</span><span class="n">TableTab</span><span class="p">):</span>
+    <span class="n">table_classes</span> <span class="o">=</span> <span class="p">(</span><span class="n">MyTable</span><span class="p">,)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Tab With My Table&quot;</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;tab_with_table&quot;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;horizon/common/_detail_table.html&quot;</span>
+
+<div class="viewcode-block" id="TabWithTable.get_my_table_data"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabWithTable.get_my_table_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_my_table_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">TEST_DATA</span>
+
+</div></div>
+<div class="viewcode-block" id="RecoverableErrorTab"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.RecoverableErrorTab">[docs]</a><span class="k">class</span> <span class="nc">RecoverableErrorTab</span><span class="p">(</span><span class="n">horizon_tabs</span><span class="o">.</span><span class="n">Tab</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Recoverable Error Tab&quot;</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;recoverable_error_tab&quot;</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;_tab.html&quot;</span>
+
+<div class="viewcode-block" id="RecoverableErrorTab.get_context_data"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.RecoverableErrorTab.get_context_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="c"># Raise a known recoverable error.</span>
+        <span class="n">exc</span> <span class="o">=</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">AlreadyExists</span><span class="p">(</span><span class="s">&quot;Recoverable!&quot;</span><span class="p">,</span> <span class="n">horizon_tabs</span><span class="o">.</span><span class="n">Tab</span><span class="p">)</span>
+        <span class="n">exc</span><span class="o">.</span><span class="n">silence_logging</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">raise</span> <span class="n">exc</span>
+
+</div></div>
+<div class="viewcode-block" id="TableTabGroup"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TableTabGroup">[docs]</a><span class="k">class</span> <span class="nc">TableTabGroup</span><span class="p">(</span><span class="n">horizon_tabs</span><span class="o">.</span><span class="n">TabGroup</span><span class="p">):</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;tab_group&quot;</span>
+    <span class="n">tabs</span> <span class="o">=</span> <span class="p">[</span><span class="n">TabWithTable</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="TabWithTableView"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabWithTableView">[docs]</a><span class="k">class</span> <span class="nc">TabWithTableView</span><span class="p">(</span><span class="n">horizon_tabs</span><span class="o">.</span><span class="n">TabbedTableView</span><span class="p">):</span>
+    <span class="n">tab_group_class</span> <span class="o">=</span> <span class="n">TableTabGroup</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s">&quot;tab_group.html&quot;</span>
+
+</div>
+<div class="viewcode-block" id="TabTests"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabTests">[docs]</a><span class="k">class</span> <span class="nc">TabTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TabTests.test_tab_group_basics"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabTests.test_tab_group_basics">[docs]</a>    <span class="k">def</span> <span class="nf">test_tab_group_basics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c"># Test tab instantiation/attachement to tab group, and get_tabs method</span>
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tabs</span><span class="p">()</span>
+        <span class="c"># &quot;tab_disallowed&quot; should NOT be in this list.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">tabs</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;&lt;TabOne: tab_one&gt;&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;&lt;TabDelayed: tab_delayed&gt;&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;&lt;TabDisabled: tab_disabled&gt;&#39;</span><span class="p">])</span>
+        <span class="c"># Test get_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="s">&quot;tab_group&quot;</span><span class="p">)</span>
+        <span class="c"># get_default_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">get_default_classes</span><span class="p">(),</span>
+                         <span class="n">horizon_tabs</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">CSS_TAB_GROUP_CLASSES</span><span class="p">)</span>
+        <span class="c"># Test get_tab</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_one&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">slug</span><span class="p">,</span> <span class="s">&quot;tab_one&quot;</span><span class="p">)</span>
+
+        <span class="c"># Test selected is None w/o GET input</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">selected</span><span class="p">)</span>
+
+        <span class="c"># Test get_selected_tab is None w/o GET input</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">get_selected_tab</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="TabTests.test_tab_group_active_tab"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabTests.test_tab_group_active_tab">[docs]</a>    <span class="k">def</span> <span class="nf">test_tab_group_active_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c"># active tab w/o selected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">active</span><span class="p">,</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tabs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c"># active tab w/ selected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;tab_group__tab_delayed&quot;</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">active</span><span class="p">,</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&#39;tab_delayed&#39;</span><span class="p">))</span>
+
+        <span class="c"># active tab w/ invalid selected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;tab_group__tab_invalid&quot;</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">active</span><span class="p">,</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tabs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c"># active tab w/ disallowed selected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;tab_group__tab_disallowed&quot;</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">active</span><span class="p">,</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tabs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c"># active tab w/ disabled selected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;tab_group__tab_disabled&quot;</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">active</span><span class="p">,</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tabs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="TabTests.test_tab_basics"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabTests.test_tab_basics">[docs]</a>    <span class="k">def</span> <span class="nf">test_tab_basics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">tab_one</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_one&quot;</span><span class="p">)</span>
+        <span class="n">tab_delayed</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_delayed&quot;</span><span class="p">)</span>
+        <span class="n">tab_disabled</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_disabled&quot;</span><span class="p">,</span> <span class="n">allow_disabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># Disallowed tab isn&#39;t even returned</span>
+        <span class="n">tab_disallowed</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_disallowed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">tab_disallowed</span><span class="p">)</span>
+
+        <span class="c"># get_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tab_one</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="s">&quot;tab_group__tab_one&quot;</span><span class="p">)</span>
+
+        <span class="c"># get_default_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tab_one</span><span class="o">.</span><span class="n">get_default_classes</span><span class="p">(),</span>
+                         <span class="n">horizon_tabs</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">CSS_ACTIVE_TAB_CLASSES</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">tab_disabled</span><span class="o">.</span><span class="n">get_default_classes</span><span class="p">(),</span>
+                         <span class="n">horizon_tabs</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">CSS_DISABLED_TAB_CLASSES</span><span class="p">)</span>
+
+        <span class="c"># load, allowed, enabled</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">tab_one</span><span class="o">.</span><span class="n">load</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">tab_delayed</span><span class="o">.</span><span class="n">load</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">tab_disabled</span><span class="o">.</span><span class="n">load</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab_delayed</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">tab_delayed</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_delayed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">tab_delayed</span><span class="o">.</span><span class="n">load</span><span class="p">)</span>
+
+        <span class="c"># is_active</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">tab_one</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_one&quot;</span><span class="p">)</span>
+        <span class="n">tab_delayed</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_delayed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">tab_one</span><span class="o">.</span><span class="n">is_active</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">tab_delayed</span><span class="o">.</span><span class="n">is_active</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab_delayed</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">tab_one</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_one&quot;</span><span class="p">)</span>
+        <span class="n">tab_delayed</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_delayed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">tab_one</span><span class="o">.</span><span class="n">is_active</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">tab_delayed</span><span class="o">.</span><span class="n">is_active</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="TabTests.test_rendering"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabTests.test_rendering">[docs]</a>    <span class="k">def</span> <span class="nf">test_rendering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">tab_one</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_one&quot;</span><span class="p">)</span>
+        <span class="n">tab_delayed</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_delayed&quot;</span><span class="p">)</span>
+        <span class="n">tab_disabled</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_disabled&quot;</span><span class="p">,</span> <span class="n">allow_disabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># tab group</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">HttpResponse</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;&lt;li&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="c"># stickiness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&#39;data-sticky-tabs=&quot;sticky&quot;&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># tab</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">tab_one</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">tab_one</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c"># disabled tab</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">tab_disabled</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c"># preload false</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">tab_delayed</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c"># preload false w/ active</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;tab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab_delayed</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">tab_delayed</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">get_tab</span><span class="p">(</span><span class="s">&quot;tab_delayed&quot;</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">tab_delayed</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">tab_delayed</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TabTests.test_table_tabs"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabTests.test_table_tabs">[docs]</a>    <span class="k">def</span> <span class="nf">test_table_tabs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tab_group</span> <span class="o">=</span> <span class="n">TableTabGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">tabs</span> <span class="o">=</span> <span class="n">tab_group</span><span class="o">.</span><span class="n">get_tabs</span><span class="p">()</span>
+        <span class="c"># Only one tab, as expected.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tabs</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="n">tabs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c"># Make sure it&#39;s the tab we think it is.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">horizon_tabs</span><span class="o">.</span><span class="n">TableTab</span><span class="p">)</span>
+        <span class="c"># Data should not be loaded yet.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">tab</span><span class="o">.</span><span class="n">_table_data_loaded</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">tab</span><span class="o">.</span><span class="n">_tables</span><span class="p">[</span><span class="n">MyTable</span><span class="o">.</span><span class="n">Meta</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">MyTable</span><span class="p">)</span>
+        <span class="c"># Let&#39;s make sure the data *really* isn&#39;t loaded yet.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="c"># Okay, load the data.</span>
+        <span class="n">tab</span><span class="o">.</span><span class="n">load_table_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">tab</span><span class="o">.</span><span class="n">_table_data_loaded</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;&lt;FakeObject: object_1&gt;&#39;</span><span class="p">,</span>
+                                              <span class="s">&#39;&lt;FakeObject: object_2&gt;&#39;</span><span class="p">,</span>
+                                              <span class="s">&#39;&lt;FakeObject: object_3&gt;&#39;</span><span class="p">])</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">tab</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="c"># Make sure our table is loaded into the context correctly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;my_table_table&#39;</span><span class="p">],</span> <span class="n">table</span><span class="p">)</span>
+        <span class="c"># Since we only had one table we should get the shortcut name too.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;table&#39;</span><span class="p">],</span> <span class="n">table</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TabTests.test_tabbed_table_view"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabTests.test_tabbed_table_view">[docs]</a>    <span class="k">def</span> <span class="nf">test_tabbed_table_view</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">TabWithTableView</span><span class="o">.</span><span class="n">as_view</span><span class="p">()</span>
+
+        <span class="c"># Be sure we get back a rendered table containing data for a GET</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;&lt;table&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;Displaying 3 items&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># AJAX response to GET for row update</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;table&quot;</span><span class="p">:</span> <span class="s">&quot;my_table&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;row_update&quot;</span><span class="p">,</span> <span class="s">&quot;obj_id&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">}</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
+                               <span class="n">HTTP_X_REQUESTED_WITH</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="c"># Make sure we got back a row but not a table or body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;&lt;tr&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;&lt;table&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">&quot;&lt;body&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c"># Response to POST for table action</span>
+        <span class="n">action_string</span> <span class="o">=</span> <span class="s">&quot;my_table__toggle__2&quot;</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="n">action_string</span><span class="p">})</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">302</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s">&quot;location&quot;</span><span class="p">],</span> <span class="s">&quot;/&quot;</span><span class="p">)</span>
+
+        <span class="c"># Ensure that lookup errors are raised as such instead of converted</span>
+        <span class="c"># to TemplateSyntaxErrors.</span>
+        <span class="n">action_string</span> <span class="o">=</span> <span class="s">&quot;my_table__toggle__2000000000&quot;</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="n">action_string</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Http302</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="TabExceptionTests"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabExceptionTests">[docs]</a><span class="k">class</span> <span class="nc">TabExceptionTests</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TabExceptionTests.setUp"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabExceptionTests.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TabExceptionTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_original_tabs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">TabWithTableView</span><span class="o">.</span><span class="n">tab_group_class</span><span class="o">.</span><span class="n">tabs</span><span class="p">)</span>
+        <span class="n">TabWithTableView</span><span class="o">.</span><span class="n">tab_group_class</span><span class="o">.</span><span class="n">tabs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RecoverableErrorTab</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TabExceptionTests.tearDown"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabExceptionTests.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TabExceptionTests</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
+        <span class="n">TabWithTableView</span><span class="o">.</span><span class="n">tab_group_class</span><span class="o">.</span><span class="n">tabs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_tabs</span>
+</div>
+<div class="viewcode-block" id="TabExceptionTests.test_tab_view_exception"><a class="viewcode-back" href="../../../../sourcecode/horizon/horizon.test.tests.tabs.html#horizon.test.tests.tabs.TabExceptionTests.test_tab_view_exception">[docs]</a>    <span class="k">def</span> <span class="nf">test_tab_view_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">TabWithTableView</span><span class="o">.</span><span class="n">as_view</span><span class="p">()</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertMessageCount</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../horizon.html" accesskey="U">horizon</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

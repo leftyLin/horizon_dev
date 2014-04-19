@@ -1,0 +1,8 @@
+=====================================================================
+The :mod:`openstack_dashboard.openstack.common.rpc.matchmaker` Module
+=====================================================================
+.. automodule:: openstack_dashboard.openstack.common.rpc.matchmaker
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

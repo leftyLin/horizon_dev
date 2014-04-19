@@ -1,0 +1,8 @@
+=============================================
+The :mod:`horizon.test.tests.messages` Module
+=============================================
+.. automodule:: horizon.test.tests.messages
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

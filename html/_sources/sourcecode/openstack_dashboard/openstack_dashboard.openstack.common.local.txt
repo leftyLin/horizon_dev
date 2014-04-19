@@ -1,0 +1,8 @@
+============================================================
+The :mod:`openstack_dashboard.openstack.common.local` Module
+============================================================
+.. automodule:: openstack_dashboard.openstack.common.local
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

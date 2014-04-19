@@ -1,0 +1,8 @@
+==============================================================
+The :mod:`openstack_dashboard.openstack.common.context` Module
+==============================================================
+.. automodule:: openstack_dashboard.openstack.common.context
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:

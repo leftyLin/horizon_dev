@@ -1,0 +1,1054 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openstack_dashboard.test.test_data.neutron_data &mdash; Horizon 2014.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/tweaks.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2014.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="Horizon 2014.1 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+  <div id="header">
+    <h1 id="logo"><a href="http://www.openstack.org/">OpenStack</a></h1>
+    <ul id="navigation">
+      
+      <li><a href="http://www.openstack.org/" title="Go to the Home page" class="link">Home</a></li>
+      <li><a href="http://www.openstack.org/projects/" title="Go to the OpenStack Projects page">Projects</a></li>
+      <li><a href="http://www.openstack.org/user-stories/" title="Go to the User Stories page" class="link">User Stories</a></li>
+      <li><a href="http://www.openstack.org/community/" title="Go to the Community page" class="link">Community</a></li>
+      <li><a href="http://www.openstack.org/blog/" title="Go to the OpenStack Blog">Blog</a></li>
+      <li><a href="http://wiki.openstack.org/" title="Go to the OpenStack Wiki">Wiki</a></li>
+      <li><a href="http://docs.openstack.org/" title="Go to OpenStack Documentation" class="current">Documentation</a></li>
+      
+    </ul>
+  </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for openstack_dashboard.test.test_data.neutron_data</h1><div class="highlight"><pre>
+<span class="c"># Copyright 2012 Nebula, Inc.</span>
+<span class="c">#</span>
+<span class="c">#    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c">#    not use this file except in compliance with the License. You may obtain</span>
+<span class="c">#    a copy of the License at</span>
+<span class="c">#</span>
+<span class="c">#         http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c">#</span>
+<span class="c">#    Unless required by applicable law or agreed to in writing, software</span>
+<span class="c">#    distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c">#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c">#    License for the specific language governing permissions and limitations</span>
+<span class="c">#    under the License.</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">base</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">fwaas</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">lbaas</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">neutron</span>
+<span class="kn">from</span> <span class="nn">openstack_dashboard.api</span> <span class="kn">import</span> <span class="n">vpn</span>
+
+<span class="kn">from</span> <span class="nn">openstack_dashboard.test.test_data</span> <span class="kn">import</span> <span class="n">utils</span>
+
+
+<div class="viewcode-block" id="data"><a class="viewcode-back" href="../../../../sourcecode/openstack_dashboard/openstack_dashboard.test.test_data.neutron_data.html#openstack_dashboard.test.test_data.neutron_data.data">[docs]</a><span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="n">TEST</span><span class="p">):</span>
+    <span class="c"># data returned by openstack_dashboard.api.neutron wrapper</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">agents</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">networks</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ports</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">routers</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">routers_with_rules</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">q_floating_ips</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">q_secgroups</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">q_secgroup_rules</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">providers</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">pools</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">vips</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">members</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">monitors</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">neutron_quotas</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">net_profiles</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">policy_profiles</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">network_profile_binding</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">policy_profile_binding</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">vpnservices</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ikepolicies</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecpolicies</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecsiteconnections</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">firewalls</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">fw_policies</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">fw_rules</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+
+    <span class="c"># data return by neutronclient</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_agents</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_networks</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_subnets</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ports</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_routers</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_q_floating_ips</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_q_secgroups</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_q_secgroup_rules</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_pools</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_vips</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_members</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_monitors</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_extensions</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_net_profiles</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_policy_profiles</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_network_profile_binding</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_policy_profile_binding</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_vpnservices</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ikepolicies</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ipsecpolicies</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ipsecsiteconnections</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_firewalls</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_fw_policies</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_fw_rules</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">TestDataContainer</span><span class="p">()</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># 1st network</span>
+    <span class="n">network_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;82288d84-e0a5-42ac-95be-e6af08727e42&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;net1&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;subnets&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;e8abc972-eb0c-41f1-9edd-4bc6e3bcd8c9&#39;</span><span class="p">],</span>
+                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;router:external&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                    <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+    <span class="n">subnet_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;allocation_pools&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;end&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.254&#39;</span><span class="p">,</span>
+                                         <span class="s">&#39;start&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.2&#39;</span><span class="p">}],</span>
+                   <span class="s">&#39;dns_nameservers&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                   <span class="s">&#39;host_routes&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                   <span class="s">&#39;cidr&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.0/24&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;enable_dhcp&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                   <span class="s">&#39;gateway_ip&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;subnets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                   <span class="s">&#39;ip_version&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;mysubnet1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_subnets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">)</span>
+
+    <span class="n">network</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">network_dict</span><span class="p">)</span>
+    <span class="n">subnet</span> <span class="o">=</span> <span class="n">neutron</span><span class="o">.</span><span class="n">Subnet</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">)</span>
+    <span class="n">network</span><span class="p">[</span><span class="s">&#39;subnets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">subnet</span><span class="p">]</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">network</span><span class="p">))</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subnet</span><span class="p">)</span>
+
+    <span class="c"># network profile for network when using the cisco n1k plugin</span>
+    <span class="n">net_profile_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;net_profile_test1&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;segment_type&#39;</span><span class="p">:</span> <span class="s">&#39;vlan&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;physical_network&#39;</span><span class="p">:</span> <span class="s">&#39;phys1&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;segment_range&#39;</span><span class="p">:</span> <span class="s">&#39;3000-3100&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;id&#39;</span><span class="p">:</span>
+                        <span class="s">&#39;00000000-1111-1111-1111-000000000000&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;project&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">))</span>
+
+    <span class="c"># policy profile for port when using the cisco n1k plugin</span>
+    <span class="n">policy_profile_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;policy_profile_test1&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;id&#39;</span><span class="p">:</span>
+                           <span class="s">&#39;00000000-9999-9999-9999-000000000000&#39;</span><span class="p">}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_policy_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">policy_profile_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">policy_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">policy_profile_dict</span><span class="p">))</span>
+
+    <span class="c"># network profile binding</span>
+    <span class="n">network_profile_binding_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;profile_id&#39;</span><span class="p">:</span>
+                                    <span class="s">&#39;00000000-1111-1111-1111-000000000000&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_profile_binding_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span>
+        <span class="n">network_profile_binding_dict</span><span class="p">))</span>
+
+    <span class="c"># policy profile binding</span>
+    <span class="n">policy_profile_binding_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;profile_id&#39;</span><span class="p">:</span>
+                                   <span class="s">&#39;00000000-9999-9999-9999-000000000000&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_policy_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">policy_profile_binding_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">policy_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span>
+        <span class="n">policy_profile_binding_dict</span><span class="p">))</span>
+
+    <span class="c"># ports on 1st network</span>
+    <span class="n">port_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;device_id&#39;</span><span class="p">:</span> <span class="s">&#39;af75c8e5-a1cc-4567-8d04-44fcd6922890&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;device_owner&#39;</span><span class="p">:</span> <span class="s">&#39;network:dhcp&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;fixed_ips&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.3&#39;</span><span class="p">,</span>
+                                <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">subnet_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]}],</span>
+                 <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;063cf7f3-ded1-4297-bc4c-31eae876cc91&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;mac_address&#39;</span><span class="p">:</span> <span class="s">&#39;fa:16:3e:9c:d5:7e&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                 <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">port_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Port</span><span class="p">(</span><span class="n">port_dict</span><span class="p">))</span>
+
+    <span class="n">port_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;device_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;device_owner&#39;</span><span class="p">:</span> <span class="s">&#39;compute:nova&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;fixed_ips&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.4&#39;</span><span class="p">,</span>
+                                <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">subnet_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]}],</span>
+                 <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;7e6ce62c-7ea2-44f8-b6b4-769af90a8406&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;mac_address&#39;</span><span class="p">:</span> <span class="s">&#39;fa:16:3e:9d:e6:2f&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                 <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">port_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Port</span><span class="p">(</span><span class="n">port_dict</span><span class="p">))</span>
+    <span class="n">assoc_port</span> <span class="o">=</span> <span class="n">port_dict</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># 2nd network</span>
+    <span class="n">network_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;72c3ab6c-c80f-4341-9dc5-210fa31ac6c2&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;net2&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;subnets&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;3f7c5d79-ee55-47b0-9213-8e669fb03009&#39;</span><span class="p">],</span>
+                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;router:external&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                    <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">subnet_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;allocation_pools&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;end&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.254&#39;</span><span class="p">,</span>
+                                         <span class="s">&#39;start&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.2&#39;</span><span class="p">}],</span>
+                   <span class="s">&#39;dns_nameservers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;10.56.1.20&#39;</span><span class="p">,</span> <span class="s">&#39;10.56.1.21&#39;</span><span class="p">],</span>
+                   <span class="s">&#39;host_routes&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;destination&#39;</span><span class="p">:</span> <span class="s">&#39;192.168.20.0/24&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;nexthop&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.253&#39;</span><span class="p">},</span>
+                                   <span class="p">{</span><span class="s">&#39;destination&#39;</span><span class="p">:</span> <span class="s">&#39;192.168.21.0/24&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;nexthop&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.252&#39;</span><span class="p">}],</span>
+                   <span class="s">&#39;cidr&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.0/24&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;enable_dhcp&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                   <span class="s">&#39;gateway_ip&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;3f7c5d79-ee55-47b0-9213-8e669fb03009&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;ip_version&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;aaaa&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_subnets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">)</span>
+
+    <span class="n">network</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">network_dict</span><span class="p">)</span>
+    <span class="n">subnet</span> <span class="o">=</span> <span class="n">neutron</span><span class="o">.</span><span class="n">Subnet</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">)</span>
+    <span class="n">network</span><span class="p">[</span><span class="s">&#39;subnets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">subnet</span><span class="p">]</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">network</span><span class="p">))</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subnet</span><span class="p">)</span>
+
+    <span class="n">port_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;device_id&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;device_owner&#39;</span><span class="p">:</span> <span class="s">&#39;compute:nova&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;fixed_ips&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.3&#39;</span><span class="p">,</span>
+                                <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">subnet_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]}],</span>
+                 <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;1db2cc37-3553-43fa-b7e2-3fc4eb4f9905&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;mac_address&#39;</span><span class="p">:</span> <span class="s">&#39;fa:16:3e:56:e6:2f&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                 <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">port_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Port</span><span class="p">(</span><span class="n">port_dict</span><span class="p">))</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># external network</span>
+    <span class="n">network_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;9b466b94-213a-4cda-badf-72c102a874da&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ext_net&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;subnets&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d6bdc71c-7566-4d32-b3ff-36441ce746e8&#39;</span><span class="p">],</span>
+                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;3&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;router:external&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+    <span class="n">subnet_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;allocation_pools&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;start&#39;</span><span class="p">:</span> <span class="s">&#39;172.24.4.226.&#39;</span><span class="p">,</span>
+                                         <span class="s">&#39;end&#39;</span><span class="p">:</span> <span class="s">&#39;172.24.4.238&#39;</span><span class="p">}],</span>
+                   <span class="s">&#39;dns_nameservers&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                   <span class="s">&#39;host_routes&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                   <span class="s">&#39;cidr&#39;</span><span class="p">:</span> <span class="s">&#39;172.24.4.0/28&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;enable_dhcp&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="s">&#39;gateway_ip&#39;</span><span class="p">:</span> <span class="s">&#39;172.24.4.225&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;d6bdc71c-7566-4d32-b3ff-36441ce746e8&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;ip_version&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ext_subnet&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+    <span class="n">ext_net</span> <span class="o">=</span> <span class="n">network_dict</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_subnets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">)</span>
+
+    <span class="n">network</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">network_dict</span><span class="p">)</span>
+    <span class="n">subnet</span> <span class="o">=</span> <span class="n">neutron</span><span class="o">.</span><span class="n">Subnet</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">)</span>
+    <span class="n">network</span><span class="p">[</span><span class="s">&#39;subnets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">subnet</span><span class="p">]</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">network</span><span class="p">))</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subnet</span><span class="p">)</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># Set up router data</span>
+    <span class="n">port_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;device_id&#39;</span><span class="p">:</span> <span class="s">&#39;7180cede-bcd8-4334-b19f-f7ef2f331f53&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;device_owner&#39;</span><span class="p">:</span> <span class="s">&#39;network:router_gateway&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;fixed_ips&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.3&#39;</span><span class="p">,</span>
+                                <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">subnet_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]}],</span>
+                 <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;44ec6726-4bdc-48c5-94d4-df8d1fbf613b&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;mac_address&#39;</span><span class="p">:</span> <span class="s">&#39;fa:16:3e:9c:d5:7e&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">network_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                 <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">port_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ports</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Port</span><span class="p">(</span><span class="n">port_dict</span><span class="p">))</span>
+
+    <span class="n">router_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;279989f7-54bb-41d9-ba42-0d61f12fda61&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;router1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;external_gateway_info&#39;</span><span class="p">:</span>
+                       <span class="p">{</span><span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">ext_net</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]},</span>
+                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_routers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">router_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">routers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Router</span><span class="p">(</span><span class="n">router_dict</span><span class="p">))</span>
+    <span class="n">router_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;10e3dc42-1ce1-4d48-87cf-7fc333055d6c&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;router2&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;external_gateway_info&#39;</span><span class="p">:</span>
+                       <span class="p">{</span><span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">ext_net</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]},</span>
+                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_routers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">router_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">routers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Router</span><span class="p">(</span><span class="n">router_dict</span><span class="p">))</span>
+    <span class="n">router_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;71fb25e9-cd9f-4a44-a780-85ec3bd8bdd7&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;rulerouter&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;external_gateway_info&#39;</span><span class="p">:</span>
+                       <span class="p">{</span><span class="s">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">ext_net</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]},</span>
+                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;router_rules&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;101&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;deny&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;source&#39;</span><span class="p">:</span> <span class="s">&#39;any&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;destination&#39;</span><span class="p">:</span> <span class="s">&#39;any&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;nexthops&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+                                    <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;102&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;permit&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;source&#39;</span><span class="p">:</span> <span class="s">&#39;any&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;destination&#39;</span><span class="p">:</span> <span class="s">&#39;8.8.8.8/32&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;nexthops&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;1.0.0.2&#39;</span><span class="p">,</span> <span class="s">&#39;1.0.0.1&#39;</span><span class="p">]}]}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_routers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">router_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">routers_with_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Router</span><span class="p">(</span><span class="n">router_dict</span><span class="p">))</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># floating IP</span>
+    <span class="c"># unassociated</span>
+    <span class="n">fip_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;floating_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.227&#39;</span><span class="p">,</span>
+                <span class="s">&#39;floating_network_id&#39;</span><span class="p">:</span> <span class="n">ext_net</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;9012cd70-cfae-4e46-b71e-6a409e9e0063&#39;</span><span class="p">,</span>
+                <span class="s">&#39;fixed_ip_address&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s">&#39;port_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s">&#39;router_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_q_floating_ips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fip_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">q_floating_ips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">FloatingIp</span><span class="p">(</span><span class="n">fip_dict</span><span class="p">))</span>
+
+    <span class="c"># associated (with compute port on 1st network)</span>
+    <span class="n">fip_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;floating_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;172.16.88.228&#39;</span><span class="p">,</span>
+                <span class="s">&#39;floating_network_id&#39;</span><span class="p">:</span> <span class="n">ext_net</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;a97af8f2-3149-4b97-abbd-e49ad19510f7&#39;</span><span class="p">,</span>
+                <span class="s">&#39;fixed_ip_address&#39;</span><span class="p">:</span> <span class="n">assoc_port</span><span class="p">[</span><span class="s">&#39;fixed_ips&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;ip_address&#39;</span><span class="p">],</span>
+                <span class="s">&#39;port_id&#39;</span><span class="p">:</span> <span class="n">assoc_port</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                <span class="s">&#39;router_id&#39;</span><span class="p">:</span> <span class="n">router_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_q_floating_ips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fip_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">q_floating_ips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">FloatingIp</span><span class="p">(</span><span class="n">fip_dict</span><span class="p">))</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># security group</span>
+
+    <span class="n">sec_group_1</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;default&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;faad7c80-3b62-4440-967c-13808c37131d&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;default&#39;</span><span class="p">}</span>
+    <span class="n">sec_group_2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;NotDefault&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;27a5c9a1-bdbb-48ac-833a-2e4b5f54b31d&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;other_group&#39;</span><span class="p">}</span>
+    <span class="n">sec_group_3</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;NotDefault&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;443a4d7a-4bd2-4474-9a77-02b35c9f8c95&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;another_group&#39;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">add_rule_to_group</span><span class="p">(</span><span class="n">secgroup</span><span class="p">,</span> <span class="n">default_only</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">rule_egress_ipv4</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+            <span class="s">&#39;direction&#39;</span><span class="p">:</span> <span class="s">u&#39;egress&#39;</span><span class="p">,</span> <span class="s">&#39;ethertype&#39;</span><span class="p">:</span> <span class="s">u&#39;IPv4&#39;</span><span class="p">,</span>
+            <span class="s">&#39;port_range_min&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;port_range_max&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;remote_group_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;remote_ip_prefix&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;security_group_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+        <span class="n">rule_egress_ipv6</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+            <span class="s">&#39;direction&#39;</span><span class="p">:</span> <span class="s">u&#39;egress&#39;</span><span class="p">,</span> <span class="s">&#39;ethertype&#39;</span><span class="p">:</span> <span class="s">u&#39;IPv6&#39;</span><span class="p">,</span>
+            <span class="s">&#39;port_range_min&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;port_range_max&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;remote_group_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;remote_ip_prefix&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;security_group_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+        <span class="n">rule_tcp_80</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+            <span class="s">&#39;direction&#39;</span><span class="p">:</span> <span class="s">u&#39;ingress&#39;</span><span class="p">,</span> <span class="s">&#39;ethertype&#39;</span><span class="p">:</span> <span class="s">u&#39;IPv4&#39;</span><span class="p">,</span>
+            <span class="s">&#39;port_range_min&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span> <span class="s">&#39;port_range_max&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+            <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">u&#39;tcp&#39;</span><span class="p">,</span> <span class="s">&#39;remote_group_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;remote_ip_prefix&#39;</span><span class="p">:</span> <span class="s">u&#39;0.0.0.0/0&#39;</span><span class="p">,</span>
+            <span class="s">&#39;security_group_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+        <span class="n">rule_icmp</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+            <span class="s">&#39;direction&#39;</span><span class="p">:</span> <span class="s">u&#39;ingress&#39;</span><span class="p">,</span> <span class="s">&#39;ethertype&#39;</span><span class="p">:</span> <span class="s">u&#39;IPv4&#39;</span><span class="p">,</span>
+            <span class="s">&#39;port_range_min&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&#39;port_range_max&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">u&#39;icmp&#39;</span><span class="p">,</span> <span class="s">&#39;remote_group_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;remote_ip_prefix&#39;</span><span class="p">:</span> <span class="s">u&#39;0.0.0.0/0&#39;</span><span class="p">,</span>
+            <span class="s">&#39;security_group_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+        <span class="n">rule_group</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+            <span class="s">&#39;direction&#39;</span><span class="p">:</span> <span class="s">u&#39;ingress&#39;</span><span class="p">,</span> <span class="s">&#39;ethertype&#39;</span><span class="p">:</span> <span class="s">u&#39;IPv4&#39;</span><span class="p">,</span>
+            <span class="s">&#39;port_range_min&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span> <span class="s">&#39;port_range_max&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+            <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">u&#39;tcp&#39;</span><span class="p">,</span> <span class="s">&#39;remote_group_id&#39;</span><span class="p">:</span> <span class="n">sec_group_1</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s">&#39;remote_ip_prefix&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;security_group_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+        <span class="n">rule_all_tcp</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span>
+            <span class="s">&#39;direction&#39;</span><span class="p">:</span> <span class="s">u&#39;egress&#39;</span><span class="p">,</span> <span class="s">&#39;ethertype&#39;</span><span class="p">:</span> <span class="s">u&#39;IPv4&#39;</span><span class="p">,</span>
+            <span class="s">&#39;port_range_min&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;port_range_max&#39;</span><span class="p">:</span> <span class="mi">65535</span><span class="p">,</span>
+            <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">u&#39;tcp&#39;</span><span class="p">,</span> <span class="s">&#39;remote_group_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;remote_ip_prefix&#39;</span><span class="p">:</span> <span class="s">u&#39;0.0.0.0/24&#39;</span><span class="p">,</span>
+            <span class="s">&#39;security_group_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+            <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;tenant_id&#39;</span><span class="p">]}</span>
+
+        <span class="n">rules</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">default_only</span><span class="p">:</span>
+            <span class="n">rules</span> <span class="o">+=</span> <span class="p">[</span><span class="n">rule_tcp_80</span><span class="p">,</span> <span class="n">rule_icmp</span><span class="p">,</span> <span class="n">rule_group</span><span class="p">,</span> <span class="n">rule_all_tcp</span><span class="p">]</span>
+        <span class="n">rules</span> <span class="o">+=</span> <span class="p">[</span><span class="n">rule_egress_ipv4</span><span class="p">,</span> <span class="n">rule_egress_ipv6</span><span class="p">]</span>
+        <span class="n">secgroup</span><span class="p">[</span><span class="s">&#39;security_group_rules&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rules</span>
+
+    <span class="n">add_rule_to_group</span><span class="p">(</span><span class="n">sec_group_1</span><span class="p">,</span> <span class="n">default_only</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">add_rule_to_group</span><span class="p">(</span><span class="n">sec_group_2</span><span class="p">)</span>
+    <span class="n">add_rule_to_group</span><span class="p">(</span><span class="n">sec_group_3</span><span class="p">)</span>
+
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">[</span><span class="n">sec_group_1</span><span class="p">,</span> <span class="n">sec_group_2</span><span class="p">,</span> <span class="n">sec_group_3</span><span class="p">]</span>
+    <span class="n">sg_name_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">sg</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">sg</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+        <span class="c"># Neutron API</span>
+        <span class="n">TEST</span><span class="o">.</span><span class="n">api_q_secgroups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">sg</span><span class="p">[</span><span class="s">&#39;security_group_rules&#39;</span><span class="p">]:</span>
+            <span class="n">TEST</span><span class="o">.</span><span class="n">api_q_secgroup_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">rule</span><span class="p">))</span>
+        <span class="c"># OpenStack Dashboard internaly API</span>
+        <span class="n">TEST</span><span class="o">.</span><span class="n">q_secgroups</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">neutron</span><span class="o">.</span><span class="n">SecurityGroup</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">sg</span><span class="p">),</span> <span class="n">sg_name_dict</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">sg</span><span class="p">[</span><span class="s">&#39;security_group_rules&#39;</span><span class="p">]:</span>
+            <span class="n">TEST</span><span class="o">.</span><span class="n">q_secgroup_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">neutron</span><span class="o">.</span><span class="n">SecurityGroupRule</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">rule</span><span class="p">),</span> <span class="n">sg_name_dict</span><span class="p">))</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># LBaaS</span>
+
+    <span class="c"># 1st pool</span>
+    <span class="n">pool_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;8913dde8-4915-4b90-8d3e-b95eeedb0d49&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;vip_id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;pool1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;pool description&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                 <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;lb_method&#39;</span><span class="p">:</span> <span class="s">&#39;ROUND_ROBIN&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;health_monitors&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d4a0500f-db2b-4cc4-afcf-ec026febff96&#39;</span><span class="p">],</span>
+                 <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                 <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;provider&#39;</span><span class="p">:</span> <span class="s">&#39;haproxy&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_pools</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pool_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">pools</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">pool_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd pool</span>
+    <span class="n">pool_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;8913dde8-4915-4b90-8d3e-b95eeedb0d50&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;vip_id&#39;</span><span class="p">:</span> <span class="s">&#39;f0881d38-c3eb-4fee-9763-12de3338041d&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;pool2&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;pool description&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                 <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;HTTPS&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;lb_method&#39;</span><span class="p">:</span> <span class="s">&#39;ROUND_ROBIN&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;health_monitors&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d4a0500f-db2b-4cc4-afcf-ec026febff97&#39;</span><span class="p">],</span>
+                 <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;PENDING_CREATE&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_pools</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pool_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">pools</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">pool_dict</span><span class="p">))</span>
+
+    <span class="c"># 1st vip</span>
+    <span class="n">vip_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vip1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.100&#39;</span><span class="p">,</span>
+                <span class="s">&#39;floatip_address&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;other_address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.100&#39;</span><span class="p">,</span>
+                <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vip description&#39;</span><span class="p">,</span>
+                <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&#39;subnet&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">cidr</span><span class="p">,</span>
+                <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+                <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">pool_dict</span><span class="p">[</span><span class="s">&#39;protocol&#39;</span><span class="p">],</span>
+                <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="n">pool_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                <span class="s">&#39;session_persistence&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;APP_COOKIE&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;cookie_name&#39;</span><span class="p">:</span> <span class="s">&#39;jssessionid&#39;</span><span class="p">},</span>
+                <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_vips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vip_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">vips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Vip</span><span class="p">(</span><span class="n">vip_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd vip</span>
+    <span class="n">vip_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;f0881d38-c3eb-4fee-9763-12de3338041d&#39;</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;vip2&#39;</span><span class="p">,</span>
+                <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.110&#39;</span><span class="p">,</span>
+                <span class="s">&#39;floatip_address&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;other_address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.110&#39;</span><span class="p">,</span>
+                <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vip description&#39;</span><span class="p">,</span>
+                <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s">&#39;subnet&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">cidr</span><span class="p">,</span>
+                <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+                <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">pool_dict</span><span class="p">[</span><span class="s">&#39;protocol&#39;</span><span class="p">],</span>
+                <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="n">pool_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                <span class="s">&#39;session_persistence&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;APP_COOKIE&#39;</span><span class="p">,</span>
+                                        <span class="s">&#39;cookie_name&#39;</span><span class="p">:</span> <span class="s">&#39;jssessionid&#39;</span><span class="p">},</span>
+                <span class="s">&#39;connection_limit&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_vips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vip_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">vips</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Vip</span><span class="p">(</span><span class="n">vip_dict</span><span class="p">))</span>
+
+    <span class="c"># 1st member</span>
+    <span class="n">member_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;78a46e5e-eb1a-418a-88c7-0e3f5968b08&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="n">pool_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                   <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.11&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+                   <span class="s">&#39;weight&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                   <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_members</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">member_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Member</span><span class="p">(</span><span class="n">member_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd member</span>
+    <span class="n">member_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;41ac1f8d-6d9c-49a4-a1bf-41955e651f91&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;pool_id&#39;</span><span class="p">:</span> <span class="n">pool_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                  <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;10.0.0.12&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;protocol_port&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+                  <span class="s">&#39;weight&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                  <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ACTIVE&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_members</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">member_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">Member</span><span class="p">(</span><span class="n">member_dict</span><span class="p">))</span>
+
+    <span class="c"># 1st monitor</span>
+    <span class="n">monitor_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;d4a0500f-db2b-4cc4-afcf-ec026febff96&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;ping&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;delay&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s">&#39;max_retries&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s">&#39;http_method&#39;</span><span class="p">:</span> <span class="s">&#39;GET&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;url_path&#39;</span><span class="p">:</span> <span class="s">&#39;/&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;expected_codes&#39;</span><span class="p">:</span> <span class="s">&#39;200&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_monitors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">monitor_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">monitors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">PoolMonitor</span><span class="p">(</span><span class="n">monitor_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd monitor</span>
+    <span class="n">monitor_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;d4a0500f-db2b-4cc4-afcf-ec026febff97&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;ping&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;delay&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s">&#39;max_retries&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s">&#39;http_method&#39;</span><span class="p">:</span> <span class="s">&#39;GET&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;url_path&#39;</span><span class="p">:</span> <span class="s">&#39;/&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;expected_codes&#39;</span><span class="p">:</span> <span class="s">&#39;200&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_monitors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">monitor_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">monitors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lbaas</span><span class="o">.</span><span class="n">PoolMonitor</span><span class="p">(</span><span class="n">monitor_dict</span><span class="p">))</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># Quotas</span>
+    <span class="n">quota_data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;network&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;subnet&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;port&#39;</span><span class="p">:</span> <span class="s">&#39;50&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;router&#39;</span><span class="p">:</span> <span class="s">&#39;10&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;floatingip&#39;</span><span class="p">:</span> <span class="s">&#39;50&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;security_group&#39;</span><span class="p">:</span> <span class="s">&#39;20&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;security_group_rule&#39;</span><span class="p">:</span> <span class="s">&#39;100&#39;</span><span class="p">,</span>
+                  <span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">neutron_quotas</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">QuotaSet</span><span class="p">(</span><span class="n">quota_data</span><span class="p">))</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># Extensions</span>
+    <span class="n">extension_1</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;security-group&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;alias&quot;</span><span class="p">:</span> <span class="s">&quot;security-group&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">&quot;The security groups extension.&quot;</span><span class="p">}</span>
+    <span class="n">extension_2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Quota management support&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;alias&quot;</span><span class="p">:</span> <span class="s">&quot;quotas&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="s">&quot;Expose functions for quotas management&quot;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_extensions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">extension_1</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_extensions</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">extension_2</span><span class="p">)</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># 1st agent</span>
+    <span class="n">agent_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;binary&quot;</span><span class="p">:</span> <span class="s">&quot;neutron-openvswitch-agent&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                  <span class="s">&quot;admin_state_up&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                  <span class="s">&quot;heartbeat_timestamp&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-26 06:51:47&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;alive&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                  <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;c876ff05-f440-443e-808c-1d34cda3e88a&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;topic&quot;</span><span class="p">:</span> <span class="s">&quot;N/A&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;devstack001&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;agent_type&quot;</span><span class="p">:</span> <span class="s">&quot;Open vSwitch agent&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;started_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-26 05:23:28&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;created_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-26 05:23:28&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;configurations&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;devices&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_agents</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">agent_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">agents</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Agent</span><span class="p">(</span><span class="n">agent_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd agent</span>
+    <span class="n">agent_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;binary&quot;</span><span class="p">:</span> <span class="s">&quot;neutron-dhcp-agent&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;description&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                  <span class="s">&quot;admin_state_up&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                  <span class="s">&quot;heartbeat_timestamp&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-26 06:51:48&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;alive&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                  <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;f0d12e3d-1973-41a2-b977-b95693f9a8aa&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;topic&quot;</span><span class="p">:</span> <span class="s">&quot;dhcp_agent&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;host&quot;</span><span class="p">:</span> <span class="s">&quot;devstack001&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;agent_type&quot;</span><span class="p">:</span> <span class="s">&quot;DHCP agent&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;started_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-26 05:23:30&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;created_at&quot;</span><span class="p">:</span> <span class="s">&quot;2013-07-26 05:23:30&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;configurations&quot;</span><span class="p">:</span> <span class="p">{</span>
+                      <span class="s">&quot;subnets&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                      <span class="s">&quot;use_namespaces&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                      <span class="s">&quot;dhcp_lease_duration&quot;</span><span class="p">:</span> <span class="mi">120</span><span class="p">,</span>
+                      <span class="s">&quot;dhcp_driver&quot;</span><span class="p">:</span> <span class="s">&quot;neutron.agent.linux.dhcp.Dnsmasq&quot;</span><span class="p">,</span>
+                      <span class="s">&quot;networks&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                      <span class="s">&quot;ports&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_agents</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">agent_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">agents</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Agent</span><span class="p">(</span><span class="n">agent_dict</span><span class="p">))</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># Service providers</span>
+    <span class="n">provider_1</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;service_type&quot;</span><span class="p">:</span> <span class="s">&quot;LOADBALANCER&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;haproxy&quot;</span><span class="p">,</span>
+                  <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">providers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">provider_1</span><span class="p">)</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># VPNaaS</span>
+
+    <span class="c"># 1st VPNService</span>
+    <span class="n">vpnservice_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;09a26949-6231-4f72-942a-0c8c0ddd4d61&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;cloud_vpn1&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vpn description&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                       <span class="s">&#39;router_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">routers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                       <span class="s">&#39;vpn_type&#39;</span><span class="p">:</span> <span class="s">&#39;ipsec&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;ipsecsiteconnections&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                       <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                       <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;Active&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;ipsecsiteconns&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecsiteconnections</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_vpnservices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpnservice_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">vpnservices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpn</span><span class="o">.</span><span class="n">VPNService</span><span class="p">(</span><span class="n">vpnservice_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd VPNService</span>
+    <span class="n">vpnservice_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;09a26949-6231-4f72-942a-0c8c0ddd4d62&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;cloud_vpn2&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vpn description&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;subnet_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">subnets</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                       <span class="s">&#39;router_id&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">routers</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                       <span class="s">&#39;vpn_type&#39;</span><span class="p">:</span> <span class="s">&#39;ipsec&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;ipsecsiteconnections&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                       <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                       <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;Active&#39;</span><span class="p">,</span>
+                       <span class="s">&#39;ipsecsiteconns&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_vpnservices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpnservice_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">vpnservices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpn</span><span class="o">.</span><span class="n">VPNService</span><span class="p">(</span><span class="n">vpnservice_dict</span><span class="p">))</span>
+
+    <span class="c"># 1st IKEPolicy</span>
+    <span class="n">ikepolicy_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;a1f009b7-0ffa-43a7-ba19-dcabb0b4c981&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ikepolicy_1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;ikepolicy description&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;auth_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;sha1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;encryption_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;aes-256&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;ike_version&#39;</span><span class="p">:</span> <span class="s">&#39;v1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;lifetime&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;units&#39;</span><span class="p">:</span> <span class="s">&#39;seconds&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">3600</span><span class="p">},</span>
+                      <span class="s">&#39;phase1_negotiation_mode&#39;</span><span class="p">:</span> <span class="s">&#39;main&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;pfs&#39;</span><span class="p">:</span> <span class="s">&#39;group5&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;ipsecsiteconns&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecsiteconnections</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ikepolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ikepolicy_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ikepolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpn</span><span class="o">.</span><span class="n">IKEPolicy</span><span class="p">(</span><span class="n">ikepolicy_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd IKEPolicy</span>
+    <span class="n">ikepolicy_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;a1f009b7-0ffa-43a7-ba19-dcabb0b4c982&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ikepolicy_2&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;ikepolicy description&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;auth_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;sha1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;encryption_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;aes-256&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;ike_version&#39;</span><span class="p">:</span> <span class="s">&#39;v1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;lifetime&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;units&#39;</span><span class="p">:</span> <span class="s">&#39;seconds&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">3600</span><span class="p">},</span>
+                      <span class="s">&#39;phase1_negotiation_mode&#39;</span><span class="p">:</span> <span class="s">&#39;main&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;pfs&#39;</span><span class="p">:</span> <span class="s">&#39;group5&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;ipsecsiteconns&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ikepolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ikepolicy_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ikepolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpn</span><span class="o">.</span><span class="n">IKEPolicy</span><span class="p">(</span><span class="n">ikepolicy_dict</span><span class="p">))</span>
+
+    <span class="c"># 1st IPSecPolicy</span>
+    <span class="n">ipsecpolicy_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;8376e1dd-2b1c-4346-b23c-6989e75ecdb8&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ipsecpolicy_1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;ipsecpolicy description&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;auth_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;sha1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;encapsulation_mode&#39;</span><span class="p">:</span> <span class="s">&#39;tunnel&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;encryption_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;3des&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;lifetime&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;units&#39;</span><span class="p">:</span> <span class="s">&#39;seconds&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">3600</span><span class="p">},</span>
+                      <span class="s">&#39;pfs&#39;</span><span class="p">:</span> <span class="s">&#39;group5&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;transform_protocol&#39;</span><span class="p">:</span> <span class="s">&#39;esp&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;ipsecsiteconns&#39;</span><span class="p">:</span> <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecsiteconnections</span><span class="o">.</span><span class="n">list</span><span class="p">()}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ipsecpolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ipsecpolicy_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecpolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpn</span><span class="o">.</span><span class="n">IPSecPolicy</span><span class="p">(</span><span class="n">ipsecpolicy_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd IPSecPolicy</span>
+    <span class="n">ipsecpolicy_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;8376e1dd-2b1c-4346-b23c-6989e75ecdb9&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ipsecpolicy_2&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;ipsecpolicy description&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;auth_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;sha1&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;encapsulation_mode&#39;</span><span class="p">:</span> <span class="s">&#39;tunnel&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;encryption_algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;3des&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;lifetime&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;units&#39;</span><span class="p">:</span> <span class="s">&#39;seconds&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">:</span> <span class="mi">3600</span><span class="p">},</span>
+                      <span class="s">&#39;pfs&#39;</span><span class="p">:</span> <span class="s">&#39;group5&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;transform_protocol&#39;</span><span class="p">:</span> <span class="s">&#39;esp&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;ipsecsiteconns&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ipsecpolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ipsecpolicy_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecpolicies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vpn</span><span class="o">.</span><span class="n">IPSecPolicy</span><span class="p">(</span><span class="n">ipsecpolicy_dict</span><span class="p">))</span>
+
+    <span class="c"># 1st IPSecSiteConnection</span>
+    <span class="n">ipsecsiteconnection_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;dd1dd3a0-f349-49be-b013-245e147763d6&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ipsec_connection_1&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vpn connection description&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;dpd&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;hold&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;interval&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+                                  <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">120</span><span class="p">},</span>
+                          <span class="s">&#39;ikepolicy_id&#39;</span><span class="p">:</span> <span class="n">ikepolicy_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;initiator&#39;</span><span class="p">:</span> <span class="s">&#39;bi-directional&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;ipsecpolicy_id&#39;</span><span class="p">:</span> <span class="n">ipsecpolicy_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;mtu&#39;</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span>
+                          <span class="s">&#39;peer_address&#39;</span><span class="p">:</span>
+                              <span class="s">&#39;2607:f0d0:4545:3:200:f8ff:fe21:67cf&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;peer_cidrs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;20.1.0.0/24&#39;</span><span class="p">,</span> <span class="s">&#39;21.1.0.0/24&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;peer_id&#39;</span><span class="p">:</span> <span class="s">&#39;2607:f0d0:4545:3:200:f8ff:fe21:67cf&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;psk&#39;</span><span class="p">:</span> <span class="s">&#39;secret&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;vpnservice_id&#39;</span><span class="p">:</span> <span class="n">vpnservice_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                          <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;Active&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ipsecsiteconnections</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ipsecsiteconnection_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecsiteconnections</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+        <span class="n">vpn</span><span class="o">.</span><span class="n">IPSecSiteConnection</span><span class="p">(</span><span class="n">ipsecsiteconnection_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd IPSecSiteConnection</span>
+    <span class="n">ipsecsiteconnection_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;dd1dd3a0-f349-49be-b013-245e147763d7&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;ipsec_connection_2&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;vpn connection description&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;dpd&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;hold&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;interval&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+                                  <span class="s">&#39;timeout&#39;</span><span class="p">:</span> <span class="mi">120</span><span class="p">},</span>
+                          <span class="s">&#39;ikepolicy_id&#39;</span><span class="p">:</span> <span class="n">ikepolicy_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;initiator&#39;</span><span class="p">:</span> <span class="s">&#39;bi-directional&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;ipsecpolicy_id&#39;</span><span class="p">:</span> <span class="n">ipsecpolicy_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;mtu&#39;</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span>
+                          <span class="s">&#39;peer_address&#39;</span><span class="p">:</span> <span class="s">&#39;172.0.0.2&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;peer_cidrs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;20.1.0.0/24&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;peer_id&#39;</span><span class="p">:</span> <span class="s">&#39;172.0.0.2&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;psk&#39;</span><span class="p">:</span> <span class="s">&#39;secret&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;vpnservice_id&#39;</span><span class="p">:</span> <span class="n">vpnservice_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span>
+                          <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                          <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;Active&#39;</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_ipsecsiteconnections</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ipsecsiteconnection_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">ipsecsiteconnections</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+        <span class="n">vpn</span><span class="o">.</span><span class="n">IPSecSiteConnection</span><span class="p">(</span><span class="n">ipsecsiteconnection_dict</span><span class="p">))</span>
+
+    <span class="c"># FWaaS</span>
+
+    <span class="c"># 1st rule (used by 1st policy)</span>
+    <span class="n">rule1_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;f0881d38-c3eb-4fee-9763-12de3338041d&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;rule1&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;rule1 description&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;tcp&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;allow&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;source_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;1.2.3.0/24&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;source_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;destination_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;4.5.6.7/32&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;destination_port&#39;</span><span class="p">:</span> <span class="s">&#39;1:65535&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;firewall_policy_id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;position&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                  <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                  <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule1_dict</span><span class="p">)</span>
+
+    <span class="n">rule1</span> <span class="o">=</span> <span class="n">fwaas</span><span class="o">.</span><span class="n">Rule</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">rule1_dict</span><span class="p">))</span>
+    <span class="c"># NOTE: rule1[&#39;policy&#39;] is set below</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">fw_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule1</span><span class="p">)</span>
+
+    <span class="c"># 2nd rule (used by 2nd policy; no name)</span>
+    <span class="n">rule2_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;c6298a93-850f-4f64-b78a-959fd4f1e5df&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;udp&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;deny&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;source_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;1.2.3.0/24&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;source_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;destination_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;4.5.6.7/32&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;destination_port&#39;</span><span class="p">:</span> <span class="s">&#39;1:65535&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;firewall_policy_id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;position&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                  <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                  <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule2_dict</span><span class="p">)</span>
+
+    <span class="n">rule2</span> <span class="o">=</span> <span class="n">fwaas</span><span class="o">.</span><span class="n">Rule</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">rule2_dict</span><span class="p">))</span>
+    <span class="c"># NOTE: rule2[&#39;policy&#39;] is set below</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">fw_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule2</span><span class="p">)</span>
+
+    <span class="c"># 3rd rule (not used by any policy)</span>
+    <span class="n">rule3_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;h0881d38-c3eb-4fee-9763-12de3338041d&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;rule3&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;rule3 description&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;protocol&#39;</span><span class="p">:</span> <span class="s">&#39;icmp&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;allow&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;source_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;1.2.3.0/24&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;source_port&#39;</span><span class="p">:</span> <span class="s">&#39;80&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;destination_ip_address&#39;</span><span class="p">:</span> <span class="s">&#39;4.5.6.7/32&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;destination_port&#39;</span><span class="p">:</span> <span class="s">&#39;1:65535&#39;</span><span class="p">,</span>
+                  <span class="s">&#39;firewall_policy_id&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                  <span class="s">&#39;position&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                  <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                  <span class="s">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_fw_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule3_dict</span><span class="p">)</span>
+
+    <span class="n">rule3</span> <span class="o">=</span> <span class="n">fwaas</span><span class="o">.</span><span class="n">Rule</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">rule3_dict</span><span class="p">))</span>
+    <span class="c"># rule3 is not associated with any rules</span>
+    <span class="n">rule3</span><span class="o">.</span><span class="n">_apidict</span><span class="p">[</span><span class="s">&#39;policy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">fw_rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule3</span><span class="p">)</span>
+
+    <span class="c"># 1st policy (associated with 2 rules)</span>
+    <span class="n">policy1_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;policy1&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;policy with two rules&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;firewall_rules&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">rule1_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">rule2_dict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]],</span>
+                    <span class="s">&#39;audited&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">policy1_dict</span><span class="p">)</span>
+
+    <span class="n">policy1</span> <span class="o">=</span> <span class="n">fwaas</span><span class="o">.</span><span class="n">Policy</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">policy1_dict</span><span class="p">))</span>
+    <span class="n">policy1</span><span class="o">.</span><span class="n">_apidict</span><span class="p">[</span><span class="s">&#39;rules&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">rule1</span><span class="p">,</span> <span class="n">rule2</span><span class="p">]</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">policy1</span><span class="p">)</span>
+
+    <span class="c"># Reverse relations (rule -&gt; policy)</span>
+    <span class="n">rule1</span><span class="o">.</span><span class="n">_apidict</span><span class="p">[</span><span class="s">&#39;policy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy1</span>
+    <span class="n">rule2</span><span class="o">.</span><span class="n">_apidict</span><span class="p">[</span><span class="s">&#39;policy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy1</span>
+
+    <span class="c"># 2nd policy (associated with no rules; no name)</span>
+    <span class="n">policy2_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;cf50b331-787a-4623-825e-da794c918d6a&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;firewall_rules&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s">&#39;audited&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                    <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_fw_policies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">policy2_dict</span><span class="p">)</span>
+
+    <span class="n">policy2</span> <span class="o">=</span> <span class="n">fwaas</span><span class="o">.</span><span class="n">Policy</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">policy2_dict</span><span class="p">))</span>
+    <span class="n">policy2</span><span class="o">.</span><span class="n">_apidict</span><span class="p">[</span><span class="s">&#39;rules&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">fw_policies</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">policy2</span><span class="p">)</span>
+
+    <span class="c"># 1st firewall</span>
+    <span class="n">fw1_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;8913dde8-4915-4b90-8d3e-b95eeedb0d49&#39;</span><span class="p">,</span>
+                <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;firewall_policy_id&#39;</span><span class="p">:</span>
+                    <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;firewall1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;firewall description&#39;</span><span class="p">,</span>
+                <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;PENDING_CREATE&#39;</span><span class="p">,</span>
+                <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_firewalls</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fw1_dict</span><span class="p">)</span>
+
+    <span class="n">fw1</span> <span class="o">=</span> <span class="n">fwaas</span><span class="o">.</span><span class="n">Firewall</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">fw1_dict</span><span class="p">))</span>
+    <span class="n">fw1</span><span class="o">.</span><span class="n">_apidict</span><span class="p">[</span><span class="s">&#39;policy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy1</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">firewalls</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fw1</span><span class="p">)</span>
+
+    <span class="c"># 2nd firewall (no name)</span>
+    <span class="n">fw2_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="s">&#39;1aa75150-415f-458e-bae5-5a362a4fb1f7&#39;</span><span class="p">,</span>
+                <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;firewall_policy_id&#39;</span><span class="p">:</span>
+                    <span class="s">&#39;abcdef-c3eb-4fee-9763-12de3338041e&#39;</span><span class="p">,</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;PENDING_CREATE&#39;</span><span class="p">,</span>
+                <span class="s">&#39;shared&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s">&#39;admin_state_up&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_firewalls</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fw1_dict</span><span class="p">)</span>
+
+    <span class="n">fw2</span> <span class="o">=</span> <span class="n">fwaas</span><span class="o">.</span><span class="n">Firewall</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">fw2_dict</span><span class="p">))</span>
+    <span class="n">fw2</span><span class="o">.</span><span class="n">_apidict</span><span class="p">[</span><span class="s">&#39;policy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy1</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">firewalls</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fw1</span><span class="p">)</span>
+
+    <span class="c">#------------------------------------------------------------</span>
+    <span class="c"># Additional Cisco N1K profiles</span>
+
+    <span class="c"># 2nd network profile for network when using the cisco n1k plugin</span>
+    <span class="c"># Profile applied on 1st network</span>
+    <span class="n">net_profile_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;net_profile_test2&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;segment_type&#39;</span><span class="p">:</span> <span class="s">&#39;overlay&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;sub_type&#39;</span><span class="p">:</span> <span class="s">&#39;native_vxlan&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;segment_range&#39;</span><span class="p">:</span> <span class="s">&#39;10000-10100&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;multicast_ip_range&#39;</span><span class="p">:</span> <span class="s">&#39;144.0.0.0-144.0.0.100&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;id&#39;</span><span class="p">:</span>
+                        <span class="s">&#39;00000000-2222-2222-2222-000000000000&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;project&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">))</span>
+
+    <span class="c"># 2nd network profile binding</span>
+    <span class="n">network_profile_binding_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;profile_id&#39;</span><span class="p">:</span>
+                                    <span class="s">&#39;00000000-2222-2222-2222-000000000000&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_profile_binding_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span>
+        <span class="n">network_profile_binding_dict</span><span class="p">))</span>
+
+    <span class="c"># 3rd network profile for network when using the cisco n1k plugin</span>
+    <span class="c"># Profile applied on 1st network</span>
+    <span class="n">net_profile_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;net_profile_test3&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;segment_type&#39;</span><span class="p">:</span> <span class="s">&#39;overlay&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;sub_type&#39;</span><span class="p">:</span> <span class="s">&#39;other&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;other_subtype&#39;</span><span class="p">:</span> <span class="s">&#39;GRE&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;segment_range&#39;</span><span class="p">:</span> <span class="s">&#39;11000-11100&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;id&#39;</span><span class="p">:</span>
+                        <span class="s">&#39;00000000-3333-3333-3333-000000000000&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;project&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">))</span>
+
+    <span class="c"># 3rd network profile binding</span>
+    <span class="n">network_profile_binding_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;profile_id&#39;</span><span class="p">:</span>
+                                    <span class="s">&#39;00000000-3333-3333-3333-000000000000&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_profile_binding_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span>
+        <span class="n">network_profile_binding_dict</span><span class="p">))</span>
+
+    <span class="c"># 4th network profile for network when using the cisco n1k plugin</span>
+    <span class="c"># Profile applied on 1st network</span>
+    <span class="n">net_profile_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;net_profile_test4&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;segment_type&#39;</span><span class="p">:</span> <span class="s">&#39;trunk&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;sub_type_trunk&#39;</span><span class="p">:</span> <span class="s">&#39;vlan&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;id&#39;</span><span class="p">:</span>
+                        <span class="s">&#39;00000000-4444-4444-4444-000000000000&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;project&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">net_profiles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">net_profile_dict</span><span class="p">))</span>
+
+    <span class="c"># 4th network profile binding</span>
+    <span class="n">network_profile_binding_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;profile_id&#39;</span><span class="p">:</span>
+                                    <span class="s">&#39;00000000-4444-4444-4444-000000000000&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;tenant_id&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">}</span>
+
+    <span class="n">TEST</span><span class="o">.</span><span class="n">api_network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_profile_binding_dict</span><span class="p">)</span>
+    <span class="n">TEST</span><span class="o">.</span><span class="n">network_profile_binding</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">neutron</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span>
+        <span class="n">network_profile_binding_dict</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">Horizon 2014.1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, OpenStack Foundation.
+      Last updated on Tue Mar 11 04:36:31 2014, commit 1b0106e.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

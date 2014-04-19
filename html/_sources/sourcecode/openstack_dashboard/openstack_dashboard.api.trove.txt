@@ -1,0 +1,8 @@
+===============================================
+The :mod:`openstack_dashboard.api.trove` Module
+===============================================
+.. automodule:: openstack_dashboard.api.trove
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :noindex:
