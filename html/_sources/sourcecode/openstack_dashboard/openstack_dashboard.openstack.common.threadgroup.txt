@@ -1,8 +1,0 @@
-==================================================================
-The :mod:`openstack_dashboard.openstack.common.threadgroup` Module
-==================================================================
-.. automodule:: openstack_dashboard.openstack.common.threadgroup
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

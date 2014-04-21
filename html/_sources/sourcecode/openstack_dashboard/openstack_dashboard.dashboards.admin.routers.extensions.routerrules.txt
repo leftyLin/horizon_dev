@@ -1,8 +1,0 @@
-=====================================================================================
-The :mod:`openstack_dashboard.dashboards.admin.routers.extensions.routerrules` Module
-=====================================================================================
-.. automodule:: openstack_dashboard.dashboards.admin.routers.extensions.routerrules
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

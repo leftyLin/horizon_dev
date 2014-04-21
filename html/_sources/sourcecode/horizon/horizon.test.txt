@@ -1,8 +1,0 @@
-==============================
-The :mod:`horizon.test` Module
-==============================
-.. automodule:: horizon.test
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

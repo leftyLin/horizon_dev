@@ -1,8 +1,0 @@
-========================================================================================
-The :mod:`openstack_dashboard.test.test_plugins.panel_config._10_admin_add_panel` Module
-========================================================================================
-.. automodule:: openstack_dashboard.test.test_plugins.panel_config._10_admin_add_panel
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

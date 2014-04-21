@@ -1,8 +1,0 @@
-=====================================================================
-The :mod:`openstack_dashboard.openstack.common.rpc.serializer` Module
-=====================================================================
-.. automodule:: openstack_dashboard.openstack.common.rpc.serializer
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

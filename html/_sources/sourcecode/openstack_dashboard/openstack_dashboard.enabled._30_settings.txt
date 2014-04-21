@@ -1,8 +1,0 @@
-==========================================================
-The :mod:`openstack_dashboard.enabled._30_settings` Module
-==========================================================
-.. automodule:: openstack_dashboard.enabled._30_settings
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

@@ -1,8 +1,0 @@
-===========================================================================
-The :mod:`openstack_dashboard.openstack.common.rpc.matchmaker_redis` Module
-===========================================================================
-.. automodule:: openstack_dashboard.openstack.common.rpc.matchmaker_redis
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

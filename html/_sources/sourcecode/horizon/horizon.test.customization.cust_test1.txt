@@ -1,8 +1,0 @@
-=======================================================
-The :mod:`horizon.test.customization.cust_test1` Module
-=======================================================
-.. automodule:: horizon.test.customization.cust_test1
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

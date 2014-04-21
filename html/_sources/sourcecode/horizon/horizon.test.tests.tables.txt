@@ -1,8 +1,0 @@
-===========================================
-The :mod:`horizon.test.tests.tables` Module
-===========================================
-.. automodule:: horizon.test.tests.tables
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

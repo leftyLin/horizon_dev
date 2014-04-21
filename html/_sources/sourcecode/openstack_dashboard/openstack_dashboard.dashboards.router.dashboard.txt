@@ -1,8 +1,0 @@
-=================================================================
-The :mod:`openstack_dashboard.dashboards.router.dashboard` Module
-=================================================================
-.. automodule:: openstack_dashboard.dashboards.router.dashboard
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

@@ -1,8 +1,0 @@
-==============================================================================
-The :mod:`openstack_dashboard.dashboards.tltest.network_topology.tests` Module
-==============================================================================
-.. automodule:: openstack_dashboard.dashboards.tltest.network_topology.tests
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

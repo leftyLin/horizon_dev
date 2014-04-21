@@ -1,8 +1,0 @@
-================================================================
-The :mod:`openstack_dashboard.test.test_data.glance_data` Module
-================================================================
-.. automodule:: openstack_dashboard.test.test_data.glance_data
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

@@ -1,8 +1,0 @@
-============================================================================================
-The :mod:`openstack_dashboard.dashboards.project.databases.workflows.create_instance` Module
-============================================================================================
-.. automodule:: openstack_dashboard.dashboards.project.databases.workflows.create_instance
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

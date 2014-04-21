@@ -1,8 +1,0 @@
-=====================================================================
-The :mod:`openstack_dashboard.dashboards.admin.metering.tests` Module
-=====================================================================
-.. automodule:: openstack_dashboard.dashboards.admin.metering.tests
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

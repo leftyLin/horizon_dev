@@ -1,8 +1,0 @@
-=============================================================
-The :mod:`openstack_dashboard.openstack.common.config` Module
-=============================================================
-.. automodule:: openstack_dashboard.openstack.common.config
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

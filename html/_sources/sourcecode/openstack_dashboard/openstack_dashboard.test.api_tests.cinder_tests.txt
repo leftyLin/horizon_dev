@@ -1,8 +1,0 @@
-=================================================================
-The :mod:`openstack_dashboard.test.api_tests.cinder_tests` Module
-=================================================================
-.. automodule:: openstack_dashboard.test.api_tests.cinder_tests
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

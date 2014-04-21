@@ -1,8 +1,0 @@
-=========================================================================
-The :mod:`openstack_dashboard.test.test_panels.plugin_panel.views` Module
-=========================================================================
-.. automodule:: openstack_dashboard.test.test_panels.plugin_panel.views
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

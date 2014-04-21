@@ -1,8 +1,0 @@
-=========================================================
-The :mod:`openstack_dashboard.enabled._10_project` Module
-=========================================================
-.. automodule:: openstack_dashboard.enabled._10_project
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

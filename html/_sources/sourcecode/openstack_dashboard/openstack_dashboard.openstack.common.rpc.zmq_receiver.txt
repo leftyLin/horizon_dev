@@ -1,8 +1,0 @@
-=======================================================================
-The :mod:`openstack_dashboard.openstack.common.rpc.zmq_receiver` Module
-=======================================================================
-.. automodule:: openstack_dashboard.openstack.common.rpc.zmq_receiver
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

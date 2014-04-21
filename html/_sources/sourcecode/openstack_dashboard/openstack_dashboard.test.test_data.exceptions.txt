@@ -1,8 +1,0 @@
-===============================================================
-The :mod:`openstack_dashboard.test.test_data.exceptions` Module
-===============================================================
-.. automodule:: openstack_dashboard.test.test_data.exceptions
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

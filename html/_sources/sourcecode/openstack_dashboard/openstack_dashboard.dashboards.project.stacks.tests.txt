@@ -1,8 +1,0 @@
-=====================================================================
-The :mod:`openstack_dashboard.dashboards.project.stacks.tests` Module
-=====================================================================
-.. automodule:: openstack_dashboard.dashboards.project.stacks.tests
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

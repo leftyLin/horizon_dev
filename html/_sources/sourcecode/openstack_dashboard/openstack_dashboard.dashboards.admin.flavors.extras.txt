@@ -1,8 +1,0 @@
-=====================================================================
-The :mod:`openstack_dashboard.dashboards.admin.flavors.extras` Module
-=====================================================================
-.. automodule:: openstack_dashboard.dashboards.admin.flavors.extras
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

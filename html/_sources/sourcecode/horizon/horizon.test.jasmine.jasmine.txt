@@ -1,8 +1,0 @@
-==============================================
-The :mod:`horizon.test.jasmine.jasmine` Module
-==============================================
-.. automodule:: horizon.test.jasmine.jasmine
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

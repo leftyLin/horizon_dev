@@ -1,8 +1,0 @@
-==========================================================
-The :mod:`horizon.test.test_dashboards.dogs.models` Module
-==========================================================
-.. automodule:: horizon.test.test_dashboards.dogs.models
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

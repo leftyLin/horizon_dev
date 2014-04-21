@@ -1,8 +1,0 @@
-=================================================================
-The :mod:`openstack_dashboard.dashboards.tltest.dashboard` Module
-=================================================================
-.. automodule:: openstack_dashboard.dashboards.tltest.dashboard
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

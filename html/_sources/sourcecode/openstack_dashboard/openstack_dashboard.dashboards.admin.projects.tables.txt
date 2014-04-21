@@ -1,8 +1,0 @@
-======================================================================
-The :mod:`openstack_dashboard.dashboards.admin.projects.tables` Module
-======================================================================
-.. automodule:: openstack_dashboard.dashboards.admin.projects.tables
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

@@ -1,8 +1,0 @@
-==================================================================
-The :mod:`openstack_dashboard.dashboards.admin.roles.views` Module
-==================================================================
-.. automodule:: openstack_dashboard.dashboards.admin.roles.views
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

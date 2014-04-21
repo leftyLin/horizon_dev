@@ -1,8 +1,0 @@
-====================================================================
-The :mod:`openstack_dashboard.dashboards.admin.projects.urls` Module
-====================================================================
-.. automodule:: openstack_dashboard.dashboards.admin.projects.urls
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

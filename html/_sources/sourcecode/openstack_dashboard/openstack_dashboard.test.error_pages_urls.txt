@@ -1,8 +1,0 @@
-===========================================================
-The :mod:`openstack_dashboard.test.error_pages_urls` Module
-===========================================================
-.. automodule:: openstack_dashboard.test.error_pages_urls
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

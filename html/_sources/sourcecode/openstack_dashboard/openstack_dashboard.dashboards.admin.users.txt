@@ -1,8 +1,0 @@
-============================================================
-The :mod:`openstack_dashboard.dashboards.admin.users` Module
-============================================================
-.. automodule:: openstack_dashboard.dashboards.admin.users
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

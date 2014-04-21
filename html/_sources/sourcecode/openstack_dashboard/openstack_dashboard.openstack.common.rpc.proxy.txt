@@ -1,8 +1,0 @@
-================================================================
-The :mod:`openstack_dashboard.openstack.common.rpc.proxy` Module
-================================================================
-.. automodule:: openstack_dashboard.openstack.common.rpc.proxy
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

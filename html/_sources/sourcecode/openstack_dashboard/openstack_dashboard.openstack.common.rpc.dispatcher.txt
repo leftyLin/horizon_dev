@@ -1,8 +1,0 @@
-=====================================================================
-The :mod:`openstack_dashboard.openstack.common.rpc.dispatcher` Module
-=====================================================================
-.. automodule:: openstack_dashboard.openstack.common.rpc.dispatcher
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

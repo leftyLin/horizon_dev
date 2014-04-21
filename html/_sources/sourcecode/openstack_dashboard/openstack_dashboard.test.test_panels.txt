@@ -1,8 +1,0 @@
-======================================================
-The :mod:`openstack_dashboard.test.test_panels` Module
-======================================================
-.. automodule:: openstack_dashboard.test.test_panels
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

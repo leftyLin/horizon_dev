@@ -1,8 +1,0 @@
-=============================================================
-The :mod:`horizon.test.test_dashboards.cats.dashboard` Module
-=============================================================
-.. automodule:: horizon.test.test_dashboards.cats.dashboard
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

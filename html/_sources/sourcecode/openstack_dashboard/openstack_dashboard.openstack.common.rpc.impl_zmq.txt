@@ -1,8 +1,0 @@
-===================================================================
-The :mod:`openstack_dashboard.openstack.common.rpc.impl_zmq` Module
-===================================================================
-.. automodule:: openstack_dashboard.openstack.common.rpc.impl_zmq
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

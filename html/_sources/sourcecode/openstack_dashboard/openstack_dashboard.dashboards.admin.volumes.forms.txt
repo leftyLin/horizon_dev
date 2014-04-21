@@ -1,8 +1,0 @@
-====================================================================
-The :mod:`openstack_dashboard.dashboards.admin.volumes.forms` Module
-====================================================================
-.. automodule:: openstack_dashboard.dashboards.admin.volumes.forms
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

@@ -1,8 +1,0 @@
-========================================================================
-The :mod:`openstack_dashboard.dashboards.router.nexus1000v.tests` Module
-========================================================================
-.. automodule:: openstack_dashboard.dashboards.router.nexus1000v.tests
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

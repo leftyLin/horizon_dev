@@ -1,8 +1,0 @@
-================================================================
-The :mod:`horizon.test.test_dashboards.cats.tigers.panel` Module
-================================================================
-.. automodule:: horizon.test.test_dashboards.cats.tigers.panel
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

@@ -1,8 +1,0 @@
-===============================================================
-The :mod:`horizon.test.test_dashboards.cats.tigers.urls` Module
-===============================================================
-.. automodule:: horizon.test.test_dashboards.cats.tigers.urls
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

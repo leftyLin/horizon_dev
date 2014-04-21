@@ -1,8 +1,0 @@
-==============================================
-The :mod:`horizon.test.tests.workflows` Module
-==============================================
-.. automodule:: horizon.test.tests.workflows
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

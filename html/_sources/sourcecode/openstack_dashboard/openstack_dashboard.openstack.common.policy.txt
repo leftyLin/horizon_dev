@@ -1,8 +1,0 @@
-=============================================================
-The :mod:`openstack_dashboard.openstack.common.policy` Module
-=============================================================
-.. automodule:: openstack_dashboard.openstack.common.policy
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:

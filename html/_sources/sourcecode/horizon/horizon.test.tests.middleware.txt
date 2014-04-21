@@ -1,8 +1,0 @@
-===============================================
-The :mod:`horizon.test.tests.middleware` Module
-===============================================
-.. automodule:: horizon.test.tests.middleware
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :noindex:
